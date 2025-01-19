@@ -44,12 +44,12 @@ export function TerminalInput({
   }, []);
 
   return (
-    <div className={cn("mb-8", "terminal-input")}>
-      <div className="flex items-center gap-4">
+    <div className={cn("mb-4", "terminal-input", "py-2 px-3")}>
+      <div className="flex items-center gap-2">
         <div className="flex items-center gap-2">
           <Terminal className="text-primary" />
           {currentTime && (
-            <span className="text-xs text-muted-foreground font-mono">
+            <span className="text-xs text-muted-foreground/80 font-mono">
               {currentTime}
             </span>
           )}
@@ -68,11 +68,12 @@ export function TerminalInput({
             }
           }}
           placeholder="Enter command (e.g., /driver hamilton)"
-          className="flex-1 bg-transparent border-none text-primary placeholder-primary/50 focus:outline-none text-lg font-mono cursor-blink"
+          className="flex-1 bg-transparent border-none text-primary placeholder-primary/50 focus:outline-none text-sm font-mono cursor-blink h-7 px-2"
         />
         <Button
           onClick={onExecute}
-          size="lg"
+          size="sm"
+          className="h-7 px-3"
           disabled={isProcessing}>
           {isProcessing ? 'Processing...' : 'Execute'}
         </Button>

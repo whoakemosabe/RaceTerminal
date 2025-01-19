@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Terminal, Cpu, Clock, Calendar, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { APP_VERSION } from '@/lib/constants';
 
 export function SessionInfo() {
   const [mounted, setMounted] = useState(false);
@@ -26,11 +27,11 @@ export function SessionInfo() {
   // Don't render anything until mounted to prevent hydration mismatch
   if (!mounted) {
     return (
-      <div className="mb-4 p-3 glass-panel">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="mb-3 p-2 glass-panel">
+        <div className="grid grid-cols-4 md:grid-cols-1 gap-4">
           <div className="flex items-center gap-2 text-primary">
             <Terminal size={16} />
-            <span className="text-sm font-mono">RaceTerminal Pro v1.0.1</span>
+            <span className="text-sm font-mono">RaceTerminal Pro v1.0.0</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground opacity-0">
             <Calendar size={16} />
@@ -50,13 +51,13 @@ export function SessionInfo() {
   }
 
   return (
-    <div className="mb-4 p-3 glass-panel">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="mb-3 p-2.5 glass-panel">
+      <div className="flex items-center justify-between gap-6">
         <div className="flex items-center gap-2 text-primary">
           <Info size={16} />
-          <span className="text-sm font-mono">v1.0.1</span>
+          <span className="text-sm font-mono">v{APP_VERSION}</span>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
+        <div className="flex-1 flex items-center gap-2 text-muted-foreground justify-center">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2 cursor-help">
@@ -71,7 +72,7 @@ export function SessionInfo() {
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
+        <div className="flex-1 flex items-center gap-2 text-muted-foreground justify-center">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2 cursor-help">
@@ -86,7 +87,7 @@ export function SessionInfo() {
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
+        <div className="flex items-center gap-2 text-muted-foreground justify-end">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2 cursor-help">

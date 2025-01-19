@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react';
+import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { useUsername } from '@/hooks/use-username';
 import { api } from '@/lib/api/client';
 import { commands } from '@/lib/commands';
 import { processCommand } from '@/components/terminal/command-processor';
@@ -15,12 +17,13 @@ const MAX_HISTORY_SIZE = 100; // Maximum number of commands to store
 
 export default function Home() {
   const [command, setCommand] = useState('');
-  const [history, setHistory] = useState<Array<{ command: string; output: string }>>([]);
+  const [history, setHistory] = useState<Array<{ command: string; output: string; username: string }>>([]);
   const [raceData, setRaceData] = useState<any>(null);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [commandBuffer, setCommandBuffer] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+  const { username } = useUsername();
 
   // Load current race data for schema
   useEffect(() => {
@@ -164,13 +167,13 @@ export default function Home() {
     setCommandBuffer('');
 
     try {
-      const newEntry = { command: cmd, output: 'Processing command...' };
+      const newEntry = { command: cmd, output: 'Processing command...', username };
       setHistory(prev => [...prev, newEntry]);
       setCommand('');
       const output = await processCommand(cmd);
       setHistory(prev => 
         prev.map((entry, idx) => 
-          idx === prev.length - 1 ? { command: entry.command, output } : entry
+          idx === prev.length - 1 ? { ...entry, output } : entry
         )
       );
     } catch (error) {
@@ -179,7 +182,7 @@ export default function Home() {
       setHistory(prev => 
         prev.map((entry, idx) => 
           idx === prev.length - 1 
-            ? { command: entry.command, output: 'Error: Command failed to execute. Please try again.' }
+            ? { ...entry, output: 'Error: Command failed to execute. Please try again.' }
             : entry
         )
       );
@@ -189,22 +192,26 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen p-8 relative overflow-hidden">
+    <main className="min-h-screen relative overflow-hidden flex flex-col">
       <SchemaOrg raceData={raceData} />
-      <div className="gradient-bg" />
-      <div className="grid-lines" />
-      <div className="max-w-7xl mx-auto page-content">
-        <header className="text-center mb-12">
-          <h1 className="text-7xl font-bold mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-secondary animate-pulse">
+      <div className="fixed inset-0 z-[-1]">
+        <div className="gradient-bg" />
+        <div className="grid-lines" />
+      </div>
+      <div className="max-w-7xl w-full mx-auto flex-1 px-8 pt-6 pb-4 page-content">
+        <header className="text-center mb-6">
+          <h1 className="text-6xl font-bold mb-2 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-secondary animate-pulse">
             RaceTerminal Pro
           </h1>
-          <p className="text-xl text-gray-400 tracking-wide">
+          <p className="text-lg text-gray-400 tracking-wide">
             Your futuristic motorsports data companion
           </p>
         </header>
 
         <SessionInfo />
+      </div>
 
+      <div className="w-full max-w-7xl mx-auto px-8 pb-4">
         <TerminalInput
           command={command}
           isProcessing={isProcessing}
@@ -223,16 +230,6 @@ export default function Home() {
         <TerminalHistory history={history} />
 
         <HelpPanel />
-
-        {history.length === 0 && (
-          <div className="text-center text-gray-400 animate-pulse tracking-widest">
-            <p>Waiting for your command...</p>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Quick access cards will be added here */}
-        </div>
       </div>
     </main>
   );

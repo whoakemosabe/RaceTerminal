@@ -86,15 +86,24 @@ export function getDriverNicknames(driverId: string): string[] {
 // Reverse lookup map for finding driver IDs
 export function findDriverId(search: string): string | null {
   search = search.toLowerCase();
+  search = search.trim();
   
   // Direct match with driver ID
   if (driverNicknames[search]) {
     return search;
   }
   
-  // Search through nicknames
+  // Search through nicknames and normalize search
   for (const [driverId, nicknames] of Object.entries(driverNicknames)) {
-    if (nicknames.some(nick => nick.toLowerCase() === search)) {
+    // Check exact matches first
+    if (nicknames.some(nick => nick.toLowerCase() === search) || 
+        driverId.replace('_', '').toLowerCase() === search) {
+      return driverId;
+    }
+    
+    // Then check partial matches
+    if (nicknames.some(nick => nick.toLowerCase().includes(search)) || 
+        driverId.replace('_', '').toLowerCase().includes(search)) {
       return driverId;
     }
   }

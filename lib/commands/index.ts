@@ -1,4 +1,9 @@
 export const commands = [
+  {
+    command: '/username <name|reset>',
+    description: 'Change your terminal display name (e.g., /username max) or reset to default (/username reset)',
+    source: 'System'
+  },
   { 
     command: '/driver <name>', 
     description: 'Get driver info (e.g., /driver hamilton)',

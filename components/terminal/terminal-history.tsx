@@ -2,9 +2,10 @@
 
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
+import { APP_VERSION, LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
 
 interface TerminalHistoryProps {
-  history: Array<{ command: string; output: string }>;
+  history: Array<{ command: string; output: string; username: string }>;
 }
 
 export function TerminalHistory({ history }: TerminalHistoryProps) {
@@ -18,19 +19,23 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
   if (history.length === 0) return null;
 
   return (
-    <div className="mb-8 p-4 font-mono text-sm terminal-input">
-      <div className="flex flex-col space-y-4">
+    <div className="p-3 font-mono text-sm terminal-input h-[350px] overflow-y-auto sticky bottom-0">
+      <div className="flex flex-col space-y-2">
         {[...history].reverse().map((entry, index) => {
           const timestamp = mounted ? new Date().toLocaleTimeString() : '';
           return (
-          <div key={index} className="space-y-2">
+          <div key={index} className="space-y-1">
             <div className="flex items-center gap-2 terminal-prompt">
-              {mounted && <span className="terminal-timestamp">[{timestamp}]</span>}
+              {mounted && (
+                <span className="terminal-timestamp">
+                  [{timestamp}] {entry.username}@terminal
+                </span>
+              )}
               <code className="text-primary">{entry.command}</code>
             </div>
-            <div 
+            <div
               className={cn(
-                "pl-6 whitespace-pre-wrap break-words typing-effect",
+                "pl-4 whitespace-pre-wrap break-words typing-effect",
                 entry.output.startsWith('Error') || entry.output.includes('not found') || entry.output.includes('No ') 
                   ? 'text-red-500' 
                   : 'text-white'
@@ -48,8 +53,8 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
           </div>
         )})}
       </div>
-      <div className="mt-4 text-xs text-muted-foreground">
-        {mounted && `System: RaceTerminal v1.0.1 | Session started at ${sessionStart}`}
+      <div className="mt-4 text-xs text-muted-foreground/60 sticky bottom-0 bg-card/50 backdrop-blur-lg p-2 border rounded-[4px] border-border/25">
+        {mounted && `System: RaceTerminal v${APP_VERSION} | Session started at ${sessionStart}`}
       </div>
     </div>
   );
