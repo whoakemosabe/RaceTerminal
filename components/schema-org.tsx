@@ -8,7 +8,7 @@ interface SchemaOrgProps {
 
 export function SchemaOrg({ raceData }: SchemaOrgProps) {
   const [mounted, setMounted] = useState(false);
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://racestats.pro';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://raceterminal.pro';
 
   useEffect(() => {
     setMounted(true);
@@ -19,7 +19,7 @@ export function SchemaOrg({ raceData }: SchemaOrgProps) {
   const applicationSchema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    'name': 'RaceStats Pro',
+    'name': 'RaceTerminal Pro',
     'applicationCategory': 'SportsApplication',
     'operatingSystem': 'Web',
     'description': 'A futuristic motorsports data companion providing real-time Formula 1 statistics and race information',
@@ -31,7 +31,7 @@ export function SchemaOrg({ raceData }: SchemaOrgProps) {
     },
     'author': {
       '@type': 'Organization',
-      'name': 'RaceStats Pro',
+      'name': 'RaceTerminal Pro',
       'url': baseUrl
     },
     'aggregateRating': {

@@ -5,24 +5,24 @@ import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ['latin'] });
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://racestats.pro';
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://raceterminal.pro';
 
 export const metadata: Metadata = {
-  title: 'RaceStats Pro',
+  title: 'RaceTerminal Pro',
   description: 'Your futuristic motorsports data companion',
   openGraph: {
-    title: 'RaceStats Pro',
+    title: 'RaceTerminal Pro',
     description: 'Your futuristic motorsports data companion',
     type: 'website',
     locale: 'en_US',
     url: baseUrl,
-    siteName: 'RaceStats Pro',
+    siteName: 'RaceTerminal Pro',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RaceStats Pro',
+    title: 'RaceTerminal Pro',
     description: 'Your futuristic motorsports data companion',
-    site: '@racestats',
+    site: '@raceterminal',
   },
   metadataBase: new URL(baseUrl),
   alternates: {

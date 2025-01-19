@@ -31,7 +31,7 @@ export default function Home() {
         if (races && races.length > 0) {
           // Find the next race or the last race of the season
           const now = new Date();
-          const nextRace = races.find(race => new Date(race.date) > now) || races[races.length - 1];
+          const nextRace = races.find((race: { date: string | number | Date; }) => new Date(race.date) > now) || races[races.length - 1];
           setRaceData({
             ...nextRace,
             Circuit: {
@@ -196,7 +196,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto page-content">
         <header className="text-center mb-12">
           <h1 className="text-7xl font-bold mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-secondary animate-pulse">
-            RaceStats Pro
+            RaceTerminal Pro
           </h1>
           <p className="text-xl text-gray-400 tracking-wide">
             Your futuristic motorsports data companion

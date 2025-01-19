@@ -121,7 +121,7 @@
 }
 
 .terminal-prompt::before {
-  content: '[user@racestats] ~ $ ';
+  content: '[user@terminal] ~ $ ';
   color: hsl(var(--secondary));
 }
 

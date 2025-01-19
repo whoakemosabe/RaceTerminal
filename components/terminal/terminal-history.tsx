@@ -49,7 +49,7 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
         )})}
       </div>
       <div className="mt-4 text-xs text-muted-foreground">
-        {mounted && `System: RaceStats Terminal v1.0.0 | Session started at ${sessionStart}`}
+        {mounted && `System: RaceTerminal v1.0.0 | Session started at ${sessionStart}`}
       </div>
     </div>
   );
