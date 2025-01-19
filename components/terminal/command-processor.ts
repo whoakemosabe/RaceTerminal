@@ -29,7 +29,7 @@ export async function processCommand(cmd: string) {
         const nicknames = getDriverNicknames(data.driverId);
         const age = Math.floor((new Date().getTime() - new Date(data.dateOfBirth).getTime()) / 31557600000);
         const flagUrl = getFlagUrl(data.nationality);
-        return `👤 ${data.givenName} ${data.familyName} | [${data.code || 'N/A'}] | [#️⃣ ${data.permanentNumber || 'N/A'}] [${nicknames.join(' | ')}] | [${data.nationality} ${flagUrl ? `<img src="${flagUrl}" alt="${data.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : ''}] | [🎂 ${formatDate(data.dateOfBirth)} - 📅 ${age} years old]`;
+        return `👤 ${data.givenName} ${data.familyName} | [${data.code || 'N/A'}] | [#️ ${data.permanentNumber || 'N/A'}] [${nicknames.join(' | ')}] | [${flagUrl ? `<img src="${flagUrl}" alt="${data.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : ''} ${data.nationality} ] | [🎂 ${formatDate(data.dateOfBirth)} - 📅 ${age} years old]`;
       }
 
       case '/standings': {
@@ -52,7 +52,7 @@ export async function processCommand(cmd: string) {
         if (!args[0]) return 'Error: Please provide a track ID (e.g., /track monza)';
         const data = await api.getTrackInfo(args[0].toLowerCase());
         if (!data) return 'Error: Track not found';
-        return `${icons.flag} ${formatCircuit(data.circuitName, data.Location.country)} | ${icons.mapPin} ${data.Location.locality}, ${data.Location.country} | 🌍 ${data.Location.lat}°N, ${data.Location.long}°E`;
+        return `${icons.flag} ${formatCircuit(data.circuitName, data.Location.country)} |  | ${icons.mapPin} ${data.Location.locality}, ${data.Location.country} | 🌍 ${data.Location.lat}°N, ${data.Location.long}°E`;
       }
 
       case '/live': {
