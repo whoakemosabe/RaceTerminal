@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useServerInsertedHTML } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -32,9 +33,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <NextThemesProvider attribute="class" defaultTheme="dark">
-        <div className={cn("min-h-screen bg-background text-foreground")}>
-          {children}
-        </div>
+        <TooltipProvider delayDuration={0}>
+          <div className={cn("min-h-screen bg-background text-foreground")}>
+            {children}
+          </div>
+        </TooltipProvider>
       </NextThemesProvider>
     </QueryClientProvider>
   );

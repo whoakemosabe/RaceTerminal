@@ -26,18 +26,33 @@ export const countryToCode: Record<string, string> = {
   'Russian': 'RU',
   'New Zealander': 'NZ',
   // Add circuit countries
-  'United Arab Emirates': 'AE',
-  'Saudi Arabia': 'SA',
-  'United States': 'US',
+  'Abu Dhabi': 'AE',
+  'Australia': 'AU',
+  'Austria': 'AT',
   'Azerbaijan': 'AZ',
-  'United Kingdom': 'GB',
-  'Hungary': 'HU',
-  'Singapore': 'SG',
-  'Qatar': 'QA',
+  'Bahrain': 'BH',
+  'Belgium': 'BE',
   'Brazil': 'BR',
+  'Canada': 'CA',
+  'China': 'CN',
+  'France': 'FR',
+  'Germany': 'DE',
+  'Hungary': 'HU',
+  'Italy': 'IT',
+  'Japan': 'JP',
+  'Mexico': 'MX',
   'Monaco': 'MC',
-  'Las Vegas': 'US',
-  'Abu Dhabi': 'AE'
+  'Netherlands': 'NL',
+  'Portugal': 'PT',
+  'Qatar': 'QA',
+  'Saudi Arabia': 'SA',
+  'Singapore': 'SG',
+  'Spain': 'ES',
+  'Turkey': 'TR',
+  'United Arab Emirates': 'AE',
+  'United States': 'US',
+  'United Kingdom': 'GB',
+  'Vietnam': 'VN'
 };
 
 // Driver nickname mappings
@@ -111,13 +126,17 @@ export function getFlagUrl(nationality: string): string {
 }
 
 export function formatDriver(text: string, nationality: string): string {
+  if (!text || !nationality) return 'Unknown Driver';
   const flagUrl = getFlagUrl(nationality);
-  return `${text} [${nationality}${flagUrl ? ` <img src="${flagUrl}" alt="${nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : ''}]`;
+  const flag = flagUrl ? ` <img src="${flagUrl}" alt="${nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
+  return `${text || 'Unknown'} [${nationality}${flag}]`;
 }
 
 export function formatCircuit(name: string, country: string): string {
+  if (!name || !country) return 'Unknown Circuit';
   const flagUrl = getFlagUrl(country);
-  return `${name} [${country}${flagUrl ? ` <img src="${flagUrl}" alt="${country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : ''}]`;
+  const flag = flagUrl ? ` <img src="${flagUrl}" alt="${country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
+  return `${name || 'Unknown Circuit'} [${country}${flag}]`;
 }
 
 export function formatWithTeamColor(text: string, team: string): string {

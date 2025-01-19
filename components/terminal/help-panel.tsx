@@ -10,9 +10,6 @@ export function HelpPanel() {
         <HelpCircle className="text-primary mt-1 flex-shrink-0" />
         <div className="w-full">
           <h2 className="text-xl font-semibold mb-2 text-primary">Available Commands</h2>
-          <p className="text-gray-400 mb-4 tracking-wide">
-            Data provided by Ergast F1 API and OpenF1 API
-          </p>
           <div className="mb-4 p-3 bg-card/30 rounded-lg">
             <h3 className="text-primary font-semibold mb-2">Keyboard Shortcuts</h3>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">

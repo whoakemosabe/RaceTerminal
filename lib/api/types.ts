@@ -1,3 +1,16 @@
+export interface DriverStanding {
+  position: string;
+  points: string;
+  Driver: {
+    givenName: string;
+    familyName: string;
+    nationality: string;
+  };
+  Constructor: {
+    name: string;
+  };
+}
+
 export interface Driver {
   driverId: string;
   permanentNumber: string;

@@ -21,7 +21,17 @@ export const commands = [
   },
   { 
     command: '/live', 
-    description: 'Access live timing data',
+    description: 'Get live timing data during race sessions',
+    source: 'OpenF1 API'
+  },
+  {
+    command: '/telemetry <number>',
+    description: 'Get real-time car telemetry for a driver (e.g., /telemetry 44)',
+    source: 'OpenF1 API'
+  },
+  {
+    command: '/status',
+    description: 'Get current track status and conditions',
     source: 'OpenF1 API'
   },
   { 
@@ -36,7 +46,7 @@ export const commands = [
   },
   { 
     command: '/laps <year> <round> [driver]', 
-    description: 'Get lap times (e.g., /laps 2023 1 HAM)',
+    description: 'Get lap times for a race. Driver code is optional (e.g., /laps 2023 1 or /laps 2023 1 HAM)',
     source: 'F1 Racing Results API'
   },
   { 
