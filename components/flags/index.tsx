@@ -1,0 +1,24 @@
+import { cn } from '@/lib/utils';
+
+export const flags: Record<string, string> = {
+  'default': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="16" fill="#000"/><text x="12" y="12" font-family="sans-serif" font-size="14" fill="#fff" text-anchor="middle">?</text></svg>`,
+  'American': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><g fill="#bf0a30"><rect width="24" height="1.23" y="0"/><rect width="24" height="1.23" y="2.46"/><rect width="24" height="1.23" y="4.92"/><rect width="24" height="1.23" y="7.38"/><rect width="24" height="1.23" y="9.84"/><rect width="24" height="1.23" y="12.3"/><rect width="24" height="1.23" y="14.76"/></g><rect width="9.6" height="8.615" fill="#002868"/></svg>`,
+  'United Arab Emirates': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="8" height="16" fill="#00732f"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#000"/><rect width="6" height="16" fill="#ff0000"/></svg>`,
+  'Brazilian': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="16" fill="#009b3a"/><path d="M2,8 L22,8 L12,2 Z" fill="#fedf00"/><circle cx="12" cy="8" r="3.5" fill="#002776"/></svg>`,
+  'Canadian': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="6" height="16" fill="#ff0000"/><rect x="6" width="12" height="16" fill="#fff"/><rect x="18" width="6" height="16" fill="#ff0000"/><path d="M12,4 L13,7 L16,7 L14,9 L15,12 L12,10 L9,12 L10,9 L8,7 L11,7 Z" fill="#ff0000"/></svg>`,
+  'Japanese': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><circle cx="12" cy="8" r="4.8" fill="#bc002d"/></svg>`,
+  'Finnish': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><rect y="6" width="24" height="4" fill="#003580"/><rect x="6" width="4" height="16" fill="#003580"/></svg>`,
+  'Danish': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="16" fill="#c60c30"/><rect x="6" width="4" height="16" fill="#fff"/><rect y="6" width="24" height="4" fill="#fff"/></svg>`,
+  'British': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="16" fill="#012169"/><path d="M0 0l24 16M24 0L0 16" stroke="#fff" stroke-width="3"/><path d="M12 0v16M0 8h24" stroke="#fff" stroke-width="5"/><path d="M12 0v16M0 8h24" stroke="#C8102E" stroke-width="3"/></svg>`,
+  'Dutch': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="5.33" fill="#AE1C28"/><rect y="5.33" width="24" height="5.33" fill="#fff"/><rect y="10.67" width="24" height="5.33" fill="#21468B"/></svg>`,
+  'Mexican': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="8" height="16" fill="#006847"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ce1126"/></svg>`,
+  'Spanish': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="16" fill="#c60b1e"/><rect y="4" width="24" height="8" fill="#ffc400"/></svg>`,
+  'Monaco': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="8" fill="#ce1126"/><rect y="8" width="24" height="8" fill="#fff"/></svg>`,
+  'Italian': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="8" height="16" fill="#009246"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ce2b37"/></svg>`,
+  'German': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="5.33" fill="#000"/><rect y="5.33" width="24" height="5.33" fill="#DD0000"/><rect y="10.67" width="24" height="5.33" fill="#FFCE00"/></svg>`,
+  'French': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="8" height="16" fill="#002654"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ce1126"/></svg>`,
+  'Australian': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="16" fill="#00008B"/><path d="M0 0l12 8M12 0L0 8" stroke="#fff" stroke-width="1.5"/><path d="M6 0v8M0 4h12" stroke="#fff" stroke-width="2.5"/><path d="M6 0v8M0 4h12" stroke="#FF0000" stroke-width="1.5"/></svg>`,
+  'Belgian': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="8" height="16" fill="#000"/><rect x="8" width="8" height="16" fill="#FAE042"/><rect x="16" width="8" height="16" fill="#ED2939"/></svg>`,
+  'Austrian': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><rect width="24" height="5.33" fill="#ed2939"/><rect y="5.33" width="24" height="5.33" fill="#fff"/><rect y="10.67" width="24" height="5.33" fill="#ed2939"/></svg>`,
+  // Add more flags as needed
+};
