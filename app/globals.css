@@ -32,7 +32,7 @@
     --input: 186 100% 50%;
     --ring: 186 100% 50%;
  
-    --radius: 0.75rem;
+    --radius: 0.375rem;
   }
 }
  
@@ -61,12 +61,47 @@
   animation: tooltipFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border)/0.2);
+  border-radius: 6px;
   box-shadow: 0 0 15px hsl(var(--primary)/0.05),
               inset 0 0 10px hsl(var(--primary)/0.05);
   backdrop-filter: blur(8px);
   font-size: 0.9rem;
   color: hsl(var(--muted-foreground));
   letter-spacing: 0.02em;
+}
+
+.execute-button {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border)/0.2);
+  box-shadow: 0 0 15px hsl(var(--primary)/0.05),
+              inset 0 0 10px hsl(var(--primary)/0.05);
+  backdrop-filter: blur(8px);
+  color: hsl(var(--muted-foreground));
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+}
+
+.execute-button:hover {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border)/0.4);
+  box-shadow: 0 0 20px hsl(var(--primary)/0.1),
+              inset 0 0 15px hsl(var(--primary)/0.1);
+  color: hsl(var(--primary));
+}
+
+.execute-button:active {
+  transform: scale(0.96);
+  box-shadow: 0 0 10px hsl(var(--primary)/0.05),
+              inset 0 0 5px hsl(var(--primary)/0.05);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.execute-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 @keyframes fadeIn {
@@ -113,19 +148,20 @@
 }
 
 .glass-panel {
-  @apply bg-card/70 backdrop-blur-md border border-border/10 rounded-xl;
+  @apply bg-card/70 backdrop-blur-md border border-border/10 rounded;
 }
 
 .terminal-input {
-  @apply bg-card/70 backdrop-blur-md border border-primary text-primary p-4 rounded-xl;
+  @apply bg-card/70 backdrop-blur-md border border-primary text-primary p-4 rounded;
   box-shadow: 0 0 10px hsl(var(--primary)/0.1);
-  border-width: 1px;
   position: relative;
+  margin-bottom: 1rem;
 }
 
 .glass-panel {
-  @apply bg-card/70 backdrop-blur-md border border-border/10 rounded-xl;
+  @apply bg-card/70 backdrop-blur-md border border-border/10 rounded;
   box-shadow: 0 0 20px hsl(var(--card)/0.1);
+  padding: 1rem;
 }
 
 @keyframes cursor-blink {
@@ -149,6 +185,7 @@
 .terminal-prompt::before {
   content: ' ~ $ ';
   color: hsl(var(--secondary));
+  margin-right: 0.5rem;
 }
 
 @keyframes typing {
@@ -192,13 +229,13 @@
 ::-webkit-scrollbar-track {
   background: hsl(var(--card)/0.3);
   border: 1px solid hsl(var(--border)/0.05);
-  border-radius: var(--radius);
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--muted));
   border: 1px solid hsl(var(--border)/0.1);
-  border-radius: var(--radius);
+  border-radius: 6px;
   box-shadow: 0 0 5px hsl(var(--primary)/0.1);
 }
 

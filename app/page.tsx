@@ -198,7 +198,7 @@ export default function Home() {
         <div className="gradient-bg" />
         <div className="grid-lines" />
       </div>
-      <div className="max-w-7xl w-full mx-auto flex-1 px-8 pt-6 pb-4 page-content">
+      <div className="max-w-7xl w-full mx-auto flex-1 px-8 py-4 page-content">
         <header className="text-center mb-6">
           <h1 className="text-6xl font-bold mb-2 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-secondary animate-pulse">
             RaceTerminal Pro

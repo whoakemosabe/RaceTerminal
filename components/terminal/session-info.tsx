@@ -24,9 +24,10 @@ export function SessionInfo() {
     return () => clearInterval(timer);
   }, [sessionStart]);
 
+  // Don't render anything until mounted to prevent hydration mismatch
   if (!mounted) {
     return (
-      <div className="mb-1 p-2 glass-panel">
+      <div className="mb-4 p-2 glass-panel">
         <div className="grid grid-cols-4 md:grid-cols-1 gap-4">
           <div className="flex items-center gap-2 text-primary">
             <Terminal size={16} />
@@ -50,7 +51,7 @@ export function SessionInfo() {
   }
 
   return (
-    <div className="mb-1 p-2.5 glass-panel">
+    <div className="mb-4 p-2.5 glass-panel">
       <div className="flex items-center justify-between gap-6">
         <div className="flex items-center gap-2 text-primary">
           <Info size={16} />

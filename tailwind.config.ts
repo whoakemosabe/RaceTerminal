@@ -52,6 +52,12 @@ const config: Config = {
           '5': 'hsl(var(--chart-5))',
         },
       },
+      borderRadius: {
+        lg: '6px',
+        md: '6px',
+        sm: '6px',
+        DEFAULT: '6px',
+      },
     },
   },
   darkMode: "class",

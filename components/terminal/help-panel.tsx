@@ -5,36 +5,36 @@ import { commands } from '@/lib/commands';
 
 export function HelpPanel() {
   return (
-    <div className="my-4 p-3 glass-panel">
+    <div className="mb-4 mt-4 p-4 glass-panel">
       <div className="flex items-start gap-2">
         <HelpCircle className="text-primary mt-1 flex-shrink-0" />
         <div className="w-full">
-          <h2 className="text-2xl font-semibold mb-1.5 text-primary">Available Commands</h2>
-          <div className="mb-2 p-1.5 bg-card/30 rounded-lg">
+          <h2 className="text-base font-semibold mb-1.5 text-primary">Available Commands</h2>
+          <div className="mb-2 p-1.5 bg-card/30 rounded">
             <h3 className="text-primary font-medium text-sm mb-1">Keyboard Shortcuts</h3>
             <ul className="grid grid-cols-2 gap-1 text-xs">
               <li className="text-gray-300">
-                <kbd className="px-1.5 py-0.5 bg-card rounded text-xs">↑</kbd>
+                <kbd className="px-1.5 py-0.5 bg-card rounded-sm text-xs">↑</kbd>
                 <span className="ml-2">Previous command</span>
               </li>
               <li className="text-gray-300">
-                <kbd className="px-1.5 py-0.5 bg-card rounded text-xs">↓</kbd>
+                <kbd className="px-1.5 py-0.5 bg-card rounded-sm text-xs">↓</kbd>
                 <span className="ml-2">Next command</span>
               </li>
               <li className="text-gray-300">
-                <kbd className="px-1.5 py-0.5 bg-card rounded text-xs">Tab</kbd>
+                <kbd className="px-1.5 py-0.5 bg-card rounded-sm text-xs">Tab</kbd>
                 <span className="ml-2">Auto-complete command</span>
               </li>
               <li className="text-gray-300">
-                <kbd className="px-1.5 py-0.5 bg-card rounded text-xs">Ctrl</kbd>
+                <kbd className="px-1.5 py-0.5 bg-card rounded-sm text-xs">Ctrl</kbd>
                 <span className="mx-1">+</span>
-                <kbd className="px-1.5 py-0.5 bg-card rounded text-xs">L</kbd>
+                <kbd className="px-1.5 py-0.5 bg-card rounded-sm text-xs">L</kbd>
                 <span className="ml-2">Clear terminal</span>
               </li>
               <li className="text-gray-300">
-                <kbd className="px-1.5 py-0.5 bg-card rounded text-xs">Ctrl</kbd>
+                <kbd className="px-1.5 py-0.5 bg-card rounded-sm text-xs">Ctrl</kbd>
                 <span className="mx-1">+</span>
-                <kbd className="px-1.5 py-0.5 bg-card rounded text-xs">C</kbd>
+                <kbd className="px-1.5 py-0.5 bg-card rounded-sm text-xs">C</kbd>
                 <span className="ml-2">Cancel command</span>
               </li>
             </ul>
