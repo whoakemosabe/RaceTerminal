@@ -5,11 +5,11 @@ import { commands } from '@/lib/commands';
 
 export function HelpPanel() {
   return (
-    <div className="mb-3 mt-4 p-3 glass-panel">
+    <div className="my-4 p-3 glass-panel">
       <div className="flex items-start gap-2">
         <HelpCircle className="text-primary mt-1 flex-shrink-0" />
         <div className="w-full">
-          <h2 className="text-base font-semibold mb-1.5 text-primary">Available Commands</h2>
+          <h2 className="text-2xl font-semibold mb-1.5 text-primary">Available Commands</h2>
           <div className="mb-2 p-1.5 bg-card/30 rounded-lg">
             <h3 className="text-primary font-medium text-sm mb-1">Keyboard Shortcuts</h3>
             <ul className="grid grid-cols-2 gap-1 text-xs">

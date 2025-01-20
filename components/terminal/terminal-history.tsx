@@ -19,7 +19,7 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
   if (history.length === 0) return null;
 
   return (
-    <div className="p-3 font-mono text-sm terminal-input h-[350px] overflow-y-auto sticky bottom-0">
+    <div className="p-3 font-mono text-sm terminal-input h-[400px] overflow-y-auto sticky bottom-0">
       <div className="flex flex-col space-y-2">
         {[...history].reverse().map((entry, index) => {
           const timestamp = mounted ? new Date().toLocaleTimeString() : '';
@@ -37,8 +37,8 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
               className={cn(
                 "pl-4 whitespace-pre-wrap break-words typing-effect",
                 entry.output.startsWith('Error') || entry.output.includes('not found') || entry.output.includes('No ') 
-                  ? 'text-red-500' 
-                  : 'text-white'
+                  ? 'text-red-400' 
+                  : 'text-gray-400'
               )}
               style={{ 
                 lineHeight: '1.5',
