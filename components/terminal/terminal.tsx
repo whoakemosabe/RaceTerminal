@@ -56,31 +56,10 @@ export function Terminal({
       <div className="terminal-status-bar sticky top-0 z-10 h-8 border-b border-border/10">
         <div className="grid grid-cols-4 w-full">
           <div className="flex items-center gap-4 text-primary justify-start">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 cursor-help">
-                  <Info className="h-3.5 w-3.5" />
-                  <span className="text-xs font-mono">v{APP_VERSION}</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="start" className="tooltip-content">
-                <p>RaceTerminal Pro Version</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleReset}
-                  className="flex items-center gap-1 hover:text-secondary transition-colors duration-200"
-                >
-                  <RotateCw className="h-3.5 w-3.5" />
-                  <span className="text-xs font-mono">Reset</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="start" className="tooltip-content">
-                <p>Reset Terminal Session</p>
-              </TooltipContent>
-            </Tooltip>
+            <div className="flex items-center gap-2 cursor-help">
+              <Info className="h-3.5 w-3.5" />
+              <span className="text-xs font-mono">v{APP_VERSION}</span>
+            </div>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground justify-center">
             <Tooltip>
@@ -240,7 +219,7 @@ export function Terminal({
       {/* Bottom Status Bar */}
       <div className="terminal-status-bar sticky bottom-0 z-10">
         <div className="grid grid-cols-4 w-full">
-          <div className="col-span-3 flex items-center gap-2 text-primary justify-start">
+          <div className="col-span-2 flex items-center gap-2 text-primary justify-start">
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2 cursor-help">
@@ -252,6 +231,22 @@ export function Terminal({
               </TooltipTrigger>
               <TooltipContent side="top" align="start" className="tooltip-content">
                 <p>System Version</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          
+          <div className="flex items-center gap-4 justify-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleReset}
+                  className="flex items-center hover:text-secondary transition-colors duration-200"
+                >
+                  <RotateCw className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" align="center" className="tooltip-content">
+                <p>Reset Terminal Session</p>
               </TooltipContent>
             </Tooltip>
           </div>

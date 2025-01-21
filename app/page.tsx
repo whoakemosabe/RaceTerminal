@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { useUsername } from '@/hooks/use-username';
@@ -28,6 +28,47 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
   const { username } = useUsername();
+
+  // Memoize command processor to prevent recreation
+  const handleCommand = useCallback(async () => {
+    if (!command.trim() || isProcessing) return;
+    
+    setIsProcessing(true);
+    setHistoryIndex(-1);
+    setCommandBuffer('');
+
+    const timestamp = new Date().toLocaleTimeString();
+    const cmd = command.trim();
+
+    try {
+      const newEntry = { 
+        command: cmd, 
+        output: 'Processing command...', 
+        username,
+        timestamp
+      };
+      setHistory(prev => [...prev, newEntry]);
+      setCommand('');
+      const output = await processCommand(cmd);
+      setHistory(prev => 
+        prev.map((entry, idx) => 
+          idx === prev.length - 1 ? { ...entry, output, timestamp } : entry
+        )
+      );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Command execution error:', errorMessage);
+      setHistory(prev => 
+        prev.map((entry, idx) => 
+          idx === prev.length - 1 
+            ? { ...entry, output: 'Error: Command failed to execute. Please try again.' }
+            : entry
+        )
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [command, isProcessing, username]);
 
   // Load history from localStorage on mount
   useEffect(() => {
@@ -163,46 +204,6 @@ export default function Home() {
     }
   };
 
-  const handleCommand = async () => {
-    if (!command.trim()) return;
-    const cmd = command.trim();
-    if (isProcessing) return;
-
-    setIsProcessing(true);
-    setHistoryIndex(-1);
-    setCommandBuffer('');
-
-    const timestamp = new Date().toLocaleTimeString();
-
-    try {
-      const newEntry = { 
-        command: cmd, 
-        output: 'Processing command...', 
-        username,
-        timestamp
-      };
-      setHistory(prev => [...prev, newEntry]);
-      setCommand('');
-      const output = await processCommand(cmd);
-      setHistory(prev => 
-        prev.map((entry, idx) => 
-          idx === prev.length - 1 ? { ...entry, output, timestamp } : entry
-        )
-      );
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Command execution error:', errorMessage);
-      setHistory(prev => 
-        prev.map((entry, idx) => 
-          idx === prev.length - 1 
-            ? { ...entry, output: 'Error: Command failed to execute. Please try again.' }
-            : entry
-        )
-      );
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   return (
     <main className="h-screen relative overflow-hidden flex flex-col">
