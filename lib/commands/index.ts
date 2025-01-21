@@ -1,8 +1,13 @@
 export const commands = [
   // System Commands
   {
+    command: '/reset',
+    description: 'Reset terminal session and clear history',
+    source: 'System'
+  },
+  {
     command: '/username <name|reset>',
-    description: 'Change your terminal display name (e.g., /username max) or reset to default (/username reset)',
+    description: 'Change your terminal display name (e.g., /username max) or reset to default (/username reset). Alias: /user',
     source: 'System'
   },
   {
@@ -23,8 +28,8 @@ export const commands = [
     source: 'Ergast F1 API'
   },
   {
-    command: '/compare <driver1> <driver2>',
-    description: 'Compare two drivers head-to-head (e.g., /compare verstappen hamilton)',
+    command: '/compare <type> <name1> <name2>',
+    description: 'Compare drivers or teams (e.g., /compare driver verstappen hamilton or /compare team redbull mercedes)',
     source: 'Ergast F1 API'
   },
   
@@ -35,7 +40,7 @@ export const commands = [
     source: 'Ergast F1 API'
   },
   {
-    command: '/constructors',
+    command: '/teams',
     description: 'View current constructor standings',
     source: 'Ergast F1 API'
   },

@@ -60,10 +60,20 @@ export const api = {
   async getConstructorStandings(year: number = new Date().getFullYear()) {
     return retryRequest(async () => {
       const { data } = await ergastClient.get(`/${year}/constructorStandings.json`);
-      if (!data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings) {
-        throw new Error('Invalid constructor standings data format');
+      const standings = data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings;
+      if (!standings) {
+        return [];
       }
-      return data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings;
+      return standings.map((standing: any) => ({
+        position: standing.position || '?',
+        points: standing.points || '0',
+        wins: standing.wins || '0',
+        Constructor: {
+          constructorId: standing.Constructor?.constructorId || '',
+          name: standing.Constructor?.name || 'Unknown Team',
+          nationality: standing.Constructor?.nationality || 'Unknown'
+        }
+      }));
     });
   },
 
@@ -249,12 +259,51 @@ export const api = {
   async compareDrivers(driver1Id: string, driver2Id: string) {
     return retryRequest(async () => {
       const [driver1Data, driver2Data] = await Promise.all([
-        ergastClient.get(`/drivers/${driver1Id}/results.json`),
-        ergastClient.get(`/drivers/${driver2Id}/results.json`)
+        ergastClient.get(`/drivers/${driver1Id}/results.json?limit=100`),
+        ergastClient.get(`/drivers/${driver2Id}/results.json?limit=100`)
       ]);
+
+      const driver1Races = driver1Data.data?.MRData?.RaceTable?.Races;
+      const driver2Races = driver2Data.data?.MRData?.RaceTable?.Races;
+
+      if (!driver1Races || !driver2Races) {
+        throw new Error('Could not fetch comparison data');
+      }
+
       return {
-        driver1: driver1Data.data.MRData.RaceTable,
-        driver2: driver2Data.data.MRData.RaceTable
+        driver1: {
+          Races: driver1Races,
+          driverId: driver1Id
+        },
+        driver2: {
+          Races: driver2Races,
+          driverId: driver2Id
+        }
+      };
+    });
+  },
+
+  async compareTeams(team1Id: string, team2Id: string) {
+    return retryRequest(async () => {
+      const [team1Data, team2Data] = await Promise.all([
+        ergastClient.get(`/current/constructors/${team1Id}/results.json`),
+        ergastClient.get(`/current/constructors/${team2Id}/results.json`)
+      ]);
+      
+      if (!team1Data.data?.MRData?.RaceTable?.Races || !team2Data.data?.MRData?.RaceTable?.Races) {
+        throw new Error('Could not fetch comparison data');
+      }
+      
+      const team1Results = team1Data.data.MRData.RaceTable;
+      const team2Results = team2Data.data.MRData.RaceTable;
+      
+      // Add constructorId to help with name lookup
+      team1Results.constructorId = team1Id;
+      team2Results.constructorId = team2Id;
+      
+      return {
+        team1: team1Results,
+        team2: team2Results
       };
     });
   },

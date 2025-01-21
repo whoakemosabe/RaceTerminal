@@ -1,19 +1,73 @@
 import { api } from '@/lib/api/client';
-import { formatDriver, formatCircuit, formatWithTeamColor, formatTime, formatDate, getDriverNicknames, findDriverId, getFlagUrl, countryToCode, findTrackId } from '@/lib/utils';
+import { formatDriver, formatCircuit, formatWithTeamColor, formatTime, formatDate, getDriverNicknames, findDriverId, getFlagUrl, countryToCode, findTrackId, trackNicknames, formatDriverComparison, findTeamId, formatTeamComparison, icons } from '@/lib/utils';
 import { commands } from '@/lib/commands';
 import { DriverStanding } from '@/lib/api/types';
+
+async function handleTrackCommand(args: string[]): Promise<string> {
+  const searchTerm = args.join(' ').toLowerCase();
+  const circuitId = findTrackId(searchTerm);
+  const year = new Date().getFullYear();
+  
+  if (!circuitId) {
+    const suggestions = Object.entries(trackNicknames)
+      .filter(([_, nicknames]) => 
+        nicknames.some(nick => nick.toLowerCase().includes(searchTerm))
+      )
+      .map(([trackId, nicknames]) => {
+        const mainName = nicknames[0];
+        const otherNames = nicknames.slice(1).join(', ');
+        return `  ${icons.flag} ${mainName}${otherNames ? ` (${otherNames})` : ''}`;
+      });
+
+    if (suggestions.length > 0) {
+      return `Track "${args.join(' ')}" not found. Did you mean one of these?\n\n${suggestions.join('\n')}`;
+    }
+    return `Error: Track "${args.join(' ')}" not found. Try using:\n` +
+           `  • Track name (e.g., monza, spa)\n` +
+           `  • Nickname (e.g., Temple of Speed, Royal Park)\n` +
+           `  • Location (e.g., Italian GP)\n` +
+           `  • Full name (e.g., Autodromo Nazionale Monza)`;
+  }
+  
+  const [trackInfo, lastRace] = await Promise.all([
+    api.getTrackInfo(circuitId),
+    api.getRaceResults(year, undefined)
+  ]);
+  if (!trackInfo) {
+    return `Error: Could not fetch data for track "${args.join(' ')}". Please try again later.`;
+  }
+  
+  const flagUrl = getFlagUrl(trackInfo.Location.country);
+  const flagImg = flagUrl ? 
+    `<img src="${flagUrl}" alt="${trackInfo.Location.country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : 
+    '';
+  
+  // Get track nicknames
+  const nicknames = trackNicknames[circuitId] || [];
+  const nicknameText = nicknames.length > 1 ? 
+    `\n${icons.tool} Known as: ${nicknames.join(' | ')}` : 
+    '';
+  
+  // Format last race info if available
+  const lastRaceInfo = lastRace?.find((race: any) => 
+    race.Circuit?.circuitId === circuitId
+  );
+  const lastRaceText = lastRaceInfo ?
+    `\n${icons.trophy} Last Race Winner: ${lastRaceInfo.Driver?.givenName} ${lastRaceInfo.Driver?.familyName}` :
+    '';
+
+  return [
+    `${icons.flag} Circuit Information: ${trackInfo.circuitName}`,
+    `${icons.mapPin} Location: ${trackInfo.Location.locality}, ${flagImg} ${trackInfo.Location.country}`,
+    `🌍 Coordinates: ${trackInfo.Location.lat}°N, ${trackInfo.Location.long}°E`,
+    nicknameText,
+    lastRaceText,
+    '\nTip: Use /race <year> <round> to see full race results for this circuit'
+  ].filter(Boolean).join('\n');
+}
+
 import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
 
-const icons = {
-  car: '🏎️',
-  flag: '🏁',
-  activity: '📊',
-  calendar: '📅',
-  trophy: '🏆',
-  clock: '⏱️',
-  mapPin: '📍',
-  tool: '🔧'
-};
 
 
 export async function processCommand(cmd: string) {
@@ -23,6 +77,48 @@ export async function processCommand(cmd: string) {
 
   try {
     switch (command) {
+      case '/user':
+        if (!args[0]) {
+          return 'Error: Please provide a username or "reset" (e.g., /user max or /user reset)';
+        }
+        
+        const newUsername = args[0].trim();
+
+        // Handle reset command
+        if (newUsername.toLowerCase() === 'reset') {
+          try {
+            localStorage.setItem(LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME);
+            window.dispatchEvent(new CustomEvent('usernameChange', { detail: DEFAULT_USERNAME }));
+            return `Username reset to "${DEFAULT_USERNAME}"`;
+          } catch (error) {
+            console.error('Failed to reset username:', error);
+            return 'Error: Failed to reset username. Please try again.';
+          }
+        }
+
+        if (newUsername.length < 2 || newUsername.length > 20) {
+          return 'Error: Username must be between 2 and 20 characters';
+        }
+        
+        if (!/^[a-zA-Z0-9_-]+$/.test(newUsername)) {
+          return 'Error: Username can only contain letters, numbers, underscores, and hyphens';
+        }
+        
+        try {
+          localStorage.setItem(LOCALSTORAGE_USERNAME_KEY, newUsername);
+          window.dispatchEvent(new CustomEvent('usernameChange', { detail: newUsername }));
+          return `Username successfully changed to "${newUsername}"`;
+        } catch (error) {
+          console.error('Failed to save username:', error);
+          return 'Error: Failed to save username. Please try again.';
+        }
+
+      case '/reset': {
+        localStorage.removeItem('commandHistory');
+        window.location.reload();
+        return 'Resetting terminal session...';
+      }
+
       case '/username': {
         if (!args[0]) {
           return 'Error: Please provide a username or "reset" (e.g., /username max or /username reset)';
@@ -109,7 +205,7 @@ export async function processCommand(cmd: string) {
       case '/t':
       case '/track': {
         if (!args[0]) {
-          return 'Error: Please provide a track name (e.g., /track monza). You can use the circuit name, location, or common nicknames.';
+          return 'Error: Please provide a track name (e.g., /track monza). You can use the track name, nickname (e.g., temple of speed), or location (e.g., italian gp)';
         }
         return await handleTrackCommand(args);
       }
@@ -118,34 +214,67 @@ export async function processCommand(cmd: string) {
         if (!args[0]) {
           return 'Error: Please provide a team name (e.g., /team ferrari)';
         }
-        const data = await api.getConstructorInfo(args[0].toLowerCase());
+        const teamId = findTeamId(args[0]);
+        if (!teamId) {
+          return `Error: Team "${args[0]}" not found. Try using the team name (e.g., ferrari, mercedes) or nickname (e.g., redbull, mercs)`;
+        }
+        const data = await api.getConstructorInfo(teamId);
         if (!data) {
-          return `Error: Team "${args[0]}" not found. Try using the team name (e.g., ferrari, mercedes)`;
+          return `Error: Could not fetch data for team "${args[0]}". Please try again later.`;
         }
         const flagUrl = getFlagUrl(data.nationality);
         return `${icons.car} ${data.name} | [${flagUrl ? `<img src="${flagUrl}" alt="${data.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : ''} ${data.nationality}] | First Entry: ${data.firstEntry || 'N/A'} | Championships: ${data.championships || '0'}`;
       }
 
       case '/compare': {
-        if (!args[0] || !args[1]) {
-          return 'Error: Please provide two drivers to compare (e.g., /compare verstappen hamilton)';
+        if (!args[0] || !args[1] || !args[2]) {
+          return 'Error: Please specify what to compare and provide two names\n' +
+                 'Usage:\n' +
+                 '  • Compare drivers: /compare driver verstappen hamilton\n' +
+                 '  • Compare teams: /compare team redbull mercedes';
         }
-        const [driver1Id, driver2Id] = [findDriverId(args[0]), findDriverId(args[1])];
-        if (!driver1Id || !driver2Id) {
-          return 'Error: One or both drivers not found. Use driver names or codes (e.g., verstappen, HAM)';
+        
+        const type = args[0].toLowerCase();
+        
+        if (type === 'driver') {
+          const [driver1Id, driver2Id] = [findDriverId(args[1]), findDriverId(args[2])];
+          if (!driver1Id || !driver2Id) {
+            return 'Error: One or both drivers not found. Use driver names or codes (e.g., verstappen, HAM)';
+          }
+          const data = await api.compareDrivers(driver1Id, driver2Id);
+          return formatDriverComparison(data);
+        } else if (type === 'team') {
+          const [team1Id, team2Id] = [findTeamId(args[1]), findTeamId(args[2])];
+          if (!team1Id || !team2Id) {
+            return 'Error: One or both teams not found. Use team names or abbreviations (e.g., redbull, mercedes)';
+          }
+          const data = await api.compareTeams(team1Id, team2Id);
+          return formatTeamComparison(data);
+        } else {
+          return 'Error: Invalid comparison type. Use "driver" or "team" (e.g., /compare driver verstappen hamilton)';
         }
-        const data = await api.compareDrivers(driver1Id, driver2Id);
-        return formatDriverComparison(data);
       }
 
-      case '/constructors': {
+      case '/teams': {
         const data = await api.getConstructorStandings();
         if (!data || data.length === 0) {
-          return 'Error: No constructor standings available';
+          return 'No team standings available for the current season yet.';
         }
-        return data.slice(0, 5).map(standing => 
-          `P${standing.position} | ${standing.Constructor.name} | ${standing.points} pts | Wins: ${standing.wins}`
-        ).join('\n');
+        return data.slice(0, 5).map(standing => {
+          const flagUrl = getFlagUrl(standing.Constructor.nationality);
+          const flag = flagUrl ? 
+            `<img src="${flagUrl}" alt="${standing.Constructor.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
+            '';
+          const teamColor = getTeamColor(standing.Constructor.name);
+          const teamName = `<span style="color: ${teamColor}">${standing.Constructor.name}</span>`;
+          return [
+            `${icons.trophy} P${standing.position}`,
+            teamName,
+            flag,
+            `${icons.activity} ${standing.points} pts`,
+            `${icons.car} Wins: ${standing.wins}`
+          ].join(' | ');
+        }).join('\n');
       }
 
       case '/next': {
@@ -174,13 +303,21 @@ export async function processCommand(cmd: string) {
       case '/weather': {
         const data = await api.getTrackWeather();
         if (!data) {
-          return 'Error: Weather information is only available during race weekends';
+          return 'Error: Weather information is only available during race weekends (Practice, Qualifying, or Race). Please try again during a session.';
         }
-        return `${icons.mapPin} Track Weather:\n` +
-               `🌡️ Temperature: ${data.airTemp}°C\n` +
-               `💧 Humidity: ${data.humidity}%\n` +
-               `💨 Wind: ${data.windSpeed} km/h\n` +
-               `☔ Rain: ${data.rainChance}%`;
+        
+        const statusMap: Record<string, string> = {
+          '1': '🟢 Track Clear',
+          '2': '🟡 Yellow Flag',
+          '3': '🟣 SC Deployed',
+          '4': '🔴 Red Flag',
+          '5': '⚫ Session Ended',
+          '6': '🟠 VSC Deployed'
+        };
+        
+        return `Track Status: ${statusMap[data.status] || 'Unknown'}\n` +
+               `Message: ${data.message || 'No additional information'}\n` +
+               `Updated: ${new Date(data.timestamp).toLocaleTimeString()}`;
       }
 
       case '/tires': {
@@ -226,76 +363,6 @@ export async function processCommand(cmd: string) {
       case '/clear': {
         localStorage.removeItem('commandHistory');
         return 'Terminal history cleared';
-      }
-
-      case '/help': {
-        
-        const searchTerm = args.join(' ').toLowerCase();
-        const circuitId = findTrackId(searchTerm);
-        
-        if (!circuitId) {
-          return `Error: Track "${args.join(' ')}" not found. Try using the track name (e.g., monza), nickname (e.g., temple of speed), or location (e.g., italian gp)`;
-        }
-        
-        const data = await api.getTrackInfo(circuitId);
-        if (!data) {
-          return `Error: Could not fetch data for track "${args.join(' ')}". Please try again later.`;
-        }
-        
-        const flagUrl = getFlagUrl(data.Location.country);
-        const flagImg = flagUrl ? ` <img src="${flagUrl}" alt="${data.Location.country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
-        return `${icons.flag} ${data.circuitName} | [${icons.mapPin} ${data.Location.locality}, ${flagImg} ${data.Location.country}] | [🌍 ${data.Location.lat}°N, ${data.Location.long}°E]`;
-      }
-
-      case '/live': {
-        const data = await api.getLiveTimings();
-        if (!data || data.length === 0) {
-          return 'No live timing data available. Live timing is only accessible during active race sessions (Practice, Qualifying, or Race). Please try again during a session.';
-        }
-        return data.map(timing => 
-          `P${timing.position} | Car #${timing.driver} | ${icons.clock} Last Lap: ${timing.lastLapTime || 'N/A'} | S1: ${timing.sector1 || 'N/A'} | S2: ${timing.sector2 || 'N/A'} | S3: ${timing.sector3 || 'N/A'} | ${icons.car} ${timing.speed || 'N/A'} km/h`
-        ).join('\n');
-      }
-
-      case '/telemetry': {
-        if (!args[0]) return 'Error: Please provide a driver number (e.g., /telemetry 44)';
-        const driverNumber = args[0];
-        if (!driverNumber.match(/^\d+$/)) {
-          return 'Error: Invalid driver number. Please use the driver\'s car number (e.g., /telemetry 44 for Hamilton, 1 for Verstappen)';
-        }
-        
-        const data = await api.getDriverTelemetry(driverNumber);
-        if (!data) {
-          return 'No telemetry data available. Telemetry is only accessible during active race sessions (Practice, Qualifying, or Race). Please try again during a session, or verify the driver number is correct.';
-        }
-        
-        return `Car #${driverNumber} Telemetry:\n` +
-               `${icons.car} Speed: ${data.speed || 'N/A'} km/h\n` +
-               `🔄 RPM: ${data.rpm || 'N/A'}\n` +
-               `🎮 Throttle: ${data.throttle || 'N/A'}%\n` +
-               `🛑 Brake: ${data.brake || 'N/A'}%\n` +
-               `⚙️ Gear: ${data.gear || 'N/A'}\n` +
-               `🌡️ Engine Temp: ${data.engine_temperature || 'N/A'}°C`;
-      }
-
-      case '/status': {
-        const data = await api.getTrackStatus();
-        if (!data) {
-          return 'No track status data available. Track status information is only accessible during active race weekends (Practice, Qualifying, or Race). Please try again during a session.';
-        }
-        
-        const statusMap: Record<string, string> = {
-          '1': '🟢 Track Clear',
-          '2': '🟡 Yellow Flag',
-          '3': '🟣 SC Deployed',
-          '4': '🔴 Red Flag',
-          '5': '⚫ Session Ended',
-          '6': '🟠 VSC Deployed'
-        };
-        
-        return `Track Status: ${statusMap[data.status] || 'Unknown'}\n` +
-               `Message: ${data.message || 'No additional information'}\n` +
-               `Updated: ${new Date(data.timestamp).toLocaleTimeString()}`;
       }
 
       case '/race': {

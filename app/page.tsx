@@ -13,9 +13,16 @@ import { processCommand } from '@/components/terminal/command-processor';
 
 const MAX_HISTORY_SIZE = 100; // Maximum number of commands to store
 
+interface HistoryEntry {
+  command: string;
+  output: string;
+  username: string;
+  timestamp: string;
+}
+
 export default function Home() {
   const [command, setCommand] = useState('');
-  const [history, setHistory] = useState<Array<{ command: string; output: string; username: string }>>([]);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [commandBuffer, setCommandBuffer] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -84,29 +91,45 @@ export default function Home() {
       case 'Tab':
         e.preventDefault();
         const input = command.toLowerCase();
-        const commandAliases = {
-          '/t': '/track'
-        };
-        const availableCommands = commands.map(c => c.command.split(' ')[0]);
         
         if (input.startsWith('/')) {
-          // Check if input matches any alias
-          const aliasMatch = Object.entries(commandAliases)
-            .find(([alias]) => alias.startsWith(input));
+          // Get all command names (first word of each command)
+          const availableCommands = commands.map(c => c.command.split(' ')[0]);
           
-          if (aliasMatch) {
-            setCommand(aliasMatch[1] + ' ');
-            return;
-          }
+          // Add common aliases
+          const commandAliases = {
+            '/t': '/track',
+            '/r': '/race',
+            '/q': '/qualifying',
+            '/s': '/standings',
+            '/c': '/constructors',
+            '/w': '/weather',
+            '/l': '/live',
+            '/n': '/next',
+            '/h': '/help'
+          };
           
-          // Otherwise check regular commands
-          const matches = availableCommands.filter(c => c.startsWith(input));
+          // Combine unique commands and aliases
+          const allCommands = [...new Set([
+            ...availableCommands,
+            ...Object.keys(commandAliases)
+          ])];
+          
+          // Find matches that start with the input
+          const matches = allCommands.filter(c => c.startsWith(input));
+          
           if (matches.length === 1) {
-            setCommand(matches[0] + ' ');
+            // If it's an alias, use the full command
+            const fullCommand = commandAliases[matches[0]] || matches[0];
+            setCommand(fullCommand + ' ');
           } else if (matches.length > 1) {
-            const newEntry = { 
-              command: command, 
-              output: `Available commands:\n${matches.join('\n')}`
+            // Show available matches
+            const newEntry = {
+              command: command,
+              output: `Available commands:\n${matches.sort().map(m => 
+                `  ${m}${commandAliases[m] ? ` → ${commandAliases[m]}` : ''}`
+              ).join('\n')}`,
+              username
             };
             setHistory(prev => [...prev, newEntry]);
           }
@@ -149,14 +172,21 @@ export default function Home() {
     setHistoryIndex(-1);
     setCommandBuffer('');
 
+    const timestamp = new Date().toLocaleTimeString();
+
     try {
-      const newEntry = { command: cmd, output: 'Processing command...', username };
+      const newEntry = { 
+        command: cmd, 
+        output: 'Processing command...', 
+        username,
+        timestamp
+      };
       setHistory(prev => [...prev, newEntry]);
       setCommand('');
       const output = await processCommand(cmd);
       setHistory(prev => 
         prev.map((entry, idx) => 
-          idx === prev.length - 1 ? { ...entry, output } : entry
+          idx === prev.length - 1 ? { ...entry, output, timestamp } : entry
         )
       );
     } catch (error) {
@@ -180,7 +210,7 @@ export default function Home() {
         <div className="gradient-bg" />
         <div className="grid-lines" />
       </div>
-      <div className="max-w-7xl w-full mx-auto px-8 pt-2 flex-shrink-0">
+      <div className="max-w-7xl w-full mx-auto px-8 pt-2 pb-1 flex-shrink-0">
         <header className="text-center mb-2 glass-panel py-2 px-4 border-b border-border/20">
           <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-secondary animate-pulse">
             RaceTerminal Pro
@@ -189,8 +219,6 @@ export default function Home() {
             Your futuristic motorsports data companion
           </p>
         </header>
-
-        <SessionInfo />
       </div>
 
       <div className="w-full max-w-7xl mx-auto px-8 flex-1 flex flex-col overflow-hidden">

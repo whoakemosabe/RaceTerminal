@@ -1,9 +1,21 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+// Common icons used throughout the application
+export const icons = {
+  car: '🏎️',
+  flag: '🏁',
+  activity: '📊',
+  calendar: '📅',
+  trophy: '🏆',
+  clock: '⏱️',
+  mapPin: '📍',
+  tool: '🔧'
+};
+
 // Track nickname mappings
 export const trackNicknames: Record<string, string[]> = {
-  'monza': ['Temple of Speed', 'Italian GP', 'MON'],
+  'monza': ['Temple of Speed', 'Italian GP', 'MON', 'Autodromo Nazionale Monza', 'Royal Park'],
   'spa': ['Spa-Francorchamps', 'Belgian GP', 'SPA'],
   'monaco': ['Monte Carlo', 'Streets of Monaco', 'MOC'],
   'silverstone': ['Home of British Racing', 'British GP', 'SIL'],
@@ -30,6 +42,11 @@ export const trackNicknames: Record<string, string[]> = {
 // Find track ID from search term
 export function findTrackId(search: string): string | null {
   search = search.toLowerCase().trim();
+  
+  // Special case for Monza variations
+  if (['autodromo', 'nazionale', 'royal park', 'temple'].some(term => search.includes(term))) {
+    return 'monza';
+  }
   
   // Direct match with track ID
   if (trackNicknames[search]) {
@@ -242,25 +259,156 @@ export function calculateCountdown(raceDate: Date): string {
 
 export function formatDriverComparison(data: any): string {
   const { driver1, driver2 } = data;
-  const stats1 = calculateDriverStats(driver1);
-  const stats2 = calculateDriverStats(driver2);
   
-  return `Head-to-Head Comparison:\n` +
-         `${driver1.driverName}:\n` +
-         `  Wins: ${stats1.wins}\n` +
-         `  Podiums: ${stats1.podiums}\n` +
-         `  Points: ${stats1.points}\n\n` +
-         `${driver2.driverName}:\n` +
-         `  Wins: ${stats2.wins}\n` +
-         `  Podiums: ${stats2.podiums}\n` +
-         `  Points: ${stats2.points}`;
+  if (!driver1?.Races || !driver2?.Races) {
+    return 'Error: Could not fetch comparison data for one or both drivers';
+  }
+
+  // Get driver info from first race result that has driver data
+  const driver1Info = driver1.Races.find((race: any) => race.Driver)?.Driver;
+  const driver2Info = driver2.Races.find((race: any) => race.Driver)?.Driver;
+
+  if (!driver1Info || !driver2Info) {
+    return 'Error: Could not fetch driver information';
+  }
+
+  const driver1Name = `${driver1Info.givenName} ${driver1Info.familyName}`;
+  const driver2Name = `${driver2Info.givenName} ${driver2Info.familyName}`;
+  const driver1Nationality = driver1Info.nationality;
+  const driver2Nationality = driver2Info.nationality;
+  
+  const stats1 = calculateDriverStats(driver1.Races);
+  const stats2 = calculateDriverStats(driver2.Races);
+  
+  const flag1 = getFlagUrl(driver1Nationality);
+  const flag2 = getFlagUrl(driver2Nationality);
+  
+  const flagImg1 = flag1 ? `<img src="${flag1}" alt="${driver1Nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
+  const flagImg2 = flag2 ? `<img src="${flag2}" alt="${driver2Nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
+  
+  const maxNameLength = Math.max(driver1Name.length, driver2Name.length);
+  const padding = 5; // Extra padding for visual spacing
+  const sideWidth = maxNameLength + padding;
+  const separator = '\n' + '─'.repeat(sideWidth) + ' VS ' + '─'.repeat(sideWidth) + '\n';
+  
+  const formatSide = (text: string, align: 'left' | 'right' = 'left') => {
+    const spaces = ' '.repeat(sideWidth - text.length);
+    return align === 'left' ? text + spaces : spaces + text;
+  };
+  
+  return [
+    '👤 DRIVER HEAD-TO-HEAD COMPARISON',
+    separator,
+    `${flagImg1} ${formatSide(driver1Name)}     ${flagImg2} ${formatSide(driver2Name)}`,
+    `🏆 ${formatSide(`Wins: ${stats1.wins}`)}     🏆 ${formatSide(`Wins: ${stats2.wins}`)}`,
+    `🥇 ${formatSide(`Podiums: ${stats1.podiums}`)}     🥇 ${formatSide(`Podiums: ${stats2.podiums}`)}`,
+    `📊 ${formatSide(`Points: ${stats1.points}`)}     📊 ${formatSide(`Points: ${stats2.points}`)}`,
+    `🔥 ${formatSide(`Best: P${stats1.bestFinish}`)}     🔥 ${formatSide(`Best: P${stats2.bestFinish}`)}`,
+    `⚡ ${formatSide(`Fast Laps: ${stats1.fastestLaps}`)}     ⚡ ${formatSide(`Fast Laps: ${stats2.fastestLaps}`)}`,
+    separator.replace('VS', '🏁')
+  ].join('\n');
 }
 
-function calculateDriverStats(data: any) {
-  const results = data.Races || [];
+function calculateDriverStats(results: any[]) {
   return {
-    wins: results.filter((r: any) => r.position === '1').length,
+    wins: results.filter((r: any) => r.position === "1" || r.position === 1).length,
+    podiums: results.filter((r: any) => {
+      const pos = parseInt(r.position);
+      return !isNaN(pos) && pos <= 3;
+    }).length,
+    points: results.reduce((acc: number, r: any) => acc + parseInt(r.points || '0'), 0),
+    bestFinish: Math.min(...results.map((r: any) => {
+      const pos = parseInt(r.position);
+      return !isNaN(pos) ? pos : Infinity;
+    })),
+    fastestLaps: results.filter((r: any) => r.FastestLap?.rank === "1").length
+  };
+}
+
+// Team nickname mappings
+export const teamNicknames: Record<string, string[]> = {
+  'red_bull': ['Red Bull', 'RBR', 'redbull'],
+  'mercedes': ['Mercedes', 'Merc', 'mercs'],
+  'ferrari': ['Ferrari', 'Scuderia', 'SF'],
+  'mclaren': ['McLaren', 'MCL', 'papaya'],
+  'aston_martin': ['Aston Martin', 'AMR', 'aston'],
+  'alpine': ['Alpine', 'ALP', 'renault'],
+  'williams': ['Williams', 'WIL', 'grove'],
+  'alphatauri': ['AlphaTauri', 'AT', 'tauri'],
+  'alfa': ['Alfa Romeo', 'ALF', 'sauber'],
+  'haas': ['Haas F1 Team', 'HAS', 'haas']
+};
+
+export function findTeamId(search: string): string | null {
+  search = search.toLowerCase().trim();
+  
+  // Direct match with team ID
+  if (teamNicknames[search]) {
+    return search;
+  }
+  
+  // Search through nicknames
+  for (const [teamId, nicknames] of Object.entries(teamNicknames)) {
+    if (nicknames.some(nick => nick.toLowerCase() === search) || 
+        teamId.replace('_', '').toLowerCase() === search) {
+      return teamId;
+    }
+  }
+  
+  return null;
+}
+
+export function formatTeamComparison(data: any): string {
+  const { team1, team2 } = data;
+  
+  if (!team1?.Races || !team2?.Races || team1.Races.length === 0 || team2.Races.length === 0) {
+    return 'Error: Could not fetch comparison data for one or both teams';
+  }
+
+  const team1Name = team1.constructorId ? 
+    teamNicknames[team1.constructorId]?.[0] || team1.Races[0]?.Constructor?.name || 'Unknown Team' :
+    team1.Races[0]?.Constructor?.name || 'Unknown Team';
+
+  const team2Name = team2.constructorId ? 
+    teamNicknames[team2.constructorId]?.[0] || team2.Races[0]?.Constructor?.name || 'Unknown Team' :
+    team2.Races[0]?.Constructor?.name || 'Unknown Team';
+  
+  const stats1 = calculateTeamStats(team1.Races);
+  const stats2 = calculateTeamStats(team2.Races);
+  
+  const team1Nationality = team1.Races[0]?.Constructor?.nationality;
+  const team2Nationality = team2.Races[0]?.Constructor?.nationality;
+  
+  const flag1 = getFlagUrl(team1Nationality);
+  const flag2 = getFlagUrl(team2Nationality);
+  
+  const flagImg1 = flag1 ? `<img src="${flag1}" alt="${team1Nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
+  const flagImg2 = flag2 ? `<img src="${flag2}" alt="${team2Nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
+  
+  const separator = '\n' + '─'.repeat(40) + ' VS ' + '─'.repeat(40) + '\n';
+  
+  const coloredTeam1 = `<span style="color: ${getTeamColor(team1Name)}">${team1Name}</span>`;
+  const coloredTeam2 = `<span style="color: ${getTeamColor(team2Name)}">${team2Name}</span>`;
+  
+  return [
+    '🏎️ CONSTRUCTOR HEAD-TO-HEAD COMPARISON',
+    separator,
+    `${flagImg1} ${coloredTeam1}${' '.repeat(Math.max(0, 40 - team1Name.length))}     ${flagImg2} ${coloredTeam2}`,
+    `🏆 Wins: ${stats1.wins}${' '.repeat(Math.max(0, 33 - stats1.wins.toString().length))}     🏆 Wins: ${stats2.wins}`,
+    `🥇 Podiums: ${stats1.podiums}${' '.repeat(Math.max(0, 30 - stats1.podiums.toString().length))}     🥇 Podiums: ${stats2.podiums}`,
+    `📊 Points: ${stats1.points}${' '.repeat(Math.max(0, 31 - stats1.points.toString().length))}     📊 Points: ${stats2.points}`,
+    `🔥 Best: P${stats1.bestFinish}${' '.repeat(Math.max(0, 32 - stats1.bestFinish.toString().length))}     🔥 Best: P${stats2.bestFinish}`,
+    `⚡ Fast Laps: ${stats1.fastestLaps}${' '.repeat(Math.max(0, 27 - stats1.fastestLaps.toString().length))}     ⚡ Fast Laps: ${stats2.fastestLaps}`,
+    separator.replace('VS', '🏁')
+  ].join('\n');
+}
+
+function calculateTeamStats(results: any[]) {
+  return {
+    wins: results.filter((r: any) => r.position === "1").length,
     podiums: results.filter((r: any) => parseInt(r.position) <= 3).length,
-    points: results.reduce((acc: number, r: any) => acc + parseInt(r.points || '0'), 0)
+    points: results.reduce((acc: number, r: any) => acc + parseInt(r.points || '0'), 0),
+    bestFinish: Math.min(...results.map((r: any) => parseInt(r.position))),
+    fastestLaps: results.filter((r: any) => r.FastestLap?.rank === "1").length
   };
 }
