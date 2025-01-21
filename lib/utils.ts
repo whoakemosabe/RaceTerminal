@@ -1,6 +1,59 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+// Track nickname mappings
+export const trackNicknames: Record<string, string[]> = {
+  'monza': ['Temple of Speed', 'Italian GP', 'MON'],
+  'spa': ['Spa-Francorchamps', 'Belgian GP', 'SPA'],
+  'monaco': ['Monte Carlo', 'Streets of Monaco', 'MOC'],
+  'silverstone': ['Home of British Racing', 'British GP', 'SIL'],
+  'albert_park': ['Melbourne', 'Australian GP', 'ALB'],
+  'red_bull_ring': ['Spielberg', 'Austrian GP', 'RBR'],
+  'baku': ['Azerbaijan GP', 'Streets of Baku', 'BAK'],
+  'suzuka': ['Figure 8', 'Japanese GP', 'SUZ'],
+  'interlagos': ['Sao Paulo', 'Brazilian GP', 'INT'],
+  'yas_marina': ['Abu Dhabi', 'Yas Island', 'YAS'],
+  'marina_bay': ['Singapore', 'Night Race', 'MAR'],
+  'jeddah': ['Saudi Arabian GP', 'Corniche Circuit', 'JED'],
+  'miami': ['Miami Gardens', 'Miami GP', 'MIA'],
+  'las_vegas': ['Strip Circuit', 'Vegas GP', 'LAS'],
+  'losail': ['Qatar GP', 'Losail Circuit', 'LOS'],
+  'shanghai': ['Chinese GP', 'SHA'],
+  'hungaroring': ['Budapest', 'Hungarian GP', 'HUN'],
+  'zandvoort': ['Dutch GP', 'ZAN'],
+  'rodriguez': ['Mexico City', 'Mexican GP', 'ROD'],
+  'imola': ['Emilia Romagna', 'San Marino', 'IMO'],
+  'catalunya': ['Barcelona', 'Spanish GP', 'CAT'],
+  'ricard': ['Paul Ricard', 'French GP', 'RIC']
+};
+
+// Find track ID from search term
+export function findTrackId(search: string): string | null {
+  search = search.toLowerCase().trim();
+  
+  // Direct match with track ID
+  if (trackNicknames[search]) {
+    return search;
+  }
+  
+  // Search through nicknames
+  for (const [trackId, nicknames] of Object.entries(trackNicknames)) {
+    // Check exact matches first
+    if (nicknames.some(nick => nick.toLowerCase() === search) || 
+        trackId.replace('_', '').toLowerCase() === search) {
+      return trackId;
+    }
+    
+    // Then check partial matches
+    if (nicknames.some(nick => nick.toLowerCase().includes(search)) || 
+        trackId.replace('_', '').toLowerCase().includes(search)) {
+      return trackId;
+    }
+  }
+  
+  return null;
+}
+
 export const countryToCode: Record<string, string> = {
   'British': 'GB',
   'Dutch': 'NL',
@@ -172,4 +225,42 @@ export function formatDate(date: string): string {
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function calculateCountdown(raceDate: Date): string {
+  const now = new Date();
+  const diff = raceDate.getTime() - now.getTime();
+  
+  if (diff < 0) return 'Race completed';
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  
+  return `${days}d ${hours}h ${minutes}m`;
+}
+
+export function formatDriverComparison(data: any): string {
+  const { driver1, driver2 } = data;
+  const stats1 = calculateDriverStats(driver1);
+  const stats2 = calculateDriverStats(driver2);
+  
+  return `Head-to-Head Comparison:\n` +
+         `${driver1.driverName}:\n` +
+         `  Wins: ${stats1.wins}\n` +
+         `  Podiums: ${stats1.podiums}\n` +
+         `  Points: ${stats1.points}\n\n` +
+         `${driver2.driverName}:\n` +
+         `  Wins: ${stats2.wins}\n` +
+         `  Podiums: ${stats2.podiums}\n` +
+         `  Points: ${stats2.points}`;
+}
+
+function calculateDriverStats(data: any) {
+  const results = data.Races || [];
+  return {
+    wins: results.filter((r: any) => r.position === '1').length,
+    podiums: results.filter((r: any) => parseInt(r.position) <= 3).length,
+    points: results.reduce((acc: number, r: any) => acc + parseInt(r.points || '0'), 0)
+  };
 }

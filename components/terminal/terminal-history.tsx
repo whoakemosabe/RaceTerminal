@@ -19,7 +19,7 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
   if (history.length === 0) return null;
 
   return (
-    <div className="p-4 font-mono text-sm terminal-input h-[350px] overflow-y-auto">
+    <div className="font-mono text-sm h-[350px] overflow-y-auto mt-4">
       <div className="flex flex-col space-y-2">
         {[...history].reverse().map((entry, index) => {
           const timestamp = mounted ? new Date().toLocaleTimeString() : '';
@@ -53,8 +53,10 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
           </div>
         )})}
       </div>
-      <div className="mt-6 text-xs text-muted-foreground/60 bg-card/50 backdrop-blur-lg p-3 border rounded border-border/25 sticky bottom-0">
-          {mounted && `System: RaceTerminal v${APP_VERSION} | Session started at ${sessionStart}`}
+      <div className="mt-6 text-xs text-muted-foreground/60 bg-card/50 backdrop-blur-lg p-3 border-t border-border/10 sticky bottom-0">
+          <div className="terminal-system-info">
+            {mounted && `System: RaceTerminal v${APP_VERSION} | Session started at ${sessionStart}`}
+          </div>
       </div>
     </div>
   );

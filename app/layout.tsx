@@ -5,31 +5,6 @@ import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ['latin'] });
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://raceterminal.pro';
-
-export const metadata: Metadata = {
-  title: 'RaceTerminal Pro',
-  description: 'Your futuristic motorsports data companion',
-  openGraph: {
-    title: 'RaceTerminal Pro',
-    description: 'Your futuristic motorsports data companion',
-    type: 'website',
-    locale: 'en_US',
-    url: baseUrl,
-    siteName: 'RaceTerminal Pro',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'RaceTerminal Pro',
-    description: 'Your futuristic motorsports data companion',
-    site: '@raceterminal',
-  },
-  metadataBase: new URL(baseUrl),
-  alternates: {
-    canonical: '/',
-  },
-};
-
 export default function RootLayout({
   children,
 }: {

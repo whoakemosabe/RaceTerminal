@@ -1,5 +1,5 @@
 import { api } from '@/lib/api/client';
-import { formatDriver, formatCircuit, formatWithTeamColor, formatTime, formatDate, getDriverNicknames, findDriverId, getFlagUrl, countryToCode } from '@/lib/utils';
+import { formatDriver, formatCircuit, formatWithTeamColor, formatTime, formatDate, getDriverNicknames, findDriverId, getFlagUrl, countryToCode, findTrackId } from '@/lib/utils';
 import { commands } from '@/lib/commands';
 import { DriverStanding } from '@/lib/api/types';
 import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
@@ -14,6 +14,7 @@ const icons = {
   mapPin: '📍',
   tool: '🔧'
 };
+
 
 export async function processCommand(cmd: string) {
   const parts = cmd.split(' ');
@@ -105,14 +106,140 @@ export async function processCommand(cmd: string) {
         ).join(' • ');
       }
 
+      case '/t':
       case '/track': {
         if (!args[0]) {
-          return 'Error: Please provide a track name (e.g., /track monza). You can use the circuit name or location.';
+          return 'Error: Please provide a track name (e.g., /track monza). You can use the circuit name, location, or common nicknames.';
+        }
+        return await handleTrackCommand(args);
+      }
+
+      case '/team': {
+        if (!args[0]) {
+          return 'Error: Please provide a team name (e.g., /team ferrari)';
+        }
+        const data = await api.getConstructorInfo(args[0].toLowerCase());
+        if (!data) {
+          return `Error: Team "${args[0]}" not found. Try using the team name (e.g., ferrari, mercedes)`;
+        }
+        const flagUrl = getFlagUrl(data.nationality);
+        return `${icons.car} ${data.name} | [${flagUrl ? `<img src="${flagUrl}" alt="${data.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : ''} ${data.nationality}] | First Entry: ${data.firstEntry || 'N/A'} | Championships: ${data.championships || '0'}`;
+      }
+
+      case '/compare': {
+        if (!args[0] || !args[1]) {
+          return 'Error: Please provide two drivers to compare (e.g., /compare verstappen hamilton)';
+        }
+        const [driver1Id, driver2Id] = [findDriverId(args[0]), findDriverId(args[1])];
+        if (!driver1Id || !driver2Id) {
+          return 'Error: One or both drivers not found. Use driver names or codes (e.g., verstappen, HAM)';
+        }
+        const data = await api.compareDrivers(driver1Id, driver2Id);
+        return formatDriverComparison(data);
+      }
+
+      case '/constructors': {
+        const data = await api.getConstructorStandings();
+        if (!data || data.length === 0) {
+          return 'Error: No constructor standings available';
+        }
+        return data.slice(0, 5).map(standing => 
+          `P${standing.position} | ${standing.Constructor.name} | ${standing.points} pts | Wins: ${standing.wins}`
+        ).join('\n');
+      }
+
+      case '/next': {
+        const data = await api.getNextRace();
+        if (!data) {
+          return 'Error: No upcoming race information available';
+        }
+        const countdown = calculateCountdown(new Date(data.date));
+        return `${icons.calendar} Next Race: ${data.raceName}\n` +
+               `${icons.flag} Circuit: ${data.Circuit.circuitName}\n` +
+               `${icons.clock} Date: ${formatDate(data.date)}\n` +
+               `⏳ Countdown: ${countdown}`;
+      }
+
+      case '/last': {
+        const data = await api.getLastRaceResults();
+        if (!data) {
+          return 'Error: No results available for the last race';
+        }
+        return `${icons.flag} ${data.raceName} Results:\n` +
+               data.Results.slice(0, 5).map(result =>
+                 `P${result.position} | ${formatDriver(result.Driver.givenName + ' ' + result.Driver.familyName, result.Driver.nationality)} | ${formatTime(result.Time?.time || result.status)}`
+               ).join('\n');
+      }
+
+      case '/weather': {
+        const data = await api.getTrackWeather();
+        if (!data) {
+          return 'Error: Weather information is only available during race weekends';
+        }
+        return `${icons.mapPin} Track Weather:\n` +
+               `🌡️ Temperature: ${data.airTemp}°C\n` +
+               `💧 Humidity: ${data.humidity}%\n` +
+               `💨 Wind: ${data.windSpeed} km/h\n` +
+               `☔ Rain: ${data.rainChance}%`;
+      }
+
+      case '/tires': {
+        if (!args[0]) {
+          return 'Error: Please provide a driver number (e.g., /tires 44)';
+        }
+        const data = await api.getDriverTires(args[0]);
+        if (!data) {
+          return 'Error: Tire data is only available during active sessions';
+        }
+        return `${icons.car} Car #${args[0]} Tires:\n` +
+               `🔄 Current: ${data.compound}\n` +
+               `⏱️ Age: ${data.laps} laps\n` +
+               `📊 Wear: ${data.wear}%`;
+      }
+
+      case '/fastest': {
+        if (!args[0] || !args[1]) {
+          return 'Error: Please provide year and round (e.g., /fastest 2023 1)';
+        }
+        const data = await api.getFastestLaps(parseInt(args[0]), parseInt(args[1]));
+        if (!data || data.length === 0) {
+          return 'Error: No fastest lap data available for this race';
+        }
+        return data.slice(0, 5).map(lap =>
+          `${icons.clock} ${lap.driver} | Lap ${lap.lap} | ${formatTime(lap.time)} | Avg Speed: ${lap.avgSpeed} km/h`
+        ).join('\n');
+      }
+
+      case '/sprint': {
+        if (!args[0] || !args[1]) {
+          return 'Error: Please provide year and round (e.g., /sprint 2023 1)';
+        }
+        const data = await api.getSprintResults(parseInt(args[0]), parseInt(args[1]));
+        if (!data || data.length === 0) {
+          return 'Error: No sprint race results available';
+        }
+        return data.slice(0, 5).map(result =>
+          `P${result.position} | ${formatDriver(result.Driver.givenName + ' ' + result.Driver.familyName, result.Driver.nationality)} | ${formatTime(result.Time?.time || result.status)}`
+        ).join('\n');
+      }
+
+      case '/clear': {
+        localStorage.removeItem('commandHistory');
+        return 'Terminal history cleared';
+      }
+
+      case '/help': {
+        
+        const searchTerm = args.join(' ').toLowerCase();
+        const circuitId = findTrackId(searchTerm);
+        
+        if (!circuitId) {
+          return `Error: Track "${args.join(' ')}" not found. Try using the track name (e.g., monza), nickname (e.g., temple of speed), or location (e.g., italian gp)`;
         }
         
-        const data = await api.getTrackInfo(args[0].toLowerCase());
+        const data = await api.getTrackInfo(circuitId);
         if (!data) {
-          return `Error: Track "${args[0]}" not found. Please check the track name and try again (e.g., /track monza, /track spa)`;
+          return `Error: Could not fetch data for track "${args.join(' ')}". Please try again later.`;
         }
         
         const flagUrl = getFlagUrl(data.Location.country);
@@ -270,27 +397,35 @@ export async function processCommand(cmd: string) {
       }
 
       case '/help': {
-        // Split commands into two columns
-        const leftColumn = commands.slice(0, Math.ceil(commands.length / 2));
-        const rightColumn = commands.slice(Math.ceil(commands.length / 2));
+        // Group commands by source
+        const groupedCommands = commands.reduce((acc, cmd) => {
+          if (!acc[cmd.source]) {
+            acc[cmd.source] = [];
+          }
+          acc[cmd.source].push(cmd);
+          return acc;
+        }, {} as Record<string, typeof commands>);
+
+        // Format each group
+        const sections = Object.entries(groupedCommands).map(([source, cmds]) => {
+          const header = `\n${source} Commands:\n${'-'.repeat(source.length + 9)}\n`;
+          const commandList = cmds.map(cmd => {
+            const commandPart = cmd.command.padEnd(25);
+            return `  ${icons.tool} ${commandPart} ${cmd.description}`;
+          }).join('\n');
+          return header + commandList;
+        });
+
+        const header = 'Available Commands';
+        const separator = '='.repeat(header.length);
         
-        // Format each column
-        const formatColumn = (cmds: typeof commands) => {
-          return cmds.map(cmd => 
-            `${icons.tool} ${cmd.command.padEnd(20)} ${cmd.description}`
-          );
-        };
+        const shortcuts = `\nKeyboard Shortcuts:\n${'-'.repeat(17)}\n` +
+          '  ↑/↓        Navigate command history\n' +
+          '  Tab        Auto-complete command\n' +
+          '  Ctrl+L     Clear terminal\n' +
+          '  Ctrl+C     Cancel command';
 
-        const leftFormatted = formatColumn(leftColumn);
-        const rightFormatted = formatColumn(rightColumn);
-
-        // Combine columns with proper spacing
-        const output = leftFormatted.map((left, i) => {
-          const right = rightFormatted[i] || '';
-          return `${left.padEnd(60)}${right}`;
-        }).join('\n');
-
-        return `Available Commands:\n\n${output}\n\nData sources: Ergast F1 API, OpenF1 API`;
+        return `${header}\n${separator}${sections.join('\n')}\n${shortcuts}`;
       }
 
       default:

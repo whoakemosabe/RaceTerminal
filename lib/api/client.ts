@@ -234,5 +234,90 @@ export const api = {
         duration: stop.duration
       }));
     });
-  }
+  },
+
+  async getConstructorInfo(constructorId: string) {
+    return retryRequest(async () => {
+      const { data } = await ergastClient.get(`/constructors/${constructorId}.json`);
+      if (!data?.MRData?.ConstructorTable?.Constructors?.[0]) {
+        return null;
+      }
+      return data.MRData.ConstructorTable.Constructors[0];
+    });
+  },
+
+  async compareDrivers(driver1Id: string, driver2Id: string) {
+    return retryRequest(async () => {
+      const [driver1Data, driver2Data] = await Promise.all([
+        ergastClient.get(`/drivers/${driver1Id}/results.json`),
+        ergastClient.get(`/drivers/${driver2Id}/results.json`)
+      ]);
+      return {
+        driver1: driver1Data.data.MRData.RaceTable,
+        driver2: driver2Data.data.MRData.RaceTable
+      };
+    });
+  },
+
+  async getNextRace() {
+    return retryRequest(async () => {
+      const { data } = await ergastClient.get('/current/next.json');
+      if (!data?.MRData?.RaceTable?.Races?.[0]) {
+        return null;
+      }
+      return data.MRData.RaceTable.Races[0];
+    });
+  },
+
+  async getLastRaceResults() {
+    return retryRequest(async () => {
+      const { data } = await ergastClient.get('/current/last/results.json');
+      if (!data?.MRData?.RaceTable?.Races?.[0]) {
+        return null;
+      }
+      return data.MRData.RaceTable.Races[0];
+    });
+  },
+
+  async getTrackWeather() {
+    return retryRequest(async () => {
+      const { data } = await openF1Client.get('/weather');
+      if (!data || data.length === 0) {
+        return null;
+      }
+      return data[0];
+    });
+  },
+
+  async getDriverTires(driverNumber: string) {
+    return retryRequest(async () => {
+      const { data } = await openF1Client.get('/tire_data', {
+        params: { driver_number: driverNumber }
+      });
+      if (!data || data.length === 0) {
+        return null;
+      }
+      return data[0];
+    });
+  },
+
+  async getFastestLaps(year: number, round: number) {
+    return retryRequest(async () => {
+      const { data } = await ergastClient.get(`/${year}/${round}/fastest/1/results.json`);
+      if (!data?.MRData?.RaceTable?.Races?.[0]?.Results) {
+        return [];
+      }
+      return data.MRData.RaceTable.Races[0].Results;
+    });
+  },
+
+  async getSprintResults(year: number, round: number) {
+    return retryRequest(async () => {
+      const { data } = await ergastClient.get(`/${year}/${round}/sprint.json`);
+      if (!data?.MRData?.RaceTable?.Races?.[0]?.SprintResults) {
+        return [];
+      }
+      return data.MRData.RaceTable.Races[0].SprintResults;
+    });
+  },
 };

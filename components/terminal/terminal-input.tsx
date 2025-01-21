@@ -44,7 +44,7 @@ export function TerminalInput({
   }, []);
 
   return (
-    <div className={cn("mb-4", "terminal-input", "p-4")}>
+    <div className={cn("mb-4 border-b border-border/10 pb-4")}>
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-2">
           <Terminal className="text-primary" />

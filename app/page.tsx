@@ -5,52 +5,22 @@ import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { useUsername } from '@/hooks/use-username';
 import { api } from '@/lib/api/client';
-import { commands } from '@/lib/commands';
-import { processCommand } from '@/components/terminal/command-processor';
-import { TerminalInput } from '@/components/terminal/terminal-input';
-import { TerminalHistory } from '@/components/terminal/terminal-history';
+import { Terminal } from '@/components/terminal/terminal';
 import { SessionInfo } from '@/components/terminal/session-info';
 import { HelpPanel } from '@/components/terminal/help-panel';
-import { SchemaOrg } from '@/components/schema-org';
+import { commands } from '@/lib/commands';
+import { processCommand } from '@/components/terminal/command-processor';
 
 const MAX_HISTORY_SIZE = 100; // Maximum number of commands to store
 
 export default function Home() {
   const [command, setCommand] = useState('');
   const [history, setHistory] = useState<Array<{ command: string; output: string; username: string }>>([]);
-  const [raceData, setRaceData] = useState<any>(null);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [commandBuffer, setCommandBuffer] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
   const { username } = useUsername();
-
-  // Load current race data for schema
-  useEffect(() => {
-    const loadRaceData = async () => {
-      try {
-        const currentYear = new Date().getFullYear();
-        const races = await api.getRaceSchedule(currentYear);
-        if (races && races.length > 0) {
-          // Find the next race or the last race of the season
-          const now = new Date();
-          const nextRace = races.find((race: { date: string | number | Date; }) => new Date(race.date) > now) || races[races.length - 1];
-          setRaceData({
-            ...nextRace,
-            Circuit: {
-              circuitName: nextRace.Circuit.circuitName,
-              Location: {
-                country: nextRace.Circuit.Location.country
-              }
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Failed to load race data for schema:', error);
-      }
-    };
-    loadRaceData();
-  }, []);
 
   // Load history from localStorage on mount
   useEffect(() => {
@@ -114,9 +84,22 @@ export default function Home() {
       case 'Tab':
         e.preventDefault();
         const input = command.toLowerCase();
+        const commandAliases = {
+          '/t': '/track'
+        };
         const availableCommands = commands.map(c => c.command.split(' ')[0]);
         
         if (input.startsWith('/')) {
+          // Check if input matches any alias
+          const aliasMatch = Object.entries(commandAliases)
+            .find(([alias]) => alias.startsWith(input));
+          
+          if (aliasMatch) {
+            setCommand(aliasMatch[1] + ' ');
+            return;
+          }
+          
+          // Otherwise check regular commands
           const matches = availableCommands.filter(c => c.startsWith(input));
           if (matches.length === 1) {
             setCommand(matches[0] + ' ');
@@ -192,18 +175,17 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen relative overflow-hidden flex flex-col">
-      <SchemaOrg raceData={raceData} />
+    <main className="h-screen relative overflow-hidden flex flex-col">
       <div className="fixed inset-0 z-[-1]">
         <div className="gradient-bg" />
         <div className="grid-lines" />
       </div>
-      <div className="max-w-7xl w-full mx-auto flex-1 px-8 py-4 page-content">
-        <header className="text-center mb-6">
-          <h1 className="text-6xl font-bold mb-2 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-secondary animate-pulse">
+      <div className="max-w-7xl w-full mx-auto px-8 pt-2 flex-shrink-0">
+        <header className="text-center mb-2 glass-panel py-2 px-4 border-b border-border/20">
+          <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-secondary animate-pulse">
             RaceTerminal Pro
           </h1>
-          <p className="text-lg text-gray-400 tracking-wide">
+          <p className="text-xs text-muted-foreground/80 tracking-wide mt-1">
             Your futuristic motorsports data companion
           </p>
         </header>
@@ -211,23 +193,20 @@ export default function Home() {
         <SessionInfo />
       </div>
 
-      <div className="w-full max-w-7xl mx-auto px-8 pb-4">
-        <TerminalInput
+      <div className="w-full max-w-7xl mx-auto px-8 flex-1 flex flex-col overflow-hidden">
+        <Terminal
           command={command}
           isProcessing={isProcessing}
+          history={history}
           onCommandChange={(value) => {
             setCommand(value);
             if (historyIndex !== -1) {
               setHistoryIndex(-1);
             }
           }}
-          onFocus={() => {}}
-          onBlur={() => {}}
           onKeyDown={handleKeyDown}
           onExecute={handleCommand}
         />
-
-        <TerminalHistory history={history} />
 
         <HelpPanel />
       </div>
