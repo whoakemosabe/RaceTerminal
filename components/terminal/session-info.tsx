@@ -53,7 +53,7 @@ export function SessionInfo() {
   return (
     <div className="mb-2 p-2 glass-panel">
       <div className="flex items-center justify-between gap-6">
-        <div className="flex items-center gap-2 text-primary">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Info size={16} />
           <span className="text-sm font-mono">v{APP_VERSION}</span>
         </div>

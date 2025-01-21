@@ -219,7 +219,7 @@ export function Terminal({
       {/* Bottom Status Bar */}
       <div className="terminal-status-bar sticky bottom-0 z-10">
         <div className="grid grid-cols-4 w-full">
-          <div className="col-span-2 flex items-center gap-2 text-primary justify-start">
+          <div className="col-span-2 flex items-center gap-2 text-muted-foreground justify-start">
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2 cursor-help">
