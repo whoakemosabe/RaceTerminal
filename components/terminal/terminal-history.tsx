@@ -53,8 +53,8 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
           </div>
         )})}
       </div>
-      <div className="mt-6 text-xs text-muted-foreground/60 bg-card/50 backdrop-blur-lg p-3 border rounded border-border/25">
-        {mounted && `System: RaceTerminal v${APP_VERSION} | Session started at ${sessionStart}`}
+      <div className="mt-6 text-xs text-muted-foreground/60 bg-card/50 backdrop-blur-lg p-3 border rounded border-border/25 sticky bottom-0">
+          {mounted && `System: RaceTerminal v${APP_VERSION} | Session started at ${sessionStart}`}
       </div>
     </div>
   );
