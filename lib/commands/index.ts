@@ -2,11 +2,11 @@ export const commands = [
   // System Commands
   {
     command: '/reset',
-    description: 'Reset terminal session and clear history',
+    description: 'Reset terminal session',
     source: 'System'
   },
   {
-    command: '/username <name|reset>',
+    command: '/user <name|reset> (/u)',
     description: 'Change your terminal display name (e.g., /username max) or reset to default (/username reset). Alias: /user',
     source: 'System'
   },
@@ -18,7 +18,7 @@ export const commands = [
   
   // Driver & Team Commands
   { 
-    command: '/driver <name>', 
+    command: '/driver <name> (/d)', 
     description: 'Get driver info (e.g., /driver hamilton)',
     source: 'Ergast F1 API'
   },
@@ -28,19 +28,19 @@ export const commands = [
     source: 'Ergast F1 API'
   },
   {
-    command: '/compare <type> <name1> <name2>',
+    command: '/compare <type> <name1> <name2> (/m)',
     description: 'Compare drivers or teams (e.g., /compare driver verstappen hamilton or /compare team redbull mercedes)',
     source: 'Ergast F1 API'
   },
   
   // Race Information
   { 
-    command: '/standings', 
+    command: '/standings (/s)', 
     description: 'View current championship standings',
     source: 'Ergast F1 API'
   },
   {
-    command: '/teams',
+    command: '/teams (/c)',
     description: 'View current constructor standings',
     source: 'Ergast F1 API'
   },
@@ -50,7 +50,7 @@ export const commands = [
     source: 'Ergast F1 API'
   },
   {
-    command: '/next',
+    command: '/next (/n)',
     description: 'Get details about the next race',
     source: 'Ergast F1 API'
   },
@@ -60,14 +60,14 @@ export const commands = [
     source: 'Ergast F1 API'
   },
   { 
-    command: '/track <name>', 
+    command: '/track <name> (/t)', 
     description: 'Get track information (e.g., /track monza)',
     source: 'Ergast F1 API'
   },
   
   // Live Session Data
   { 
-    command: '/live', 
+    command: '/live (/l)', 
     description: 'Get live timing data during race sessions',
     source: 'OpenF1 API'
   },
@@ -82,7 +82,7 @@ export const commands = [
     source: 'OpenF1 API'
   },
   {
-    command: '/weather',
+    command: '/weather (/w)',
     description: 'Get current weather conditions at the track',
     source: 'OpenF1 API'
   },
@@ -94,12 +94,12 @@ export const commands = [
   
   // Historical Data
   { 
-    command: '/race <year> [round]', 
+    command: '/race <year> [round] (/r)', 
     description: 'Get race results (e.g., /race 2023 1)',
     source: 'F1 Racing Results API'
   },
   { 
-    command: '/qualifying <year> <round>', 
+    command: '/qualifying <year> <round> (/q)', 
     description: 'Get qualifying results (e.g., /qualifying 2023 1)',
     source: 'F1 Racing Results API'
   },
@@ -109,12 +109,12 @@ export const commands = [
     source: 'F1 Racing Results API'
   },
   { 
-    command: '/pitstops <year> <round>', 
+    command: '/pitstops <year> <round> (/p)', 
     description: 'Get pit stop data (e.g., /pitstops 2023 1)',
     source: 'F1 Racing Results API'
   },
   {
-    command: '/fastest <year> <round>',
+    command: '/fastest <year> <round> (/f)',
     description: 'Get fastest laps from a race (e.g., /fastest 2023 1)',
     source: 'F1 Racing Results API'
   },

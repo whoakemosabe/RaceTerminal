@@ -174,12 +174,11 @@
 
 .terminal-status-bar {
   @apply px-3 py-1;
-  background: hsl(var(--card)/30);
-  backdrop-filter: blur(12px);
+  @apply bg-card/30 backdrop-blur-md border-b border-border/10;
   display: flex;
   align-items: center;
   position: relative;
-  z-index: 50;
+  z-index: 30;
 }
 
 .terminal-status-bar::before {
@@ -188,17 +187,16 @@
   inset: 0;
   background: linear-gradient(
     to bottom,
-    hsl(var(--card)/40),
-    hsl(var(--card)/30)
+    hsl(var(--primary)/0.03),
+    hsl(var(--primary)/0.02)
   );
   z-index: -1;
   border-radius: inherit;
-  border-bottom: 1px solid hsl(var(--border)/0.1);
 }
 
 .terminal-status-bar:last-child {
   border-bottom: none;
-  background: hsl(var(--card)/20);
+  @apply bg-card/30 backdrop-blur-md border-t border-border/10;
   position: sticky;
   bottom: 0;
   left: 0;
@@ -206,14 +204,17 @@
 }
 
 .terminal-status-bar:last-child::before {
-  border-top: 1px solid hsl(var(--border)/0.1);
-  border-bottom: none;
+  background: linear-gradient(
+    to top,
+    hsl(var(--primary)/0.03),
+    hsl(var(--primary)/0.02)
+  );
 }
 
 .terminal-input-wrapper {
   background: transparent;
   position: relative;
-  z-index: 40;
+  z-index: 50;
 }
 
 .terminal-input-wrapper::before {
@@ -229,9 +230,12 @@
 .terminal-history {
   @apply px-4 py-2;
   min-height: 200px;
-  background: transparent;
   margin-bottom: -36px;
   padding-bottom: calc(36px + 1rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
 }
 
 @keyframes cursor-blink {
@@ -384,6 +388,7 @@ html {
 
 .terminal-history::-webkit-scrollbar {
   width: 8px;
+  height: 0;
 }
 
 .terminal-history::-webkit-scrollbar-track {

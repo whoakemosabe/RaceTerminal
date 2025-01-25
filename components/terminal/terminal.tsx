@@ -7,11 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { CommandSuggestions } from './command-suggestions';
 
 interface TerminalProps {
   command: string;
   isProcessing: boolean;
   history: Array<{ command: string; output: string; username: string; timestamp?: string }>;
+  showSuggestions: boolean;
+  onShowSuggestionsChange: (show: boolean) => void;
+  isNavigatingSuggestions: boolean;
+  onNavigationStateChange: (isNavigating: boolean) => void;
   onCommandChange: (value: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onExecute: () => void;
@@ -22,6 +27,10 @@ export function Terminal({
   command,
   isProcessing,
   history,
+  showSuggestions,
+  onShowSuggestionsChange,
+  isNavigatingSuggestions,
+  onNavigationStateChange,
   onCommandChange,
   onKeyDown,
   onExecute
@@ -54,53 +63,28 @@ export function Terminal({
     <div className="terminal-window flex-1 flex flex-col overflow-hidden">
       {/* Top Status Bar */}
       <div className="terminal-status-bar sticky top-0 z-10 h-8 border-b border-border/10">
-        <div className="grid grid-cols-4 w-full">
-          <div className="flex items-center gap-4 text-primary justify-start">
-            <div className="flex items-center gap-2 cursor-help">
+        <div className="grid grid-cols-3 w-full">
+          
+          <div className="flex gap-2 text-primary justify-start">
+            <div className="flex items-center gap-2">
               <Info className="h-3.5 w-3.5" />
               <span className="text-xs font-mono">v{APP_VERSION}</span>
             </div>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground justify-center">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 cursor-help">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span className="text-xs font-mono">
-                    {new Date(sessionStart).toLocaleDateString()}
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="tooltip-content">
-                <p>Session Start Date</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground justify-center">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 cursor-help">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span className="text-xs font-mono">{currentTime}</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="tooltip-content">
-                <p>Current Time</p>
-              </TooltipContent>
-            </Tooltip>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-3.5 w-3.5" />
+              <span className="text-xs font-mono">
+                {new Date(sessionStart).toLocaleDateString()}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground justify-end">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 cursor-help">
-                  <Cpu className="h-3.5 w-3.5" />
-                  <span className="text-xs font-mono">Session Active</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="end" className="tooltip-content">
-                <p>Terminal Status</p>
-              </TooltipContent>
-            </Tooltip>
+            <div className="flex items-center gap-2">
+              <Clock className="h-3.5 w-3.5" />
+              <span className="text-xs font-mono">{currentTime}</span>
+            </div>
+            
           </div>
         </div>
       </div>
@@ -109,25 +93,52 @@ export function Terminal({
       <div className="terminal-input-wrapper px-4 py-1.5 border-b border-border/10">
         <div className="flex items-center gap-2">
           <TerminalIcon className="text-primary h-4 w-4" />
-          <div className="flex-1 flex gap-2">
+          <div className="flex-1 flex gap-2 relative">
+            <CommandSuggestions
+              command={command}
+              isVisible={showSuggestions && command.startsWith('/')}
+              onClose={() => onShowSuggestionsChange(false)}
+              onNavigationStateChange={onNavigationStateChange}
+              isNavigatingSuggestions={isNavigatingSuggestions}
+              inputRef={inputRef}
+              onSelect={(suggestion) => {
+                onCommandChange(suggestion + ' ');
+                onShowSuggestionsChange(false);
+                onNavigationStateChange(false);
+                // Focus the input after selection
+                inputRef.current?.focus();
+              }}
+            />
             <Input
               ref={inputRef}
               type="text"
               value={command}
-              onChange={(e) => onCommandChange(e.target.value)}
-              onKeyDown={onKeyDown}
+              onChange={(e) => {
+                onCommandChange(e.target.value);
+                onShowSuggestionsChange(true);
+                onNavigationStateChange(false);
+              }}
+              onFocus={() => onShowSuggestionsChange(true)}
+              onBlur={() => setTimeout(() => onShowSuggestionsChange(false), 200)}
+              onKeyDown={(e) => {
+                if (!isNavigatingSuggestions) {
+                  onKeyDown(e);
+                }
+              }}
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   onExecute();
+                  onShowSuggestionsChange(false);
+                  onNavigationStateChange(false);
                 }
               }}
               placeholder="Enter command (e.g., /driver hamilton)"
-              className="flex-1 bg-card/20 border-border/10 text-primary placeholder-primary/50 focus:outline-none text-xs font-mono cursor-blink h-7"
+              className="flex-1 bg-card/20 border-border/10 text-primary placeholder-primary/50 focus:outline-none text-sm font-mono cursor-blink h-7"
             />
             <Button
               onClick={onExecute}
               size="sm"
-              className="h-6 px-3 execute-button text-xs"
+              className="h-6 px-3 execute-button text-sm"
               disabled={isProcessing}>
               {isProcessing ? 'Processing...' : 'Execute'}
             </Button>
@@ -159,11 +170,10 @@ export function Terminal({
                     )}
                     style={{ 
                       lineHeight: '1.5',
-                      maxWidth: '100%',
                       overflowWrap: 'break-word',
                       fontFamily: 'monospace',
-                      whiteSpace: 'pre',
-                      overflowX: 'auto'
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word'
                     }}
                     dangerouslySetInnerHTML={{ __html: entry.output }}
                   />

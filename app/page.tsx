@@ -9,6 +9,8 @@ import { Terminal } from '@/components/terminal/terminal';
 import { SessionInfo } from '@/components/terminal/session-info';
 import { HelpPanel } from '@/components/terminal/help-panel';
 import { commands } from '@/lib/commands';
+import { commandAliases } from '@/components/terminal/command-processor';
+import { driverNicknames, teamNicknames, trackNicknames } from '@/lib/utils';
 import { processCommand } from '@/components/terminal/command-processor';
 
 const MAX_HISTORY_SIZE = 100; // Maximum number of commands to store
@@ -26,8 +28,17 @@ export default function Home() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [commandBuffer, setCommandBuffer] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isNavigatingSuggestions, setIsNavigatingSuggestions] = useState(false);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
   const { username } = useUsername();
+
+  const clearHistory = useCallback(() => {
+    localStorage.removeItem('commandHistory');
+    setHistory([]);
+    setHistoryIndex(-1);
+    setCommandBuffer('');
+  }, []);
 
   // Memoize command processor to prevent recreation
   const handleCommand = useCallback(async () => {
@@ -89,8 +100,16 @@ export default function Home() {
       }
       setIsHistoryLoaded(true);
     }
-  }, [isHistoryLoaded]);
 
+    // Listen for clear terminal event
+    const handleClearTerminal = () => {
+      clearHistory();
+    };
+
+    window.addEventListener('clearTerminal', handleClearTerminal);
+    return () => window.removeEventListener('clearTerminal', handleClearTerminal);
+  }, [isHistoryLoaded]);
+  
   // Save history to localStorage whenever it changes
   useEffect(() => {
     if (isHistoryLoaded && history.length > 0) {
@@ -108,7 +127,7 @@ export default function Home() {
     switch (e.key) {
       case 'ArrowUp':
         e.preventDefault();
-        if (history.length > 0) {
+        if (!isNavigatingSuggestions && history.length > 0) {
           if (historyIndex === -1) {
             setCommandBuffer(command);
           }
@@ -116,74 +135,126 @@ export default function Home() {
           if (newIndex < history.length) {
             setHistoryIndex(newIndex);
             setCommand(history[history.length - 1 - newIndex].command);
+            setShowSuggestions(false);
           }
         }
         break;
 
       case 'ArrowDown':
         e.preventDefault();
-        if (historyIndex > -1) {
+        if (!isNavigatingSuggestions && historyIndex > -1) {
           const newIndex = historyIndex - 1;
           setHistoryIndex(newIndex);
           setCommand(newIndex === -1 ? commandBuffer : history[history.length - 1 - newIndex].command);
+          setShowSuggestions(false);
         }
         break;
 
       case 'Tab':
         e.preventDefault();
         const input = command.toLowerCase();
+        setShowSuggestions(true);
+        const suggestions: string[] = [];
         
-        if (input.startsWith('/')) {
-          // Get all command names (first word of each command)
-          const availableCommands = commands.map(c => c.command.split(' ')[0]);
+        // Split command into parts
+        const parts = input.split(' ');
+        const firstPart = parts[0];
+        const lastPart = parts[parts.length - 1];
+
+        if (firstPart.startsWith('/')) {
+          // Command completion
+          if (parts.length === 1) {
+            // Complete base command
+            const availableCommands = commands.map(c => c.command.split(' ')[0]);
+            const allCommands = [...new Set([
+              ...availableCommands,
+              ...Object.keys(commandAliases)
+            ])];
+            
+            suggestions.push(...allCommands.filter(c => c.startsWith(firstPart)));
+          } else {
+            // Argument completion based on command
+            const baseCommand = commandAliases[firstPart] || firstPart;
+            
+            switch (baseCommand) {
+              case '/driver':
+              case '/d':
+                // Driver name completion
+                const driverNames = Object.values(driverNicknames).flat();
+                suggestions.push(...driverNames.filter(name => 
+                  name.toLowerCase().startsWith(lastPart)
+                ));
+                break;
+                
+              case '/track':
+              case '/t':
+                // Track name completion
+                const trackNames = Object.values(trackNicknames).flat();
+                suggestions.push(...trackNames.filter(name => 
+                  name.toLowerCase().startsWith(lastPart)
+                ));
+                break;
+                
+              case '/team':
+                // Team name completion
+                const teamNames = Object.values(teamNicknames).flat();
+                suggestions.push(...teamNames.filter(name => 
+                  name.toLowerCase().startsWith(lastPart)
+                ));
+                break;
+                
+              case '/compare':
+              case '/m':
+                if (parts.length === 2) {
+                  // Type completion
+                  suggestions.push(...['driver', 'team'].filter(t => 
+                    t.startsWith(lastPart)
+                  ));
+                } else if (parts[1] === 'driver') {
+                  // Driver name completion for comparison
+                  const driverNames = Object.values(driverNicknames).flat();
+                  suggestions.push(...driverNames.filter(name => 
+                    name.toLowerCase().startsWith(lastPart)
+                  ));
+                } else if (parts[1] === 'team') {
+                  // Team name completion for comparison
+                  const teamNames = Object.values(teamNicknames).flat();
+                  suggestions.push(...teamNames.filter(name => 
+                    name.toLowerCase().startsWith(lastPart)
+                  ));
+                }
+                break;
+            }
+          }
           
-          // Add common aliases
-          const commandAliases = {
-            '/t': '/track',
-            '/r': '/race',
-            '/q': '/qualifying',
-            '/s': '/standings',
-            '/c': '/constructors',
-            '/w': '/weather',
-            '/l': '/live',
-            '/n': '/next',
-            '/h': '/help'
-          };
-          
-          // Combine unique commands and aliases
-          const allCommands = [...new Set([
-            ...availableCommands,
-            ...Object.keys(commandAliases)
-          ])];
-          
-          // Find matches that start with the input
-          const matches = allCommands.filter(c => c.startsWith(input));
-          
-          if (matches.length === 1) {
-            // If it's an alias, use the full command
-            const fullCommand = commandAliases[matches[0]] || matches[0];
-            setCommand(fullCommand + ' ');
-          } else if (matches.length > 1) {
-            // Show available matches
+          if (suggestions.length === 1) {
+            // Single match - complete the command
+            const completed = parts.slice(0, -1).join(' ') + 
+              (parts.length > 1 ? ' ' : '') + 
+              suggestions[0];
+            setCommand(completed + ' ');
+          } else if (suggestions.length > 1) {
+            // Multiple matches - show suggestions
             const newEntry = {
               command: command,
-              output: `Available commands:\n${matches.sort().map(m => 
-                `  ${m}${commandAliases[m] ? ` → ${commandAliases[m]}` : ''}`
-              ).join('\n')}`,
-              username
+              output: `Available options:\n${suggestions.sort().map(s => `  ${s}`).join('\n')}`,
+              username,
+              timestamp: new Date().toLocaleTimeString()
             };
             setHistory(prev => [...prev, newEntry]);
           }
         }
         break;
 
+      case 'Escape':
+        e.preventDefault();
+        setShowSuggestions(false);
+        break;
+
       case 'l':
         if (e.ctrlKey) {
           e.preventDefault();
-          localStorage.removeItem('commandHistory');
-          setHistory([]);
-          setHistoryIndex(-1);
-          setCommandBuffer('');
+          clearHistory();
         }
         break;
 
@@ -227,6 +298,10 @@ export default function Home() {
           command={command}
           isProcessing={isProcessing}
           history={history}
+          showSuggestions={showSuggestions}
+          onShowSuggestionsChange={setShowSuggestions}
+          isNavigatingSuggestions={isNavigatingSuggestions}
+          onNavigationStateChange={setIsNavigatingSuggestions}
           onCommandChange={(value) => {
             setCommand(value);
             if (historyIndex !== -1) {

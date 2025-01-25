@@ -127,26 +127,88 @@ export const countryToCode: Record<string, string> = {
 
 // Driver nickname mappings
 export const driverNicknames: Record<string, string[]> = {
-  'hamilton': ['King Lewis', 'HAM', 'The Hammer'],
-  'max_verstappen': ['Mad Max', 'Super Max', 'VER'],
-  'leclerc': ['Sharl', 'LEC', 'The Monégasque'],
-  'perez': ['Checo', 'PER', 'Mexican Minister of Defense'],
-  'russell': ['Mr. Saturday', 'RUS', 'George'],
-  'norris': ['Lando', 'NOR', 'Last Lap Lando'],
-  'sainz': ['Smooth Operator', 'SAI', 'Carlos'],
-  'alonso': ['El Plan', 'ALO', 'Magic Alonso'],
-  'stroll': ['Lance', 'STR', 'Mr. Fashion'],
-  'ocon': ['Esteban', 'OCO', 'The Resistance'],
-  'gasly': ['Pierre', 'GAS', 'El Gasly'],
-  'albon': ['Alex', 'ALB', 'Mr. Nice Guy'],
-  'bottas': ['Val', 'BOT', 'To whom it may concern'],
-  'tsunoda': ['Yuki', 'TSU', 'Radio Yuki'],
-  'zhou': ['Guanyu', 'ZHO', 'Joe'],
-  'magnussen': ['K-Mag', 'MAG', 'Viking'],
-  'hulkenberg': ['Hulk', 'HUL', 'The Hulk'],
-  'ricciardo': ['Danny Ric', 'RIC', 'Honey Badger'],
-  'piastri': ['Oscar', 'PIA', 'The Rookie'],
-  'sargeant': ['Logan', 'SAR', 'The American']
+  // Current Drivers
+  'hamilton': ['Lewis Hamilton', 'King Lewis', 'HAM', 'The Hammer', 'lewis', '44'],
+  'max_verstappen': ['Max Verstappen', 'Mad Max', 'Super Max', 'VER', 'max', 'verstappen', '1'],
+  'leclerc': ['Charles Leclerc', 'Sharl', 'LEC', 'The Monégasque', 'charles', '16'],
+  'perez': ['Sergio Perez', 'Checo', 'PER', 'Mexican Minister of Defense', 'sergio', '11'],
+  'russell': ['George Russell', 'Mr. Saturday', 'RUS', 'George', '63'],
+  'norris': ['Lando Norris', 'NOR', 'Last Lap Lando', 'lando', '4'],
+  'sainz': ['Carlos Sainz', 'Smooth Operator', 'SAI', 'Carlos', '55'],
+  'alonso': ['Fernando Alonso', 'El Plan', 'ALO', 'Magic Alonso', 'fernando', '14'],
+  'stroll': ['Lance Stroll', 'STR', 'Mr. Fashion', 'lance', '18'],
+  'ocon': ['Esteban Ocon', 'OCO', 'The Resistance', 'esteban', '31'],
+  'gasly': ['Pierre Gasly', 'GAS', 'El Gasly', 'pierre', '10'],
+  'albon': ['Alexander Albon', 'Alex', 'ALB', 'Mr. Nice Guy', '23'],
+  'bottas': ['Valtteri Bottas', 'Val', 'BOT', 'To whom it may concern', 'valtteri', '77'],
+  'tsunoda': ['Yuki Tsunoda', 'TSU', 'Radio Yuki', 'yuki', '22'],
+  'zhou': ['Zhou Guanyu', 'ZHO', 'Joe', 'guanyu', '24'],
+  'magnussen': ['Kevin Magnussen', 'K-Mag', 'MAG', 'Viking', 'kevin', '20'],
+  'hulkenberg': ['Nico Hulkenberg', 'Hulk', 'HUL', 'The Hulk', 'nico', '27'],
+  'ricciardo': ['Daniel Ricciardo', 'Danny Ric', 'RIC', 'Honey Badger', 'daniel', '3'],
+  'piastri': ['Oscar Piastri', 'PIA', 'The Rookie', 'oscar', '81'],
+  'sargeant': ['Logan Sargeant', 'SAR', 'The American', 'logan', '2'],
+  // Legendary Champions
+  'senna': ['Ayrton Senna', 'SEN', 'Magic', 'The Master of Monaco', 'The Rain Master', 'ayrton'],
+  'prost': ['Alain Prost', 'PRO', 'The Professor', 'Le Professeur', 'alain'],
+  'michael_schumacher': ['Michael Schumacher', 'MSC', 'Schumi', 'The Red Baron', 'michael'],
+  'fangio': ['juan_manuel_fangio', 'Juan Manuel Fangio', 'FAN', 'El Maestro', 'The Maestro'],
+  'clark': ['Jim Clark', 'CLA', 'The Flying Scotsman'],
+  'lauda': ['Niki Lauda', 'LAU', 'The Rat', 'King Rat'],
+  'stewart': ['Jackie Stewart', 'STE', 'Flying Scot', 'JYS'],
+  'hill_g': ['Graham Hill', 'HIL', 'Mr. Monaco'],
+  'hill_d': ['Damon Hill', 'HIL', 'The Son of Mr. Monaco'],
+  'mansell': ['Nigel Mansell', 'MAN', 'Il Leone', 'Red 5'],
+  'piquet': ['Nelson Piquet', 'PIQ', 'The Brazilian'],
+  'brabham': ['Jack Brabham', 'BRA', 'Black Jack'],
+  'fittipaldi': ['Emerson Fittipaldi', 'FIT', 'Emmo'],
+  'ascari': ['Alberto Ascari', 'ASC', 'The Milan Monza'],
+  'hakkinen': ['Mika Hakkinen', 'HAK', 'The Flying Finn'],
+  'raikkonen': ['Kimi Raikkonen', 'RAI', 'Iceman', 'The Ice Man'],
+  'button': ['Jenson Button', 'BUT', 'JB', 'The Smooth Operator'],
+  'rosberg_k': ['Keke Rosberg', 'ROS', 'The Original Flying Finn'],
+  'rosberg_n': ['Nico Rosberg', 'ROS', 'Britney'],
+  'vettel': ['Sebastian Vettel', 'VET', 'Baby Schumi', 'The Finger'],
+  // Notable Drivers
+  'moss': ['Stirling Moss', 'MOS', 'Mr Motor Racing'],
+  'rindt': ['Jochen Rindt', 'RIN', 'The First Posthumous Champion'],
+  'peterson': ['Ronnie Peterson', 'PET', 'SuperSwede'],
+  'villeneuve_g': ['Gilles Villeneuve', 'VIL', 'The Artist'],
+  'villeneuve_j': ['Jacques Villeneuve', 'VIL', 'JV'],
+  'andretti': ['Mario Andretti', 'AND', 'The American Champion'],
+  'hunt': ['James Hunt', 'HUN', 'Hunt the Shunt'],
+  'cevert': ['François Cevert', 'CEV', 'The French Prince'],
+  'regazzoni': ['Clay Regazzoni', 'REG', 'Clay'],
+  'ickx': ['Jacky Ickx', 'ICK', 'Monsieur Le Mans'],
+  'gurney': ['Dan Gurney', 'GUR', 'The Big Eagle'],
+  'brooks': ['Tony Brooks', 'BRO', 'The Racing Dentist'],
+  'collins': ['Peter Collins', 'COL', 'The Boy Wonder'],
+  'hawthorne': ['Mike Hawthorn', 'HAW', 'Le Papillon'],
+  'massa': ['Felipe Massa', 'MAS', 'The Little Brazilian']
+};
+
+// Driver number mapping
+export const driverNumbers: Record<string, string> = {
+  'hamilton': '44',
+  'max_verstappen': '1',
+  'leclerc': '16',
+  'perez': '11',
+  'russell': '63',
+  'norris': '4',
+  'sainz': '55',
+  'alonso': '14',
+  'stroll': '18',
+  'ocon': '31',
+  'gasly': '10',
+  'albon': '23',
+  'bottas': '77',
+  'tsunoda': '22',
+  'zhou': '24',
+  'magnussen': '20',
+  'hulkenberg': '27',
+  'ricciardo': '3',
+  'piastri': '81',
+  'sargeant': '2'
 };
 
 export function getDriverNicknames(driverId: string): string[] {
@@ -157,23 +219,36 @@ export function getDriverNicknames(driverId: string): string[] {
 export function findDriverId(search: string): string | null {
   search = search.toLowerCase();
   search = search.trim();
+
+  // Handle special cases for common search terms
+  if (search === 'schumi' || search === 'schumacher') {
+    return 'michael_schumacher';
+  }
   
   // Direct match with driver ID
   if (driverNicknames[search]) {
     return search;
   }
   
-  // Search through nicknames and normalize search
+  // Search through nicknames
   for (const [driverId, nicknames] of Object.entries(driverNicknames)) {
     // Check exact matches first
-    if (nicknames.some(nick => nick.toLowerCase() === search) || 
-        driverId.replace('_', '').toLowerCase() === search) {
+    const exactMatch = nicknames.some(nick => 
+      nick.toLowerCase() === search || 
+      nick.toLowerCase().replace(/[^a-z0-9]/g, '') === search.replace(/[^a-z0-9]/g, '')
+    );
+    
+    if (exactMatch) {
       return driverId;
     }
     
     // Then check partial matches
-    if (nicknames.some(nick => nick.toLowerCase().includes(search)) || 
-        driverId.replace('_', '').toLowerCase().includes(search)) {
+    const partialMatch = nicknames.some(nick => 
+      nick.toLowerCase().includes(search) ||
+      nick.toLowerCase().replace(/[^a-z0-9]/g, '').includes(search.replace(/[^a-z0-9]/g, ''))
+    );
+    
+    if (partialMatch) {
       return driverId;
     }
   }
@@ -261,12 +336,29 @@ export function formatDriverComparison(data: any): string {
   const { driver1, driver2 } = data;
   
   if (!driver1?.Races || !driver2?.Races) {
-    return 'Error: Could not fetch comparison data for one or both drivers';
+    // Check if either driver is a historic driver
+    const isHistoric1 = Object.keys(driverNicknames).includes(driver1?.driverId);
+    const isHistoric2 = Object.keys(driverNicknames).includes(driver2?.driverId);
+    
+    if (isHistoric1 || isHistoric2) {
+      return `Note: One or both drivers are historic champions. Full comparison data is limited for drivers from different eras.`;
+    } else {
+      return 'Error: Could not fetch comparison data for one or both drivers';
+    }
   }
 
   // Get driver info from first race result that has driver data
   const driver1Info = driver1.Races.find((race: any) => race.Driver)?.Driver;
   const driver2Info = driver2.Races.find((race: any) => race.Driver)?.Driver;
+  
+  // Handle historic drivers that might not have recent race data
+  if (!driver1Info || !driver2Info) {
+    const historic1 = driverNicknames[driver1.driverId]?.[0];
+    const historic2 = driverNicknames[driver2.driverId]?.[0];
+    if (historic1 || historic2) {
+      return `Note: One or both drivers (${historic1 || driver1.driverId}, ${historic2 || driver2.driverId}) are historic champions. Full comparison data is limited for drivers from different eras.`;
+    }
+  }
 
   if (!driver1Info || !driver2Info) {
     return 'Error: Could not fetch driver information';
