@@ -60,40 +60,43 @@ export function Terminal({
   };
 
   return (
-    <div className="terminal-window flex-1 flex flex-col overflow-hidden">
+    <div className="flex flex-col flex-1 overflow-hidden terminal-window">
       {/* Top Status Bar */}
-      <div className="terminal-status-bar sticky top-0 z-10 h-8 border-b border-border/10">
+      <div className="top-0 z-10 sticky border-b border-border/10 h-8 terminal-status-bar">
         <div className="grid grid-cols-3 w-full">
           
-          <div className="flex gap-2 text-primary justify-start">
+          <div className="flex justify-start gap-2 text-primary">
             <div className="flex items-center gap-2">
-              <Info className="h-3.5 w-3.5" />
-              <span className="text-xs font-mono">v{APP_VERSION}</span>
+              <Info className="w-3.5 h-3.5" />
+              <span className="font-mono text-xs">v{APP_VERSION}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground justify-center">
+
+          <div className="flex justify-center items-center gap-2 text-muted-foreground">
             <div className="flex items-center gap-2">
-              <Calendar className="h-3.5 w-3.5" />
-              <span className="text-xs font-mono">
+              <Calendar className="w-3.5 h-3.5" />
+              <span className="font-mono text-xs">
                 {new Date(sessionStart).toLocaleDateString()}
               </span>
             </div>
+
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground justify-end">
+
+          <div className="flex justify-end items-center gap-2 text-muted-foreground">
             <div className="flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5" />
-              <span className="text-xs font-mono">{currentTime}</span>
+              <Clock className="w-3.5 h-3.5" />
+              <span className="font-mono text-xs">{currentTime}</span>
             </div>
-            
           </div>
+
         </div>
       </div>
 
       {/* Command Input */}
-      <div className="terminal-input-wrapper px-4 py-1.5 border-b border-border/10">
+      <div className="px-4 py-1.5 border-b border-border/10 terminal-input-wrapper">
         <div className="flex items-center gap-2">
-          <TerminalIcon className="text-primary h-4 w-4" />
-          <div className="flex-1 flex gap-2 relative">
+          <TerminalIcon className="w-4 h-4 text-primary" />
+          <div className="relative flex flex-1 gap-2">
             <CommandSuggestions
               command={command}
               isVisible={showSuggestions && command.startsWith('/')}
@@ -133,12 +136,12 @@ export function Terminal({
                 }
               }}
               placeholder="Enter command (e.g., /driver hamilton)"
-              className="flex-1 bg-card/20 border-border/10 text-primary placeholder-primary/50 focus:outline-none text-sm font-mono cursor-blink h-7"
+              className="flex-1 bg-card/20 border-border/10 h-7 font-mono text-primary text-sm cursor-blink focus:outline-none placeholder-primary/50"
             />
             <Button
               onClick={onExecute}
               size="sm"
-              className="h-6 px-3 execute-button text-sm"
+              className="px-3 h-6 text-sm execute-button"
               disabled={isProcessing}>
               {isProcessing ? 'Processing...' : 'Execute'}
             </Button>
@@ -148,7 +151,7 @@ export function Terminal({
       
       {/* Command History */}
       {history.length > 0 && (
-        <div className="font-mono text-sm flex-1 overflow-y-auto relative terminal-history">
+        <div className="relative flex-1 font-mono text-sm overflow-y-auto terminal-history">
           <div className="flex flex-col space-y-2">
             {[...history].reverse().map((entry, index) => {
               return (
@@ -184,35 +187,35 @@ export function Terminal({
         </div>
       )}
       {history.length === 0 && (
-        <div className="flex-1 flex flex-col">
-          <div className="flex flex-col items-center justify-center flex-1 px-4 -mt-8">
-            <div className="glass-panel p-8 max-w-2xl w-full text-center space-y-6">
-              <div className="flex items-center justify-center gap-3 text-2xl font-semibold text-primary">
-                <Info className="h-8 w-8" />
+        <div className="flex flex-col flex-1">
+          <div className="flex flex-col flex-1 justify-center items-center -mt-8 px-4">
+            <div className="space-y-6 p-8 w-full max-w-2xl text-center glass-panel">
+              <div className="flex justify-center items-center gap-3 font-semibold text-2xl text-primary">
+                <Info className="w-8 h-8" />
                 <h2>Welcome to RaceTerminal Pro</h2>
               </div>
               
-              <p className="text-muted-foreground text-lg">
+              <p className="text-lg text-muted-foreground">
                 Your advanced Formula 1 data companion
               </p>
               
               <div className="space-y-4 text-sm">
-                <div className="flex items-center justify-center gap-2 text-secondary">
-                  <HelpCircle className="h-5 w-5" />
+                <div className="flex justify-center items-center gap-2 text-secondary">
+                  <HelpCircle className="w-5 h-5" />
                   <p>Type <code className="bg-card/50 px-2 py-0.5 rounded">/help</code> to see all available commands</p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto text-muted-foreground/80">
-                  <div className="glass-panel p-3">
-                    <p className="font-medium text-primary mb-1">Quick Start</p>
+                <div className="gap-4 grid grid-cols-2 mx-auto max-w-lg text-muted-foreground/80">
+                  <div className="p-3 glass-panel">
+                    <p className="mb-1 font-medium text-primary">Quick Start</p>
                     <ul className="space-y-1 text-xs">
                       <li>/driver hamilton</li>
                       <li>/standings</li>
                       <li>/next</li>
                     </ul>
                   </div>
-                  <div className="glass-panel p-3">
-                    <p className="font-medium text-primary mb-1">Popular Commands</p>
+                  <div className="p-3 glass-panel">
+                    <p className="mb-1 font-medium text-primary">Popular Commands</p>
                     <ul className="space-y-1 text-xs">
                       <li>/schedule</li>
                       <li>/track monza (Temple of Speed)</li>
@@ -227,55 +230,58 @@ export function Terminal({
       )}
       
       {/* Bottom Status Bar */}
-      <div className="terminal-status-bar sticky bottom-0 z-10">
-        <div className="grid grid-cols-4 w-full">
-          <div className="col-span-2 flex items-center gap-2 text-muted-foreground justify-start">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 cursor-help">
-                  <TerminalIcon className="h-3.5 w-3.5" />
-                  <span className="text-xs font-mono">
-                    RaceTerminal Pro v{APP_VERSION}
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="start" className="tooltip-content">
-                <p>System Version</p>
-              </TooltipContent>
-            </Tooltip>
+      <div className="bottom-0 z-10 sticky terminal-status-bar">
+  <div className="grid grid-cols-3 w-full">
+    {/* Left Section */}
+    <div className="flex justify-start items-center gap-2 text-muted-foreground">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-2 cursor-help">
+            <TerminalIcon className="w-3.5 h-3.5" />
+            <span className="font-mono text-xs">
+              RaceTerminal Pro v{APP_VERSION}
+            </span>
           </div>
-          
-          <div className="flex items-center gap-4 justify-center">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleReset}
-                  className="flex items-center hover:text-secondary transition-colors duration-200"
-                >
-                  <RotateCw className="h-3.5 w-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="center" className="tooltip-content">
-                <p>Reset Terminal Session</p>
-              </TooltipContent>
-            </Tooltip>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="start" className="tooltip-content">
+          <p>System Version</p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+
+    {/* Middle Section */}
+    <div className="flex justify-center items-center gap-4">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleReset}
+            className="flex items-center hover:text-secondary transition-colors duration-200"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="center" className="tooltip-content">
+          <p>Reset Terminal Session</p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+
+    {/* Right Section */}
+    <div className="flex justify-end items-center gap-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-2 cursor-help status-active">
+            <Cpu className="w-3.5 h-3.5" />
+            <span className="font-mono text-xs">Active</span>
           </div>
-          
-          <div className="flex items-center gap-2 justify-end">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 cursor-help status-active">
-                  <Cpu className="h-3.5 w-3.5" />
-                  <span className="text-xs font-mono">Active</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="end" className="tooltip-content">
-                <p>Terminal Status</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-      </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="end" className="tooltip-content">
+          <p>Terminal Status</p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  </div>
+</div>
     </div>
   );
 }
