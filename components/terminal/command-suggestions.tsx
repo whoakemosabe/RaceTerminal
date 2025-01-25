@@ -147,9 +147,9 @@ export function CommandSuggestions({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
         transition={{ duration: 0.2 }}
-        className="absolute left-0 right-0 top-full mt-1 z-[60]"
+        className="absolute left-0 right-0 top-full mt-1 z-[60] backdrop-blur-md"
       >
-        <div className="glass-panel border border-border/20 rounded-md overflow-hidden">
+        <div className="bg-card/30 border border-border/20 rounded-md overflow-hidden">
           <div 
             ref={containerRef} 
             className="p-1 space-y-0.5 max-h-[200px] overflow-y-auto"
@@ -167,8 +167,8 @@ export function CommandSuggestions({
                   ref={el => itemRefs.current[index] = el}
                   className={cn(
                     "px-2 py-1 rounded text-sm cursor-pointer transition-colors duration-150",
-                    "hover:bg-primary/20",
-                    index === selectedIndex && "bg-primary/30"
+                    "hover:bg-primary/10",
+                    index === selectedIndex && "bg-primary/20"
                   )}
                   onClick={() => handleSelect(suggestion)}
                 >
@@ -176,13 +176,13 @@ export function CommandSuggestions({
                     <span className="font-mono text-primary">
                       {suggestion}
                       {isAlias && (
-                        <span className="text-secondary/80 ml-2 text-xs">
+                        <span className="text-secondary/60 ml-2 text-xs">
                           → {commandAliases[suggestion]}
                         </span>
                       )}
                     </span>
                     {cmd && (
-                      <span className="text-xs text-muted-foreground/80 truncate ml-4">
+                      <span className="text-xs text-muted-foreground/60 truncate ml-4">
                         {cmd.description}
                       </span>
                     )}

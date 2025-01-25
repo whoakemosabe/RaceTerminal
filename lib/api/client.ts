@@ -258,26 +258,71 @@ export const api = {
 
   async compareDrivers(driver1Id: string, driver2Id: string) {
     return retryRequest(async () => {
+      // Get race results
       const [driver1Data, driver2Data] = await Promise.all([
-        ergastClient.get(`/drivers/${driver1Id}/results.json?limit=100`),
-        ergastClient.get(`/drivers/${driver2Id}/results.json?limit=100`)
+        ergastClient.get(`/drivers/${driver1Id}/results.json?limit=500&offset=0`),
+        ergastClient.get(`/drivers/${driver2Id}/results.json?limit=500&offset=0`)
       ]);
 
-      const driver1Races = driver1Data.data?.MRData?.RaceTable?.Races;
-      const driver2Races = driver2Data.data?.MRData?.RaceTable?.Races;
+      // Get championship standings
+      const [driver1Championships, driver2Championships] = await Promise.all([
+        ergastClient.get(`/drivers/${driver1Id}/driverStandings.json`),
+        ergastClient.get(`/drivers/${driver2Id}/driverStandings.json`)
+      ]);
+
+      // Count championships (position "1" in final standings)
+      const driver1ChampCount = driver1Championships.data?.MRData?.StandingsTable?.StandingsLists?.filter(
+        (standing: any) => standing.DriverStandings?.[0]?.position === "1"
+      ).length || 0;
+
+      const driver2ChampCount = driver2Championships.data?.MRData?.StandingsTable?.StandingsLists?.filter(
+        (standing: any) => standing.DriverStandings?.[0]?.position === "1"
+      ).length || 0;
+
+      // Get total race count for each driver
+      const [driver1Total, driver2Total] = await Promise.all([
+        ergastClient.get(`/drivers/${driver1Id}/results.json`),
+        ergastClient.get(`/drivers/${driver2Id}/results.json`)
+      ]);
+
+      const driver1TotalRaces = parseInt(driver1Total.data?.MRData?.total || '0');
+      const driver2TotalRaces = parseInt(driver2Total.data?.MRData?.total || '0');
+
+      // Fetch all races if more than 500
+      const driver1AllRaces = driver1TotalRaces > 500 ? 
+        (await ergastClient.get(`/drivers/${driver1Id}/results.json?limit=500&offset=500`)).data?.MRData?.RaceTable?.Races || [] :
+        [];
+
+      const driver2AllRaces = driver2TotalRaces > 500 ?
+        (await ergastClient.get(`/drivers/${driver2Id}/results.json?limit=500&offset=500`)).data?.MRData?.RaceTable?.Races || [] :
+        [];
+
+      const driver1Races = [
+        ...(driver1Data.data?.MRData?.RaceTable?.Races || []),
+        ...driver1AllRaces
+      ];
+
+      const driver2Races = [
+        ...(driver2Data.data?.MRData?.RaceTable?.Races || []),
+        ...driver2AllRaces
+      ];
 
       if (!driver1Races || !driver2Races) {
-        throw new Error('Could not fetch comparison data');
+        throw new Error('Could not fetch career comparison data');
       }
 
       return {
         driver1: {
           Races: driver1Races,
-          driverId: driver1Id
+          driverId: driver1Id,
+          totalRaces: driver1TotalRaces,
+          championships: driver1ChampCount
         },
         driver2: {
           Races: driver2Races,
-          driverId: driver2Id
+          driverId: driver2Id,
+          totalRaces: driver2TotalRaces,
+          championships: driver2ChampCount
         }
       };
     });
@@ -329,13 +374,56 @@ export const api = {
   },
 
   async getTrackWeather() {
-    return retryRequest(async () => {
-      const { data } = await openF1Client.get('/weather');
-      if (!data || data.length === 0) {
-        return null;
+    // Set a shorter timeout for weather data since it's time-sensitive
+    const weatherTimeout = 5000; // 5 seconds
+
+    try {
+      // Create a promise that rejects after the timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Weather data request timed out')), weatherTimeout);
+      });
+
+      // Create the actual data fetch promise
+      const fetchPromise = retryRequest(async () => {
+        const [statusResponse, weatherResponse] = await Promise.all([
+          openF1Client.get('/track_status', {
+            params: { limit: 1 },
+            timeout: weatherTimeout
+          }),
+          openF1Client.get('/weather', {
+            params: { limit: 1 },
+            timeout: weatherTimeout
+          })
+        ]);
+
+        const trackStatus = statusResponse.data?.[0];
+        const weather = weatherResponse.data?.[0] || {};
+
+        if (!trackStatus || !trackStatus.status) {
+          throw new Error('No live session data available');
+        }
+
+        return {
+          status: trackStatus.status,
+          timestamp: trackStatus.timestamp,
+          air_temperature: weather.air_temperature,
+          track_temperature: weather.track_temperature,
+          humidity: weather.humidity,
+          pressure: weather.pressure,
+          wind_speed: weather.wind_speed,
+          wind_direction: weather.wind_direction,
+          rainfall: weather.rainfall
+        };
+      });
+
+      // Race between the timeout and the fetch
+      return await Promise.race([fetchPromise, timeoutPromise]);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Weather data request timed out') {
+        throw new Error('Weather information is currently unavailable. Please try again during a live session.');
       }
-      return data[0];
-    });
+      throw error;
+    }
   },
 
   async getDriverTires(driverNumber: string) {

@@ -1,13 +1,14 @@
 import { api } from '@/lib/api/client';
-import { formatDriver, formatCircuit, formatWithTeamColor, formatTime, formatDate, getDriverNicknames, findDriverId, getFlagUrl, countryToCode, findTrackId, trackNicknames, formatDriverComparison, findTeamId, formatTeamComparison, icons, driverNumbers } from '@/lib/utils';
+import { formatDriver, formatCircuit, formatWithTeamColor, formatTime, formatDate, getDriverNicknames, findDriverId, getFlagUrl, countryToCode, findTrackId, trackNicknames, formatDriverComparison, findTeamId, formatTeamComparison, icons, driverNumbers, calculateCountdown, getTrackDetails } from '@/lib/utils';
 import { commands } from '@/lib/commands';
 
 // Command aliases mapping
 export const commandAliases: Record<string, string> = {
+  // Single letter shortcuts
   '/d': '/driver',
   '/t': '/track',
   '/s': '/standings',
-  '/c': '/constructors',
+  '/c': '/clear',
   '/q': '/qualifying',
   '/r': '/race',
   '/n': '/next',
@@ -17,25 +18,85 @@ export const commandAliases: Record<string, string> = {
   '/p': '/pitstops',
   '/f': '/fastest',
   '/u': '/user',
-  '/m': '/compare'
+  '/m': '/compare',
+
+  // Multi-letter shortcuts
+  '/md': '/compare driver',  // Compare drivers
+  '/mt': '/compare team',    // Compare teams
+  '/st': '/standings',
+  '/cs': '/teams',          // Constructor standings
+  '/ps': '/pitstops',
+  '/fl': '/fastest',
+  '/ql': '/qualifying',
+  '/nx': '/next',
+  '/ls': '/last',
+  '/cl': '/clear',
+  '/rs': '/reset',
+  '/sc': '/schedule',
+  '/sp': '/sprint',
+  '/tr': '/track',
+  '/tm': '/team',
+  '/wx': '/weather'
 };
 
 import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
+
+async function handleTrackCommand(args: string[]) {
+  const searchTerm = args.join(' ').toLowerCase();
+  const trackId = findTrackId(searchTerm);
+  
+  if (!trackId) {
+    return `❌ Error: Track "${args.join(' ')}" not found. Try using the track name (e.g., monza), nickname (e.g., temple of speed), or location (e.g., italian gp)`;
+  }
+  
+  const data = await api.getTrackInfo(trackId);
+  if (!data) {
+    return `❌ Error: Could not fetch data for track "${args.join(' ')}". Please try again later.`;
+  }
+  
+  const flagUrl = getFlagUrl(data.Location.country);
+  const nicknames = trackNicknames[trackId] || [];
+  const trackDetails = getTrackDetails(trackId);
+  
+  return [
+    `🏁 ${data.circuitName}`,
+    `📍 Location: ${data.Location.locality}, ${data.Location.country} ${flagUrl ? `<img src="${flagUrl}" alt="${data.Location.country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : ''}`,
+    `🗺️ Coordinates: ${data.Location.lat}, ${data.Location.long}`,
+    `📏 Track Length: ${trackDetails.length} km`,
+    `↩️ Turns: ${trackDetails.turns}`,
+    trackDetails.lapRecord ? `⚡ Lap Record: ${trackDetails.lapRecord.time} (${trackDetails.lapRecord.driver}, ${trackDetails.lapRecord.year})` : null,
+    nicknames.length > 0 ? `✨ Known as: ${nicknames.join(' | ')}` : null
+  ].filter(Boolean).join('\n');
+}
 
 export async function processCommand(cmd: string) {
   const parts = cmd.split(' ');
   let inputCommand = parts[0].toLowerCase();
   const originalCommand = inputCommand;
-  inputCommand = commandAliases[inputCommand] || inputCommand;
+  
+  // Handle command aliases (both single-letter and multi-letter)
+  
+  // Handle multi-word aliases (like "/md verstappen hamilton")
+  const aliasedCommand = commandAliases[inputCommand];
+  if (aliasedCommand) {
+    const aliasedParts = aliasedCommand.split(' ');
+    inputCommand = aliasedParts[0];
+    if (aliasedParts.length > 1) {
+      // For multi-word aliases (like "/md" -> "/compare driver")
+      // Insert the additional parts before user's args
+      parts.splice(1, 0, ...aliasedParts.slice(1));
+    }
+  }
+  
   const args = parts.slice(1).map(arg => arg.trim()).filter(Boolean);
 
   try {
     switch (inputCommand) {
       case '/user':
-      case '/username': {
+      case '/username':
         if (!args[0]) {
           const cmd = originalCommand === '/u' ? '/u' : '/user';
-          return `Error: Please provide a username or "reset" (e.g., ${cmd} max or ${cmd} reset)`;
+          return `❌ Error: Please provide a username or "reset" (e.g., ${cmd} max or ${cmd} reset)`;
         }
         
         const newUsername = args[0].trim();
@@ -48,16 +109,16 @@ export async function processCommand(cmd: string) {
             return `Username reset to "${DEFAULT_USERNAME}"`;
           } catch (error) {
             console.error('Failed to reset username:', error);
-            return 'Error: Failed to reset username. Please try again.';
+            return '❌ Error: Failed to reset username. Please try again.';
           }
         }
 
         if (newUsername.length < 2 || newUsername.length > 20) {
-          return 'Error: Username must be between 2 and 20 characters';
+          return '❌ Error: Username must be between 2 and 20 characters';
         }
         
         if (!/^[a-zA-Z0-9_-]+$/.test(newUsername)) {
-          return 'Error: Username can only contain letters, numbers, underscores, and hyphens';
+          return '❌ Error: Username can only contain letters, numbers, underscores, and hyphens';
         }
         
         try {
@@ -66,9 +127,8 @@ export async function processCommand(cmd: string) {
           return `Username successfully changed to "${newUsername}"`;
         } catch (error) {
           console.error('Failed to save username:', error);
-          return 'Error: Failed to save username. Please try again.';
+          return '❌ Error: Failed to save username. Please try again.';
         }
-      }
 
       case '/reset': {
         localStorage.removeItem('commandHistory');
@@ -79,85 +139,105 @@ export async function processCommand(cmd: string) {
       case '/driver': {
         if (!args[0]) {
           const cmd = originalCommand === '/d' ? '/d' : '/driver';
-          return `Error: Please provide a driver name (e.g., ${cmd} hamilton)`;
+          return `❌ Error: Please provide a driver name\nUsage: ${cmd} <name> (e.g., ${cmd} hamilton)\nShortcuts: /d, /driver`;
         }
         const searchTerm = args[0].toLowerCase();
         const driverId = findDriverId(searchTerm);
         if (!driverId) {
-          return `Error: Driver "${args[0]}" not found. Try using the driver's last name (e.g., hamilton) or their code (e.g., HAM)`;
+          return `❌ Error: Driver "${args[0]}" not found\nTry using:\n• Driver's last name (e.g., hamilton)\n• Driver code (e.g., HAM)\n• Driver number (e.g., 44)\nShortcuts: /d, /driver`;
         }
         
         const data = await api.getDriverInfo(driverId);
         if (!data) {
-          return `Error: Could not fetch data for driver "${args[0]}". Please try again later.`;
+          return `❌ Error: Could not fetch data for driver "${args[0]}". Please try again later.`;
         }
         
         const driverNumber = driverNumbers[data.driverId] || data.permanentNumber || 'N/A';
-        
         const nicknames = getDriverNicknames(data.driverId);
         const age = Math.floor((new Date().getTime() - new Date(data.dateOfBirth).getTime()) / 31557600000);
         const flagUrl = getFlagUrl(data.nationality);
-        return `👤 ${data.givenName} ${data.familyName} | [${data.code || 'N/A'}] | [#️ ${driverNumber}] [${nicknames.join(' | ')}] | [${flagUrl ? `<img src="${flagUrl}" alt="${data.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : ''} ${data.nationality}] | [🎂 ${formatDate(data.dateOfBirth)} - 📅 ${age} years old]`;
+        
+        return [
+          `👤 ${data.givenName} ${data.familyName}`,
+          `🏷️ Code: ${data.code || 'N/A'}`,
+          `#️⃣ Number: ${driverNumber}`,
+          `🌟 Nicknames: ${nicknames.join(' | ')}`,
+          `🌍 Nationality: ${data.nationality} ${flagUrl ? `<img src="${flagUrl}" alt="${data.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : ''}`,
+          `🎂 Born: ${formatDate(data.dateOfBirth)}`,
+          `📅 Age: ${age} years old`
+        ].join('\n');
       }
 
       case '/standings': {
         const data = await api.getDriverStandings();
         if (!data || data.length === 0) {
-          return 'Error: No standings data available. Please try again later.';
+          return '❌ Error: No standings data available';
         }
-        return data.slice(0, 5).map((standing: DriverStanding) => {
+        const standings = data.slice(0, 5).map((standing: DriverStanding) => {
           const driverName = `${standing.Driver?.givenName || ''} ${standing.Driver?.familyName || ''}`.trim() || 'Unknown Driver';
           const nationality = standing.Driver?.nationality || 'Unknown';
           const constructorName = standing.Constructor?.name || 'Unknown Team';
           const position = standing.position || '?';
           const points = standing.points || '0';
           
-          return `P${position} | ${formatDriver(driverName, nationality)} (${constructorName}) | ${points} pts`;
-        }).join(' • ');
+          return [
+            `🏆 Position: P${position}`,
+            `👤 Driver: ${formatDriver(driverName, nationality)}`,
+            `🏎️ Team: ${constructorName}`,
+            `📊 Points: ${points}`
+          ].join('\n');
+        });
+        return `📊 Championship Standings:\n\n${standings.join('\n\n')}`;
       }
 
       case '/schedule': {
         const data = await api.getRaceSchedule();
         if (!data || data.length === 0) {
-          return 'Error: No race schedule data available. Please try again later.';
+          return '❌ Error: No race schedule data available';
         }
-        return data.slice(0, 5).map((race: any) => 
-          `R${race.round} | ${formatDriver(race.raceName, race.country)} | ${formatDate(race.date)}`
-        ).join(' • ');
+        const races = data.slice(0, 5).map((race: any) => [
+          `🏁 Round ${race.round}: ${race.raceName}`,
+          `🌍 Location: ${race.Circuit.Location.locality}, ${race.country}`,
+          `📅 Date: ${formatDate(race.date)}`,
+          `⏰ Time: ${race.time || 'TBA'}`
+        ].join('\n'));
+        return `📅 Upcoming Races:\n\n${races.join('\n\n')}`;
       }
 
       case '/t':
       case '/track': {
         if (!args[0]) {
           const cmd = originalCommand === '/t' ? '/t' : '/track';
-          return `Error: Please provide a track name (e.g., ${cmd} monza). You can use the track name, nickname (e.g., temple of speed), or location (e.g., italian gp)`;
+          return `❌ Error: Please provide a track name\nUsage: ${cmd} <name>\nYou can use:\n• Track name (e.g., monza)\n• Nickname (e.g., temple of speed)\n• Location (e.g., italian gp)\nShortcuts: /t, /track`;
         }
         return await handleTrackCommand(args);
       }
 
       case '/team': {
         if (!args[0]) {
-          return 'Error: Please provide a team name (e.g., /team ferrari)';
+          return `❌ Error: Please provide a team name\nUsage: /team <name> (e.g., /team ferrari)\nShortcuts: /tm, /team`;
         }
         const teamId = findTeamId(args[0]);
         if (!teamId) {
-          return `Error: Team "${args[0]}" not found. Try using the team name (e.g., ferrari, mercedes) or nickname (e.g., redbull, mercs)`;
+          return `❌ Error: Team "${args[0]}" not found\nTry using:\n• Team name (e.g., ferrari, mercedes)\n• Nickname (e.g., redbull, mercs)\nShortcuts: /tm, /team`;
         }
         const data = await api.getConstructorInfo(teamId);
         if (!data) {
-          return `Error: Could not fetch data for team "${args[0]}". Please try again later.`;
+          return `❌ Error: Could not fetch data for team "${args[0]}". Please try again later.`;
         }
         const flagUrl = getFlagUrl(data.nationality);
-        return `${icons.car} ${data.name} | [${flagUrl ? `<img src="${flagUrl}" alt="${data.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : ''} ${data.nationality}] | First Entry: ${data.firstEntry || 'N/A'} | Championships: ${data.championships || '0'}`;
+        return [
+          `🏎️ ${data.name}`,
+          `🌍 Nationality: ${data.nationality} ${flagUrl ? `<img src="${flagUrl}" alt="${data.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : ''}`,
+          `📅 First Entry: ${data.firstEntry || 'N/A'}`,
+          `🏆 Championships: ${data.championships || '0'}`
+        ].join('\n');
       }
 
       case '/compare': {
         if (!args[0] || !args[1] || !args[2]) {
           const cmd = originalCommand === '/m' ? '/m' : '/compare';
-          return 'Error: Please specify what to compare and provide two names\n' +
-                 'Usage:\n' +
-                 `  • Compare drivers: ${cmd} driver verstappen hamilton\n` +
-                 `  • Compare teams: ${cmd} team redbull mercedes`;
+          return `❌ Error: Please specify what to compare and provide two names\nUsage:\n• Compare drivers: ${cmd} driver <name1> <name2>\n  Example: ${cmd} driver verstappen hamilton\n  Shortcut: /md verstappen hamilton\n\n• Compare teams: ${cmd} team <name1> <name2>\n  Example: ${cmd} team redbull mercedes\n  Shortcut: /mt redbull mercedes`;
         }
         
         const type = args[0].toLowerCase();
@@ -165,19 +245,19 @@ export async function processCommand(cmd: string) {
         if (type === 'driver') {
           const [driver1Id, driver2Id] = [findDriverId(args[1]), findDriverId(args[2])];
           if (!driver1Id || !driver2Id) {
-            return 'Error: One or both drivers not found. Use driver names or codes (e.g., verstappen, HAM)';
+            return '❌ Error: One or both drivers not found. Use driver names or codes (e.g., verstappen, HAM)';
           }
           const data = await api.compareDrivers(driver1Id, driver2Id);
           return formatDriverComparison(data);
         } else if (type === 'team') {
           const [team1Id, team2Id] = [findTeamId(args[1]), findTeamId(args[2])];
           if (!team1Id || !team2Id) {
-            return 'Error: One or both teams not found. Use team names or abbreviations (e.g., redbull, mercedes)';
+            return '❌ Error: One or both teams not found. Use team names or abbreviations (e.g., redbull, mercedes)';
           }
           const data = await api.compareTeams(team1Id, team2Id);
           return formatTeamComparison(data);
         } else {
-          return 'Error: Invalid comparison type. Use "driver" or "team" (e.g., /compare driver verstappen hamilton)';
+          return '❌ Error: Invalid comparison type. Use "driver" or "team" (e.g., /compare driver verstappen hamilton)';
         }
       }
 
@@ -206,56 +286,79 @@ export async function processCommand(cmd: string) {
       case '/next': {
         const data = await api.getNextRace();
         if (!data) {
-          return 'Error: No upcoming race information available';
+          return '❌ Error: No upcoming race information available';
         }
         const countdown = calculateCountdown(new Date(data.date));
-        return `${icons.calendar} Next Race: ${data.raceName}\n` +
-               `${icons.flag} Circuit: ${data.Circuit.circuitName}\n` +
-               `${icons.clock} Date: ${formatDate(data.date)}\n` +
-               `⏳ Countdown: ${countdown}`;
+        return [
+          `🏁 Next Race: ${data.raceName}`,
+          `🏎️ Circuit: ${data.Circuit.circuitName}`,
+          `📍 Location: ${data.Circuit.Location.locality}, ${data.Circuit.Location.country}`,
+          `📅 Date: ${formatDate(data.date)}`,
+          `⏰ Time: ${data.time || 'TBA'}`,
+          `⏳ Countdown: ${countdown}`
+        ].join('\n');
       }
 
       case '/last': {
         const data = await api.getLastRaceResults();
         if (!data) {
-          return 'Error: No results available for the last race';
+          return '❌ Error: No results available for the last race';
         }
-        return `${icons.flag} ${data.raceName} Results:\n` +
-               data.Results.slice(0, 5).map(result =>
-                 `P${result.position} | ${formatDriver(result.Driver.givenName + ' ' + result.Driver.familyName, result.Driver.nationality)} | ${formatTime(result.Time?.time || result.status)}`
-               ).join('\n');
+        const results = data.Results.slice(0, 5).map(result => [
+          `🏆 Position: P${result.position}`,
+          `👤 Driver: ${formatDriver(result.Driver.givenName + ' ' + result.Driver.familyName, result.Driver.nationality)}`,
+          `🏎️ Team: ${result.Constructor.name}`,
+          `⏱️ Time: ${formatTime(result.Time?.time || result.status)}`
+        ].join('\n'));
+        return `🏁 ${data.raceName} Results:\n\n${results.join('\n\n')}`;
       }
 
       case '/weather': {
-        const data = await api.getTrackWeather();
-        if (!data) {
-          return 'Error: Weather information is only available during race weekends (Practice, Qualifying, or Race). Please try again during a session.';
+        try {
+          const data = await api.getTrackWeather();
+          if (!data || !data.status) {
+            return '❌ Error: Weather information is only available during race weekends (Practice, Qualifying, or Race). Please try again during a session.';
+          }
+          
+          const statusMap: Record<string, string> = {
+            '1': '🟢 Track Clear',
+            '2': '🟡 Yellow Flag',
+            '3': '🟣 SC Deployed',
+            '4': '🔴 Red Flag',
+            '5': '⚫ Session Ended',
+            '6': '🟠 VSC Deployed'
+          };
+          
+          const conditions = [
+            `${icons.flag} Track Status: ${statusMap[data.status] || 'Unknown'}`,
+            `${icons.activity} Air Temp: ${data.air_temperature || 'N/A'}°C`,
+            `${icons.activity} Track Temp: ${data.track_temperature || 'N/A'}°C`,
+            `${icons.activity} Humidity: ${data.humidity || 'N/A'}%`,
+            `${icons.activity} Pressure: ${data.pressure || 'N/A'} hPa`,
+            `${icons.activity} Wind Speed: ${data.wind_speed || 'N/A'} km/h`,
+            `${icons.activity} Wind Direction: ${data.wind_direction || 'N/A'}°`,
+            `${icons.activity} Rainfall: ${data.rainfall ? 'Yes' : 'No'}`,
+            `${icons.clock} Updated: ${new Date(data.timestamp).toLocaleTimeString()}`
+          ].join('\n');
+          
+          return conditions;
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+          console.error('Weather data error:', errorMessage);
+          return 'Error: Unable to fetch weather data. The service might be unavailable during non-race periods.';
         }
-        
-        const statusMap: Record<string, string> = {
-          '1': '🟢 Track Clear',
-          '2': '🟡 Yellow Flag',
-          '3': '🟣 SC Deployed',
-          '4': '🔴 Red Flag',
-          '5': '⚫ Session Ended',
-          '6': '🟠 VSC Deployed'
-        };
-        
-        return `Track Status: ${statusMap[data.status] || 'Unknown'}\n` +
-               `Message: ${data.message || 'No additional information'}\n` +
-               `Updated: ${new Date(data.timestamp).toLocaleTimeString()}`;
       }
 
       case '/tires': {
         if (!args[0]) {
-          return 'Error: Please provide a driver number (e.g., /tires 44)';
+          return '❌ Error: Please provide a driver number (e.g., /tires 44)';
         }
         const data = await api.getDriverTires(args[0]);
         if (!data) {
-          return 'Error: Tire data is only available during active sessions';
+          return '❌ Error: Tire data is only available during active sessions';
         }
         return `${icons.car} Car #${args[0]} Tires:\n` +
-               `🔄 Current: ${data.compound}\n` +
+               `🛞 Current: ${data.compound}\n` +
                `⏱️ Age: ${data.laps} laps\n` +
                `📊 Wear: ${data.wear}%`;
       }
@@ -263,76 +366,98 @@ export async function processCommand(cmd: string) {
       case '/fastest': {
         if (!args[0] || !args[1]) {
           const cmd = originalCommand === '/f' ? '/f' : '/fastest';
-          return `Error: Please provide year and round (e.g., ${cmd} 2023 1)`;
+          return `❌ Error: Please provide year and round\nUsage: ${cmd} <year> <round>\nExample: ${cmd} 2023 1\nShortcuts: /f, /fl, /fastest`;
         }
+        
+        const year = parseInt(args[0]);
+        const round = parseInt(args[1]);
+        
+        if (isNaN(year) || year < 1950 || year > new Date().getFullYear()) {
+          return `❌ Error: Invalid year. Please use a year between 1950 and ${new Date().getFullYear()}`;
+        }
+        
+        if (isNaN(round) || round < 1 || round > 30) {
+          return '❌ Error: Invalid round number. Please use a number between 1 and 30';
+        }
+        
         const data = await api.getFastestLaps(parseInt(args[0]), parseInt(args[1]));
         if (!data || data.length === 0) {
-          return 'Error: No fastest lap data available for this race';
+          return '❌ Error: No fastest lap data available for this race';
         }
+        
         return data.slice(0, 5).map(lap =>
-          `${icons.clock} ${lap.driver} | Lap ${lap.lap} | ${formatTime(lap.time)} | Avg Speed: ${lap.avgSpeed} km/h`
+          `⚡ ${lap.Driver.givenName} ${lap.Driver.familyName} | ` +
+          `🏎️ Lap ${lap.FastestLap?.lap || 'N/A'} | ` +
+          `⏱️ Time: ${lap.FastestLap?.Time?.time || 'N/A'} | ` +
+          `🚀 Speed: ${lap.FastestLap?.AverageSpeed?.speed || 'N/A'} km/h`
         ).join('\n');
       }
 
       case '/sprint': {
         if (!args[0] || !args[1]) {
-          return 'Error: Please provide year and round (e.g., /sprint 2023 1)';
+          return `❌ Error: Please provide year and round\nUsage: /sprint <year> <round>\nExample: /sprint 2023 1\nShortcuts: /sp, /sprint`;
         }
         const data = await api.getSprintResults(parseInt(args[0]), parseInt(args[1]));
         if (!data || data.length === 0) {
-          return 'Error: No sprint race results available';
+          return '❌ Error: No sprint race results available';
         }
         return data.slice(0, 5).map(result =>
-          `P${result.position} | ${formatDriver(result.Driver.givenName + ' ' + result.Driver.familyName, result.Driver.nationality)} | ${formatTime(result.Time?.time || result.status)}`
+          `🏃 P${result.position} | 👤 ${formatDriver(result.Driver.givenName + ' ' + result.Driver.familyName, result.Driver.nationality)} | ⏱️ ${formatTime(result.Time?.time || result.status)}`
         ).join('\n');
       }
 
       case '/clear': {
         window.dispatchEvent(new CustomEvent('clearTerminal'));
-        return 'Terminal history cleared';
+        return '🧹 Terminal history cleared';
       }
 
       case '/qualifying': {
         if (!args[0] || !args[1]) {
           const cmd = originalCommand === '/q' ? '/q' : '/qualifying';
-          return `Error: Please provide both year and round number (e.g., ${cmd} 2023 1)`;
+          return `❌ Error: Please provide both year and round number\nUsage: ${cmd} <year> <round>\nExample: ${cmd} 2023 1\nShortcuts: /q, /ql, /qualifying`;
         }
         
         const year = parseInt(args[0]);
         if (isNaN(year) || year < 1950 || year > new Date().getFullYear()) {
-          return `Error: Invalid year. Please use a year between 1950 and ${new Date().getFullYear()} (e.g., /qualifying 2023 1)`;
+          return `❌ Error: Invalid year. Please use a year between 1950 and ${new Date().getFullYear()}`;
         }
         
         const round = parseInt(args[1]);
         if (isNaN(round) || round < 1 || round > 30) {
-          return `Error: Invalid round number. Please use a number between 1 and 30 (e.g., /qualifying ${year} 1)`;
+          return `❌ Error: Invalid round number. Please use a number between 1 and 30`;
         }
         
         const data = await api.getQualifyingResults(year, round);
         if (!data || data.length === 0) {
-          return `Error: No qualifying results found for ${year} round ${round}. Please check the year and round number.`;
+          return `❌ Error: No qualifying results found for ${year} round ${round}. Please check the year and round number.`;
         }
-        return data.slice(0, 5).map((result: any) => 
-          `${result.position}. ${result.driver} - Q3: ${result.q3 || 'N/A'}`).join(' • ');
+        const results = data.slice(0, 5).map((result: any) => [
+          `🏆 Position: P${result.position}`,
+          `👤 Driver: ${result.driver}`,
+          `⚡ Q1: ${result.q1 || 'N/A'}`,
+          `⚡ Q2: ${result.q2 || 'N/A'}`,
+          `⚡ Q3: ${result.q3 || 'N/A'}`
+        ].join('\n'));
+        return `🏁 Qualifying Results:\n\n${results.join('\n\n')}`;
       }
 
       case '/race': {
         if (!args[0]) {
           const cmd = originalCommand === '/r' ? '/r' : '/race';
-          return `Error: Please provide a year and optionally a round number (e.g., ${cmd} 2023 or ${cmd} 2023 1)`;
+          return `❌ Error: Please provide a year and optionally a round number\nUsage: ${cmd} <year> [round]\nExamples:\n• ${cmd} 2023\n• ${cmd} 2023 1\nShortcuts: /r, /race`;
         }
         
         const year = parseInt(args[0]);
         if (isNaN(year) || year < 1950 || year > new Date().getFullYear()) {
-          return `Error: Invalid year. Please use a year between 1950 and ${new Date().getFullYear()} (e.g., /race 2023)`;
+          return `❌ Error: Invalid year. Please use a year between 1950 and ${new Date().getFullYear()} (e.g., /race 2023)`;
         }
         const round = args[1] ? parseInt(args[1]) : undefined;
         if (args[1] && (isNaN(round!) || round! < 1)) {
-          return 'Error: Invalid round number. Please use a number between 1 and 30 (e.g., /race 2023 1)';
+          return '❌ Error: Invalid round number. Please use a number between 1 and 30 (e.g., /race 2023 1)';
         }
         const data = await api.getRaceResults(year, round);
         if (!data || data.length === 0) {
-          return `Error: No race results found for ${year}${round ? ` round ${round}` : ''}. Please check the year and round number.`;
+          return `❌ Error: No race results found for ${year}${round ? ` round ${round}` : ''}. Please check the year and round number.`;
         }
         return data.slice(0, 5).map((result: any) =>
           `${icons.trophy} P${result.position} | ${formatDriver(`${result.Driver.givenName} ${result.Driver.familyName}`, result.Driver.nationality)} | ${formatWithTeamColor('', result.Constructor.name)} | ${icons.clock} ${result.Time?.time || result.status || 'No time'}`
@@ -342,77 +467,95 @@ export async function processCommand(cmd: string) {
       case '/pitstops': {
         if (!args[0] || !args[1]) {
           const cmd = originalCommand === '/p' ? '/p' : '/pitstops';
-          return `Error: Please provide both year and round number (e.g., ${cmd} 2023 1)`;
+          return `❌ Error: Please provide both year and round number\nUsage: ${cmd} <year> <round>\nExample: ${cmd} 2023 1\nShortcuts: /p, /ps, /pitstops`;
         }
         
         const year = parseInt(args[0]);
         if (isNaN(year) || year < 1950 || year > new Date().getFullYear()) {
-          return `Error: Invalid year. Please use a year between 1950 and ${new Date().getFullYear()} (e.g., /pitstops 2023 1)`;
+          return `❌ Error: Invalid year. Please use a year between 1950 and ${new Date().getFullYear()} (e.g., /pitstops 2023 1)`;
         }
         
         const round = parseInt(args[1]);
         if (isNaN(round) || round < 1 || round > 30) {
-          return `Error: Invalid round number. Please use a number between 1 and 30 (e.g., /pitstops ${year} 1)`;
+          return `❌ Error: Invalid round number. Please use a number between 1 and 30 (e.g., /pitstops ${year} 1)`;
         }
         
         const data = await api.getPitStops(year, round);
         if (!data || data.length === 0) {
-          return `Error: No pit stop data found for ${year} round ${round}. Please check the year and round number.`;
+          return `❌ Error: No pit stop data found for ${year} round ${round}. Please check the year and round number.`;
         }
         return data.slice(0, 5).map((stop: any) => 
-          `${stop.driver} - Lap ${stop.lap}: ${stop.duration}s`).join(' • ');
+          `🔧 ${stop.driver} | 🏎️ Lap ${stop.lap} | ⏱️ ${stop.duration}s`).join('\n');
       }
 
       case '/help': {
         const categories = {
-          'Quick Access': commands.filter(cmd => cmd.command.includes('(/') || cmd.command === '/help'),
-          'Race Information': commands.filter(cmd => 
-            ['standings', 'schedule', 'next', 'last', 'track'].some(term => cmd.command.includes(term))
-          ),
-          'Live Data': commands.filter(cmd => 
-            ['live', 'telemetry', 'status', 'weather', 'tires'].some(term => cmd.command.includes(term))
-          ),
-          'Historical Data': commands.filter(cmd => 
-            ['race', 'qualifying', 'laps', 'pitstops', 'fastest', 'sprint'].some(term => cmd.command.includes(term))
-          ),
-          'System': commands.filter(cmd => 
-            ['reset', 'user', 'clear'].some(term => cmd.command.includes(term))
-          )
+          'SYSTEM COMMANDS': [
+            { command: '/help (/h)', description: 'Show this help message' },
+            { command: '/clear (/cl)', description: 'Clear terminal history' },
+            { command: '/reset (/rs)', description: 'Reset terminal session' },
+            { command: '/user (/u) <name|reset>', description: 'Change username or reset to default' }
+          ],
+          'RACE INFORMATION': [
+            { command: '/standings (/s)', description: 'View current driver standings' },
+            { command: '/teams (/c)', description: 'View constructor standings' },
+            { command: '/schedule (/sc)', description: 'View race schedule' },
+            { command: '/next (/n)', description: 'Get next race information' },
+            { command: '/last (/ls)', description: 'Get last race results' },
+            { command: '/track (/t) <name>', description: 'Get circuit information' }
+          ],
+          'LIVE SESSION DATA': [
+            { command: '/live (/l)', description: 'Get live timing data' },
+            { command: '/telemetry <number>', description: 'Get car telemetry data' },
+            { command: '/status (/st)', description: 'Get track status' },
+            { command: '/weather (/w, /wx)', description: 'Get weather conditions' },
+            { command: '/tires <number>', description: 'Get tire information' }
+          ],
+          'DRIVER & TEAM DATA': [
+            { command: '/driver (/d) <name>', description: 'Get driver information' },
+            { command: '/team (/tm) <name>', description: 'Get team information' },
+            { command: '/compare (/m) <type> <name1> <name2>', description: 'Compare drivers or teams' },
+            { command: '/compare driver (/md)', description: 'Compare two drivers' },
+            { command: '/compare team (/mt)', description: 'Compare two teams' }
+          ],
+          'HISTORICAL DATA': [
+            { command: '/race (/r) <year> [round]', description: 'Get race results' },
+            { command: '/qualifying (/q) <year> <round>', description: 'Get qualifying results' },
+            { command: '/sprint (/sp) <year> <round>', description: 'Get sprint results' },
+            { command: '/pitstops (/p) <year> <round>', description: 'Get pit stop data' },
+            { command: '/fastest (/f) <year> <round>', description: 'Get fastest laps' },
+            { command: '/laps <year> <round> [driver]', description: 'Get lap times' }
+          ]
         };
 
-        const header = '🚥 RaceTerminal Pro Commands';
-        const separator = '═'.repeat(header.length);
+        const header = 'RaceTerminal Pro Commands';
+        const separator = '='.repeat(header.length);
         
         const sections = Object.entries(categories).map(([category, cmds]) => {
-          const header = `\n${category}:\n${'-'.repeat(category.length + 1)}\n`;
-          const commandList = cmds.map(cmd => {
-            // Extract shortcut if exists
-            const [fullCmd, shortcut] = cmd.command.split('(');
-            const mainCommand = fullCmd.trim();
-            const shortcutText = shortcut ? ` ${shortcut.replace(')', '')}` : '';
-            
-            // Format command with proper padding
-            const commandPart = (mainCommand + shortcutText).padEnd(30);
-            return `  ${icons.tool} ${commandPart} │ ${cmd.description}`;
-          }).join('\n');
+          const header = `\n${category}\n${'-'.repeat(category.length)}\n`;
+          const commandList = cmds.map(cmd => 
+            `  ${cmd.command.padEnd(35)} ${cmd.description}`
+          ).join('\n');
           return header + commandList;
         });
 
-        const shortcuts = `\n⌨️  Keyboard Shortcuts:\n${'-'.repeat(19)}\n` +
-          '  ↑/↓    │ Navigate command history\n' +
-          '  Tab    │ Auto-complete command\n' +
-          '  Ctrl+L │ Clear terminal\n' +
-          '  Ctrl+C │ Cancel command';
+        const shortcuts = `\nKEYBOARD SHORTCUTS\n${'-'.repeat(17)}\n` +
+          '  Alt+Enter     Toggle fullscreen terminal\n' +
+          '  Tab           Auto-complete command\n' +
+          '  Up/Down       Navigate command history\n' +
+          '  Ctrl+L        Clear terminal\n' +
+          '  Ctrl+C        Cancel command\n' +
+          '  Esc           Close suggestions/fullscreen';
 
         return `${header}\n${separator}${sections.join('\n')}\n${shortcuts}`;
       }
 
       default:
-        return `Error: Unknown command: ${originalCommand}. Type /help to see available commands.`;
+        return `❌ Error: Unknown command: ${originalCommand}\nType /help or /h to see all available commands and shortcuts.`;
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Command error:', errorMessage);
-    return 'Error: The service is temporarily unavailable. Please try again later.';
+    return '❌ Error: The service is temporarily unavailable. Please try again later.';
   }
 }

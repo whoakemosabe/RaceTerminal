@@ -36,12 +36,22 @@ export function Terminal({
   onExecute
 }: TerminalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState<string>('');
   const [mounted, setMounted] = useState(false);
   const [sessionStart] = useState(new Date().toLocaleString());
 
+  // Scroll to top when new command is added
+  useEffect(() => {
+    if (historyRef.current) {
+      historyRef.current.scrollTop = 0;
+    }
+  }, [history.length]);
+
   useEffect(() => {
     setMounted(true);
+    
+    // Initial focus only on mount
     inputRef.current?.focus();
 
     const updateTime = () => {
@@ -51,7 +61,9 @@ export function Terminal({
     updateTime();
     const interval = setInterval(updateTime, 1000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   const handleReset = () => {
@@ -136,7 +148,7 @@ export function Terminal({
                 }
               }}
               placeholder="Enter command (e.g., /driver hamilton)"
-              className="flex-1 bg-card/20 border-border/10 h-7 font-mono text-primary text-sm cursor-blink focus:outline-none placeholder-primary/50"
+              className="flex-1 h-7 font-mono text-sm cursor-blink focus:outline-none placeholder-primary/50 terminal-input"
             />
             <Button
               onClick={onExecute}
@@ -151,7 +163,9 @@ export function Terminal({
       
       {/* Command History */}
       {history.length > 0 && (
-        <div className="relative flex-1 font-mono text-sm overflow-y-auto terminal-history">
+        <div className="relative flex-1 font-mono text-sm overflow-y-auto terminal-history"
+            ref={historyRef}
+            style={{ scrollBehavior: 'smooth' }}>
           <div className="flex flex-col space-y-2">
             {[...history].reverse().map((entry, index) => {
               return (
@@ -167,6 +181,7 @@ export function Terminal({
                   <div
                     className={cn(
                       "pl-4 whitespace-pre-wrap break-words typing-effect",
+                      entry.output === 'Processing command' && "processing-dots",
                       entry.output.startsWith('Error') || entry.output.includes('not found') || entry.output.includes('No ') 
                         ? 'text-red-500' 
                         : 'text-white'

@@ -1,13 +1,13 @@
 export const commands = [
   // System Commands
   {
-    command: '/reset',
-    description: 'Reset terminal session',
+    command: '/help (/h)',
+    description: 'Show help and available commands',
     source: 'System'
   },
   {
     command: '/user <name|reset> (/u)',
-    description: 'Change your terminal display name (e.g., /username max) or reset to default (/username reset). Alias: /user',
+    description: 'Change your terminal display name or reset to default',
     source: 'System'
   },
   {
@@ -19,108 +19,108 @@ export const commands = [
   // Driver & Team Commands
   { 
     command: '/driver <name> (/d)', 
-    description: 'Get driver info (e.g., /driver hamilton)',
+    description: 'Get detailed driver information and stats',
     source: 'Ergast F1 API'
   },
   {
     command: '/team <name>',
-    description: 'Get constructor/team info (e.g., /team ferrari)',
+    description: 'Get constructor/team information and history',
     source: 'Ergast F1 API'
   },
   {
     command: '/compare <type> <name1> <name2> (/m)',
-    description: 'Compare drivers or teams (e.g., /compare driver verstappen hamilton or /compare team redbull mercedes)',
+    description: 'Compare career stats between drivers or teams',
     source: 'Ergast F1 API'
   },
   
   // Race Information
   { 
     command: '/standings (/s)', 
-    description: 'View current championship standings',
+    description: 'View current drivers championship standings',
     source: 'Ergast F1 API'
   },
   {
     command: '/teams (/c)',
-    description: 'View current constructor standings',
+    description: 'View current constructor championship standings',
     source: 'Ergast F1 API'
   },
   { 
-    command: '/schedule', 
-    description: 'View race schedule',
+    command: '/schedule (/sc)', 
+    description: 'View upcoming race schedule and dates',
     source: 'Ergast F1 API'
   },
   {
     command: '/next (/n)',
-    description: 'Get details about the next race',
+    description: 'Get details and countdown for the next race',
     source: 'Ergast F1 API'
   },
   {
     command: '/last',
-    description: 'Get results from the last race',
+    description: 'Get results from the most recent race',
     source: 'Ergast F1 API'
   },
   { 
     command: '/track <name> (/t)', 
-    description: 'Get track information (e.g., /track monza)',
+    description: 'Get detailed circuit information and facts',
     source: 'Ergast F1 API'
   },
   
   // Live Session Data
   { 
     command: '/live (/l)', 
-    description: 'Get live timing data during race sessions',
+    description: 'Get real-time timing data during sessions',
     source: 'OpenF1 API'
   },
   {
     command: '/telemetry <number>',
-    description: 'Get real-time car telemetry for a driver (e.g., /telemetry 44)',
+    description: 'Get real-time car telemetry data by driver number',
     source: 'OpenF1 API'
   },
   {
     command: '/status',
-    description: 'Get current track status and conditions',
+    description: 'Get current track status and race control info',
     source: 'OpenF1 API'
   },
   {
     command: '/weather (/w)',
-    description: 'Get current weather conditions at the track',
+    description: 'Get current weather conditions at the circuit',
     source: 'OpenF1 API'
   },
   {
     command: '/tires <number>',
-    description: 'Get tire information for a driver (e.g., /tires 44)',
+    description: 'Get tire compound and wear data by driver number',
     source: 'OpenF1 API'
   },
   
   // Historical Data
   { 
     command: '/race <year> [round] (/r)', 
-    description: 'Get race results (e.g., /race 2023 1)',
+    description: 'Get historical race results by year and round',
     source: 'F1 Racing Results API'
   },
   { 
     command: '/qualifying <year> <round> (/q)', 
-    description: 'Get qualifying results (e.g., /qualifying 2023 1)',
+    description: 'Get qualifying session results by year and round',
     source: 'F1 Racing Results API'
   },
   { 
     command: '/laps <year> <round> [driver]', 
-    description: 'Get lap times for a race. Driver code is optional (e.g., /laps 2023 1 or /laps 2023 1 HAM)',
+    description: 'Get detailed lap times from a specific race',
     source: 'F1 Racing Results API'
   },
   { 
     command: '/pitstops <year> <round> (/p)', 
-    description: 'Get pit stop data (e.g., /pitstops 2023 1)',
+    description: 'Get pit stop timings and strategies',
     source: 'F1 Racing Results API'
   },
   {
     command: '/fastest <year> <round> (/f)',
-    description: 'Get fastest laps from a race (e.g., /fastest 2023 1)',
+    description: 'Get fastest lap records from a specific race',
     source: 'F1 Racing Results API'
   },
   {
     command: '/sprint <year> <round>',
-    description: 'Get sprint race results (e.g., /sprint 2023 1)',
+    description: 'Get sprint race results and statistics',
     source: 'F1 Racing Results API'
   }
 ];

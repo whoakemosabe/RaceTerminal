@@ -2,6 +2,10 @@
   "name": "nextjs",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "^18.17.0 || ^20.9.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +13,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@headlessui/react": "^1.7.18",
     "@next/swc-wasm-nodejs": "13.5.1",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-slot": "^1.0.2",
@@ -22,14 +25,11 @@
     "axios": "^1.6.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "date-fns": "^3.6.0",
-    "ergast-client": "^0.2.8",
-    "ergast-f1": "^0.2.1",
     "eslint": "8.49.0",
     "eslint-config-next": "13.5.1",
     "framer-motion": "^11.0.8",
     "lucide-react": "^0.446.0",
-    "next": "^15.1.5",
+    "next": "13.5.1",
     "next-themes": "^0.3.0",
     "postcss": "^8.4.35",
     "react": "18.2.0",

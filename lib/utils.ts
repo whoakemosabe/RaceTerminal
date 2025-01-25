@@ -39,6 +39,46 @@ export const trackNicknames: Record<string, string[]> = {
   'ricard': ['Paul Ricard', 'French GP', 'RIC']
 };
 
+// Track details mapping
+interface TrackDetails {
+  length: number;
+  turns: number;
+  lapRecord?: {
+    time: string;
+    driver: string;
+    year: number;
+  };
+}
+
+const trackDetails: Record<string, TrackDetails> = {
+  'monza': { length: 5.793, turns: 11, lapRecord: { time: '1:21.046', driver: 'Rubens Barrichello', year: 2004 } },
+  'spa': { length: 7.004, turns: 19, lapRecord: { time: '1:46.286', driver: 'Valtteri Bottas', year: 2018 } },
+  'monaco': { length: 3.337, turns: 19, lapRecord: { time: '1:12.909', driver: 'Lewis Hamilton', year: 2021 } },
+  'silverstone': { length: 5.891, turns: 18, lapRecord: { time: '1:27.097', driver: 'Max Verstappen', year: 2020 } },
+  'albert_park': { length: 5.278, turns: 14, lapRecord: { time: '1:20.235', driver: 'Charles Leclerc', year: 2022 } },
+  'red_bull_ring': { length: 4.318, turns: 10, lapRecord: { time: '1:05.619', driver: 'Carlos Sainz', year: 2020 } },
+  'baku': { length: 6.003, turns: 20, lapRecord: { time: '1:43.009', driver: 'Charles Leclerc', year: 2019 } },
+  'suzuka': { length: 5.807, turns: 18, lapRecord: { time: '1:30.983', driver: 'Lewis Hamilton', year: 2019 } },
+  'interlagos': { length: 4.309, turns: 15, lapRecord: { time: '1:10.540', driver: 'Valtteri Bottas', year: 2018 } },
+  'yas_marina': { length: 5.281, turns: 16, lapRecord: { time: '1:26.103', driver: 'Max Verstappen', year: 2021 } },
+  'marina_bay': { length: 4.940, turns: 19, lapRecord: { time: '1:41.905', driver: 'Kevin Magnussen', year: 2018 } },
+  'jeddah': { length: 6.174, turns: 27, lapRecord: { time: '1:30.734', driver: 'Lewis Hamilton', year: 2021 } },
+  'miami': { length: 5.412, turns: 19, lapRecord: { time: '1:29.708', driver: 'Max Verstappen', year: 2023 } },
+  'las_vegas': { length: 6.201, turns: 17, lapRecord: { time: '1:35.490', driver: 'Oscar Piastri', year: 2023 } },
+  'losail': { length: 5.419, turns: 16, lapRecord: { time: '1:24.319', driver: 'Max Verstappen', year: 2023 } },
+  'shanghai': { length: 5.451, turns: 16, lapRecord: { time: '1:32.238', driver: 'Michael Schumacher', year: 2004 } },
+  'hungaroring': { length: 4.381, turns: 14, lapRecord: { time: '1:16.627', driver: 'Lewis Hamilton', year: 2020 } },
+  'zandvoort': { length: 4.259, turns: 14, lapRecord: { time: '1:11.097', driver: 'Lewis Hamilton', year: 2021 } },
+  'rodriguez': { length: 4.304, turns: 17, lapRecord: { time: '1:17.774', driver: 'Valtteri Bottas', year: 2021 } },
+  'imola': { length: 4.909, turns: 19, lapRecord: { time: '1:15.484', driver: 'Lewis Hamilton', year: 2020 } },
+  'catalunya': { length: 4.675, turns: 16, lapRecord: { time: '1:18.149', driver: 'Max Verstappen', year: 2021 } },
+  'ricard': { length: 5.842, turns: 15, lapRecord: { time: '1:32.740', driver: 'Sebastian Vettel', year: 2019 } }
+};
+
+export function getTrackDetails(trackId: string): TrackDetails {
+  return trackDetails[trackId] || { length: 0, turns: 0 };
+}
+
 // Find track ID from search term
 export function findTrackId(search: string): string | null {
   search = search.toLowerCase().trim();
@@ -335,33 +375,16 @@ export function calculateCountdown(raceDate: Date): string {
 export function formatDriverComparison(data: any): string {
   const { driver1, driver2 } = data;
   
-  if (!driver1?.Races || !driver2?.Races) {
-    // Check if either driver is a historic driver
-    const isHistoric1 = Object.keys(driverNicknames).includes(driver1?.driverId);
-    const isHistoric2 = Object.keys(driverNicknames).includes(driver2?.driverId);
-    
-    if (isHistoric1 || isHistoric2) {
-      return `Note: One or both drivers are historic champions. Full comparison data is limited for drivers from different eras.`;
-    } else {
-      return 'Error: Could not fetch comparison data for one or both drivers';
-    }
+  if (!driver1?.Races || !driver2?.Races || driver1.Races.length === 0 || driver2.Races.length === 0) {
+    return '❌ Error: Could not fetch career comparison data for one or both drivers';
   }
 
   // Get driver info from first race result that has driver data
-  const driver1Info = driver1.Races.find((race: any) => race.Driver)?.Driver;
-  const driver2Info = driver2.Races.find((race: any) => race.Driver)?.Driver;
+  const driver1Info = driver1.Races[0]?.Results?.[0]?.Driver;
+  const driver2Info = driver2.Races[0]?.Results?.[0]?.Driver;
   
-  // Handle historic drivers that might not have recent race data
   if (!driver1Info || !driver2Info) {
-    const historic1 = driverNicknames[driver1.driverId]?.[0];
-    const historic2 = driverNicknames[driver2.driverId]?.[0];
-    if (historic1 || historic2) {
-      return `Note: One or both drivers (${historic1 || driver1.driverId}, ${historic2 || driver2.driverId}) are historic champions. Full comparison data is limited for drivers from different eras.`;
-    }
-  }
-
-  if (!driver1Info || !driver2Info) {
-    return 'Error: Could not fetch driver information';
+    return '❌ Error: Could not fetch driver information';
   }
 
   const driver1Name = `${driver1Info.givenName} ${driver1Info.familyName}`;
@@ -372,6 +395,10 @@ export function formatDriverComparison(data: any): string {
   const stats1 = calculateDriverStats(driver1.Races);
   const stats2 = calculateDriverStats(driver2.Races);
   
+  // Use the total races from the API
+  const totalRaces1 = driver1.totalRaces;
+  const totalRaces2 = driver2.totalRaces;
+  
   const flag1 = getFlagUrl(driver1Nationality);
   const flag2 = getFlagUrl(driver2Nationality);
   
@@ -379,41 +406,51 @@ export function formatDriverComparison(data: any): string {
   const flagImg2 = flag2 ? `<img src="${flag2}" alt="${driver2Nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
   
   const maxNameLength = Math.max(driver1Name.length, driver2Name.length);
-  const padding = 5; // Extra padding for visual spacing
+  const padding = 5;
   const sideWidth = maxNameLength + padding;
-  const separator = '\n' + '─'.repeat(sideWidth) + ' VS ' + '─'.repeat(sideWidth) + '\n';
-  
-  const formatSide = (text: string, align: 'left' | 'right' = 'left') => {
-    const spaces = ' '.repeat(sideWidth - text.length);
-    return align === 'left' ? text + spaces : spaces + text;
-  };
+  const separator = '\n' + '═'.repeat(sideWidth) + ' 🏁 CAREER STATS 🏁 ' + '═'.repeat(sideWidth) + '\n';
   
   return [
-    '👤 DRIVER HEAD-TO-HEAD COMPARISON',
+    '🏆 DRIVER HEAD-TO-HEAD COMPARISON 🏆',
     separator,
-    `${flagImg1} ${formatSide(driver1Name)}     ${flagImg2} ${formatSide(driver2Name)}`,
-    `🏆 ${formatSide(`Wins: ${stats1.wins}`)}     🏆 ${formatSide(`Wins: ${stats2.wins}`)}`,
-    `🥇 ${formatSide(`Podiums: ${stats1.podiums}`)}     🥇 ${formatSide(`Podiums: ${stats2.podiums}`)}`,
-    `📊 ${formatSide(`Points: ${stats1.points}`)}     📊 ${formatSide(`Points: ${stats2.points}`)}`,
-    `🔥 ${formatSide(`Best: P${stats1.bestFinish}`)}     🔥 ${formatSide(`Best: P${stats2.bestFinish}`)}`,
-    `⚡ ${formatSide(`Fast Laps: ${stats1.fastestLaps}`)}     ⚡ ${formatSide(`Fast Laps: ${stats2.fastestLaps}`)}`,
-    separator.replace('VS', '🏁')
+    `${flagImg1} ${driver1Name}${' '.repeat(Math.max(0, sideWidth - driver1Name.length))}     ${flagImg2} ${driver2Name}`,
+    `👑 Championships: ${driver1.championships}${' '.repeat(Math.max(0, sideWidth - driver1.championships.toString().length - 15))}     👑 Championships: ${driver2.championships}`,
+    `🏎️ Races: ${totalRaces1}${' '.repeat(Math.max(0, sideWidth - totalRaces1.toString().length - 8))}     🏎️ Races: ${totalRaces2}`,
+    `🏆 Race Wins: ${stats1.wins}${' '.repeat(Math.max(0, sideWidth - stats1.wins.toString().length - 12))}     🏆 Race Wins: ${stats2.wins}`,
+    `🥇 Podiums: ${stats1.podiums}${' '.repeat(Math.max(0, sideWidth - stats1.podiums.toString().length - 10))}     🥇 Podiums: ${stats2.podiums}`,
+    `💫 Points: ${stats1.points}${' '.repeat(Math.max(0, sideWidth - stats1.points.toString().length - 9))}     💫 Points: ${stats2.points}`,
+    `🔥 Best Finish: P${stats1.bestFinish}${' '.repeat(Math.max(0, sideWidth - stats1.bestFinish.toString().length - 14))}     🔥 Best Finish: P${stats2.bestFinish}`,
+    `⚡ Fastest Laps: ${stats1.fastestLaps}${' '.repeat(Math.max(0, sideWidth - stats1.fastestLaps.toString().length - 15))}     ⚡ Fastest Laps: ${stats2.fastestLaps}`,
+    `🌟 Win Rate: ${((stats1.wins / totalRaces1) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((stats1.wins / totalRaces1) * 100).toFixed(1).length - 11))}     🌟 Win Rate: ${((stats2.wins / totalRaces2) * 100).toFixed(1)}%`,
+    `🎯 Podium Rate: ${((stats1.podiums / totalRaces1) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((stats1.podiums / totalRaces1) * 100).toFixed(1).length - 14))}     🎯 Podium Rate: ${((stats2.podiums / totalRaces2) * 100).toFixed(1)}%`,
+    separator
   ].join('\n');
 }
 
 function calculateDriverStats(results: any[]) {
+  // Filter out races where the driver didn't participate or was disqualified
+  const validResults = results.filter(race => race.Results?.[0]);
+
   return {
-    wins: results.filter((r: any) => r.position === "1" || r.position === 1).length,
-    podiums: results.filter((r: any) => {
-      const pos = parseInt(r.position);
+    wins: validResults.filter((race: any) => 
+      race.Results?.[0]?.position === "1" || race.Results?.[0]?.position === 1
+    ).length,
+    podiums: validResults.filter((r: any) => {
+      const pos = parseInt(r.Results?.[0]?.position);
       return !isNaN(pos) && pos <= 3;
     }).length,
-    points: results.reduce((acc: number, r: any) => acc + parseInt(r.points || '0'), 0),
-    bestFinish: Math.min(...results.map((r: any) => {
-      const pos = parseInt(r.position);
+    points: validResults.reduce((acc: number, race: any) => {
+      const points = parseFloat(race.Results?.[0]?.points || '0');
+      return acc + (isNaN(points) ? 0 : points);
+    }, 0
+    ),
+    bestFinish: Math.min(...validResults.map((r: any) => {
+      const pos = parseInt(r.Results?.[0]?.position);
       return !isNaN(pos) ? pos : Infinity;
     })),
-    fastestLaps: results.filter((r: any) => r.FastestLap?.rank === "1").length
+    fastestLaps: validResults.filter((race: any) => 
+      race.Results?.[0]?.FastestLap?.rank === "1"
+    ).length
   };
 }
 

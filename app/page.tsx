@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { FullscreenTerminal } from '@/components/terminal/fullscreen-terminal';
 import { useUsername } from '@/hooks/use-username';
 import { api } from '@/lib/api/client';
 import { Terminal } from '@/components/terminal/terminal';
@@ -31,7 +32,63 @@ export default function Home() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isNavigatingSuggestions, setIsNavigatingSuggestions] = useState(false);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [terminalHeight, setTerminalHeight] = useState(500); // Default height
+  const resizeRef = useRef<HTMLDivElement>(null);
+  const isResizingRef = useRef(false);
   const { username } = useUsername();
+
+  // Handle resize functionality
+  useEffect(() => {
+    const handleMouseDown = (e: MouseEvent) => {
+      if (resizeRef.current?.contains(e.target as Node)) {
+        isResizingRef.current = true;
+      }
+    };
+
+    const handleMouseUp = () => {
+      isResizingRef.current = false;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingRef.current) return;
+
+      const container = document.querySelector('.terminal-container');
+      if (!container) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const newHeight = e.clientY - containerRect.top;
+      
+      // Set minimum and maximum heights
+      const minHeight = 200;
+      const maxHeight = window.innerHeight - 200; // Leave space for help panel
+      
+      setTerminalHeight(Math.min(Math.max(newHeight, minHeight), maxHeight));
+    };
+
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
+  // Add global keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'Enter') {
+        e.preventDefault();
+        setIsFullscreen(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const clearHistory = useCallback(() => {
     localStorage.removeItem('commandHistory');
@@ -44,17 +101,17 @@ export default function Home() {
   const handleCommand = useCallback(async () => {
     if (!command.trim() || isProcessing) return;
     
+    const timestamp = new Date().toLocaleTimeString();
+    const cmd = command.trim();
+    
     setIsProcessing(true);
     setHistoryIndex(-1);
     setCommandBuffer('');
-
-    const timestamp = new Date().toLocaleTimeString();
-    const cmd = command.trim();
-
+    
     try {
       const newEntry = { 
         command: cmd, 
-        output: 'Processing command...', 
+        output: 'Processing command', 
         username,
         timestamp
       };
@@ -72,7 +129,7 @@ export default function Home() {
       setHistory(prev => 
         prev.map((entry, idx) => 
           idx === prev.length - 1 
-            ? { ...entry, output: 'Error: Command failed to execute. Please try again.' }
+            ? { ...entry, output: errorMessage }
             : entry
         )
       );
@@ -293,8 +350,10 @@ export default function Home() {
         </header>
       </div>
 
-      <div className="w-full max-w-7xl mx-auto px-8 flex-1 flex flex-col overflow-hidden">
-        <Terminal
+      <div className="terminal-container w-full max-w-7xl mx-auto px-8 flex-1 flex flex-col overflow-hidden">
+        <FullscreenTerminal
+          isOpen={isFullscreen}
+          onClose={() => setIsFullscreen(false)}
           command={command}
           isProcessing={isProcessing}
           history={history}
@@ -312,7 +371,33 @@ export default function Home() {
           onExecute={handleCommand}
         />
 
-        <HelpPanel />
+        <div style={{ height: terminalHeight }} className="flex-shrink-0">
+          <Terminal
+            command={command}
+            isProcessing={isProcessing}
+            history={history}
+            showSuggestions={showSuggestions}
+            onShowSuggestionsChange={setShowSuggestions}
+            isNavigatingSuggestions={isNavigatingSuggestions}
+            onNavigationStateChange={setIsNavigatingSuggestions}
+            onCommandChange={(value) => {
+              setCommand(value);
+              if (historyIndex !== -1) {
+                setHistoryIndex(-1);
+              }
+            }}
+            onKeyDown={handleKeyDown}
+            onExecute={handleCommand}
+          />
+        </div>
+
+        <div
+          ref={resizeRef}
+          className="h-1 bg-border/10 hover:bg-border/20 cursor-row-resize transition-colors my-2 rounded-full"
+        />
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <HelpPanel />
+        </div>
       </div>
     </main>
   );
