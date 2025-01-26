@@ -5,7 +5,12 @@ import { useEffect, useState } from 'react';
 import { APP_VERSION, LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
 
 interface TerminalHistoryProps {
-  history: Array<{ command: string; output: string; username: string }>;
+  history: Array<{
+    command: string;
+    output: string;
+    username: string;
+    timestamp: string;
+  }>;
 }
 
 export function TerminalHistory({ history }: TerminalHistoryProps) {
@@ -19,16 +24,15 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
   if (history.length === 0) return null;
 
   return (
-    <div className="font-mono text-sm h-[350px] overflow-y-auto mt-4">
+    <div className="mt-4 h-[350px] font-mono text-sm overflow-y-auto">
       <div className="flex flex-col space-y-2">
         {[...history].reverse().map((entry, index) => {
-          const timestamp = mounted ? new Date().toLocaleTimeString() : '';
           return (
           <div key={index} className="space-y-2">
             <div className="flex items-center gap-2 terminal-prompt">
               {mounted && (
                 <span className="terminal-timestamp">
-                  [{timestamp}] {entry.username}@terminal
+                  [{entry.timestamp}] {entry.username}@terminal
                 </span>
               )}
               <code className="text-primary">{entry.command}</code>
@@ -53,7 +57,7 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
           </div>
         )})}
       </div>
-      <div className="mt-6 text-xs text-muted-foreground/60 bg-card/50 backdrop-blur-lg p-3 border-t border-border/10 sticky bottom-0">
+      <div className="bottom-0 sticky bg-card/50 backdrop-blur-lg mt-6 p-3 border-t border-border/10 text-muted-foreground/60 text-xs">
           <div className="terminal-system-info">
             {mounted && `System: RaceTerminal v${APP_VERSION} | Session started at ${sessionStart}`}
           </div>

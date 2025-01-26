@@ -165,7 +165,7 @@ export default function Home() {
 
     window.addEventListener('clearTerminal', handleClearTerminal);
     return () => window.removeEventListener('clearTerminal', handleClearTerminal);
-  }, [isHistoryLoaded]);
+  }, [isHistoryLoaded, clearHistory]);
   
   // Save history to localStorage whenever it changes
   useEffect(() => {
@@ -222,13 +222,13 @@ export default function Home() {
           // Command completion
           if (parts.length === 1) {
             // Complete base command
-            const availableCommands = commands.map(c => c.command.split(' ')[0]);
-            const allCommands = [...new Set([
-              ...availableCommands,
-              ...Object.keys(commandAliases)
-            ])];
+            const commandSet = new Set<string>();
+            // Add base commands
+            commands.forEach(c => commandSet.add(c.command.split(' ')[0]));
+            // Add aliases
+            Object.keys(commandAliases).forEach(alias => commandSet.add(alias));
             
-            suggestions.push(...allCommands.filter(c => c.startsWith(firstPart)));
+            suggestions.push(...Array.from(commandSet).filter(c => c.startsWith(firstPart)));
           } else {
             // Argument completion based on command
             const baseCommand = commandAliases[firstPart] || firstPart;
@@ -295,9 +295,9 @@ export default function Home() {
             const newEntry = {
               command: command,
               output: `Available options:\n${suggestions.sort().map(s => `  ${s}`).join('\n')}`,
-              username,
-              timestamp: new Date().toLocaleTimeString()
-            };
+              username: username,
+              timestamp: new Date().toLocaleTimeString(),
+            } as HistoryEntry;
             setHistory(prev => [...prev, newEntry]);
           }
         }
@@ -321,9 +321,11 @@ export default function Home() {
           if (isProcessing) {
             setIsProcessing(false);
             const newEntry = { 
+              username,
+              timestamp: new Date().toLocaleTimeString(),
               command: command, 
               output: 'Command cancelled by user'
-            };
+            } as HistoryEntry;
             setHistory(prev => [...prev, newEntry]);
             setCommand('');
           }
@@ -334,23 +336,23 @@ export default function Home() {
 
 
   return (
-    <main className="h-screen relative overflow-hidden flex flex-col">
-      <div className="fixed inset-0 z-[-1]">
+    <main className="relative flex flex-col h-screen overflow-hidden">
+      <div className="z-[-1] fixed inset-0">
         <div className="gradient-bg" />
         <div className="grid-lines" />
       </div>
-      <div className="max-w-7xl w-full mx-auto px-8 pt-2 pb-1 flex-shrink-0">
-        <header className="text-center mb-2 glass-panel py-2 px-4 border-b border-border/20">
-          <h1 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-secondary animate-pulse">
+      <div className="flex-shrink-0 mx-auto px-8 pt-2 pb-1 w-full max-w-7xl">
+        <header className="mb-2 px-4 py-2 border-b border-border/20 text-center glass-panel">
+          <h1 className="bg-clip-text bg-gradient-to-r from-secondary via-primary to-secondary font-bold text-4xl text-transparent tracking-tight animate-pulse">
             RaceTerminal Pro
           </h1>
-          <p className="text-xs text-muted-foreground/80 tracking-wide mt-1">
+          <p className="mt-1 text-muted-foreground/80 text-xs tracking-wide">
             Your futuristic motorsports data companion
           </p>
         </header>
       </div>
 
-      <div className="terminal-container w-full max-w-7xl mx-auto px-8 flex-1 flex flex-col overflow-hidden">
+      <div className="flex flex-col flex-1 mx-auto px-8 w-full max-w-7xl overflow-hidden terminal-container">
         <FullscreenTerminal
           isOpen={isFullscreen}
           onClose={() => setIsFullscreen(false)}
@@ -393,7 +395,7 @@ export default function Home() {
 
         <div
           ref={resizeRef}
-          className="h-1 bg-border/10 hover:bg-border/20 cursor-row-resize transition-colors my-2 rounded-full"
+          className="my-2 bg-border/10 hover:bg-border/20 rounded-full h-1 transition-colors cursor-row-resize"
         />
         <div className="flex-1 min-h-0 overflow-y-auto">
           <HelpPanel />
