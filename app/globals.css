@@ -122,49 +122,6 @@
   cursor: default;
 }
 
-.terminal-status-bar {
-  @apply px-3 py-1;
-  @apply bg-card/60 border-b border-border/10;
-  backdrop-filter: blur(16px);
-  user-select: none;
-  display: flex;
-  align-items: center;
-  position: relative;
-  z-index: 30;
-}
-
-.terminal-status-bar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    hsl(var(--primary)/0.03),
-    hsl(var(--primary)/0.02)
-  );
-  z-index: -1;
-  border-radius: inherit;
-}
-
-.terminal-status-bar:last-child {
-  border-bottom: none;
-  @apply bg-transparent border-t border-border/10;
-  backdrop-filter: blur(12px);
-  background: hsl(var(--card)/0.6);
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
-.terminal-status-bar:last-child::before {
-  background: linear-gradient(
-    to top,
-    hsl(var(--primary)/0.03),
-    hsl(var(--primary)/0.02)
-  );
-}
-
 .terminal-input-wrapper {
   @apply bg-card/60 border-b border-border/10;
   backdrop-filter: blur(16px);

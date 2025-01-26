@@ -74,7 +74,7 @@ export function Terminal({
   return (
     <div className="flex flex-col flex-1 overflow-hidden terminal-window">
       {/* Top Status Bar */}
-      <div className="top-0 z-10 sticky border-b border-border/10 h-8 terminal-status-bar">
+      <div className="top-0 z-10 sticky flex items-center bg-card/60 px-3 py-1 border-b border-border/10 h-8 terminal-status-bar">
         <div className="grid grid-cols-3 w-full">
           
           <div className="flex justify-start gap-2 text-primary">
@@ -245,14 +245,15 @@ export function Terminal({
       )}
       
       {/* Bottom Status Bar */}
-      <div className="bottom-0 z-10 sticky terminal-status-bar">
-  <div className="grid grid-cols-3 w-full">
-    {/* Left Section */}
-    <div className="flex justify-start items-center gap-2 text-muted-foreground">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-2 cursor-help">
-            <TerminalIcon className="w-3.5 h-3.5" />
+      <div className="z-10 sticky flex items-center bg-card/40 backdrop-blur-sm px-3 py-1 border-t border-border/10 select-none">
+
+      <div className="grid grid-cols-3 w-full">
+         {/* Left Section */}
+          <div className="flex justify-start items-center gap-2 text-muted-foreground">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 cursor-help">
+                  <TerminalIcon className="w-3.5 h-3.5" />
             <span className="font-mono text-xs">
               RaceTerminal Pro v{APP_VERSION}
             </span>
