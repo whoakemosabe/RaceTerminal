@@ -182,7 +182,7 @@ export function Terminal({
                     className={cn(
                       "pl-4 whitespace-pre-wrap break-words typing-effect",
                       entry.output === 'Processing command' && "processing-dots",
-                      entry.output.startsWith('Error') || entry.output.includes('not found') || entry.output.includes('No ') 
+                      entry.output.startsWith('❌') || entry.output.startsWith('Error:') || entry.output.includes('not found') || entry.output.includes('No ') 
                         ? 'text-red-500' 
                         : 'text-white'
                     )}

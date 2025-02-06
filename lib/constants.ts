@@ -1,5 +1,5 @@
 // Application version
-export const APP_VERSION = '1.1.0';
+export const APP_VERSION = '1.1.2';
 
 // Default terminal settings
 export const DEFAULT_USERNAME = 'user';

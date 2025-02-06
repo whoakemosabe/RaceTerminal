@@ -146,13 +146,13 @@ export function CommandSuggestions({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
-        transition={{ duration: 0.2 }}
-        className="absolute left-0 right-0 top-full mt-1 z-[60] backdrop-blur-md"
+        transition={{ duration: 0.15, ease: "easeOut" }}
+        className="absolute left-0 right-0 top-full mt-2 z-[60]"
       >
-        <div className="bg-card/30 border border-border/20 rounded-md overflow-hidden">
+        <div className="bg-card/30 backdrop-blur-xl border border-border/20 rounded-lg overflow-hidden shadow-lg">
           <div 
             ref={containerRef} 
-            className="p-1 space-y-0.5 max-h-[200px] overflow-y-auto"
+            className="p-2 space-y-1 max-h-[300px] overflow-y-auto"
             style={{ scrollbarGutter: 'stable' }}
           >
             {suggestions.map((suggestion, index) => {
@@ -166,23 +166,23 @@ export function CommandSuggestions({
                   key={suggestion}
                   ref={el => itemRefs.current[index] = el}
                   className={cn(
-                    "px-2 py-1 rounded text-sm cursor-pointer transition-colors duration-150",
-                    "hover:bg-primary/10",
-                    index === selectedIndex && "bg-primary/20"
+                    "px-3 py-2 rounded-md text-sm cursor-pointer transition-all duration-150",
+                    "hover:bg-card/50 hover:shadow-inner",
+                    index === selectedIndex && "bg-card/60 shadow-inner"
                   )}
                   onClick={() => handleSelect(suggestion)}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-primary">
+                    <span className="font-mono text-primary font-medium">
                       {suggestion}
                       {isAlias && (
-                        <span className="text-secondary/60 ml-2 text-xs">
+                        <span className="text-secondary/70 ml-2 text-xs tracking-wide">
                           → {commandAliases[suggestion]}
                         </span>
                       )}
                     </span>
                     {cmd && (
-                      <span className="text-xs text-muted-foreground/60 truncate ml-4">
+                      <span className="text-xs text-muted-foreground/70 truncate ml-4 font-light tracking-wide">
                         {cmd.description}
                       </span>
                     )}

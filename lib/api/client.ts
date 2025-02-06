@@ -258,71 +258,73 @@ export const api = {
 
   async compareDrivers(driver1Id: string, driver2Id: string) {
     return retryRequest(async () => {
-      // Get race results
-      const [driver1Data, driver2Data] = await Promise.all([
-        ergastClient.get(`/drivers/${driver1Id}/results.json?limit=500&offset=0`),
-        ergastClient.get(`/drivers/${driver2Id}/results.json?limit=500&offset=0`)
+      // Optimized function to get all driver stats in parallel
+      const getDriverStats = async (driverId: string) => {
+        const [
+          resultsResponse,
+          polesResponse,
+          fastestLapsResponse,
+          championshipsResponse
+        ] = await Promise.all([
+          ergastClient.get(`/drivers/${driverId}/results.json?limit=1000`),
+          ergastClient.get(`/drivers/${driverId}/qualifying/1.json`),
+          ergastClient.get(`/drivers/${driverId}/fastest/1/results.json`),
+          ergastClient.get(`/drivers/${driverId}/driverStandings.json`)
+        ]);
+
+        const totalRaces = parseInt(resultsResponse.data?.MRData?.total || '0');
+        const poles = parseInt(polesResponse.data?.MRData?.total || '0');
+        const fastestLaps = parseInt(fastestLapsResponse.data?.MRData?.total || '0');
+        const championships = championshipsResponse.data?.MRData?.StandingsTable?.StandingsLists?.filter(
+          (standing: any) => standing.DriverStandings?.[0]?.position === "1"
+        ).length || 0;
+
+        // Get all results in parallel batches if needed
+        const results = [resultsResponse.data?.MRData?.RaceTable?.Races || []];
+        if (totalRaces > 1000) {
+          const remainingBatches = Math.ceil((totalRaces - 1000) / 1000);
+          const batchPromises = Array.from({ length: remainingBatches }, (_, i) =>
+            ergastClient.get(`/drivers/${driverId}/results.json?limit=1000&offset=${(i + 1) * 1000}`)
+          );
+          const batchResults = await Promise.all(batchPromises);
+          results.push(...batchResults.map(batch => batch.data?.MRData?.RaceTable?.Races || []));
+        }
+
+        return {
+          Races: results.flat(),
+          totalRaces,
+          poles,
+          fastestLaps,
+          championships
+        };
+      };
+
+      // Get stats for both drivers in parallel
+      const [driver1Stats, driver2Stats] = await Promise.all([
+        getDriverStats(driver1Id),
+        getDriverStats(driver2Id)
       ]);
 
-      // Get championship standings
-      const [driver1Championships, driver2Championships] = await Promise.all([
-        ergastClient.get(`/drivers/${driver1Id}/driverStandings.json`),
-        ergastClient.get(`/drivers/${driver2Id}/driverStandings.json`)
-      ]);
-
-      // Count championships (position "1" in final standings)
-      const driver1ChampCount = driver1Championships.data?.MRData?.StandingsTable?.StandingsLists?.filter(
-        (standing: any) => standing.DriverStandings?.[0]?.position === "1"
-      ).length || 0;
-
-      const driver2ChampCount = driver2Championships.data?.MRData?.StandingsTable?.StandingsLists?.filter(
-        (standing: any) => standing.DriverStandings?.[0]?.position === "1"
-      ).length || 0;
-
-      // Get total race count for each driver
-      const [driver1Total, driver2Total] = await Promise.all([
-        ergastClient.get(`/drivers/${driver1Id}/results.json`),
-        ergastClient.get(`/drivers/${driver2Id}/results.json`)
-      ]);
-
-      const driver1TotalRaces = parseInt(driver1Total.data?.MRData?.total || '0');
-      const driver2TotalRaces = parseInt(driver2Total.data?.MRData?.total || '0');
-
-      // Fetch all races if more than 500
-      const driver1AllRaces = driver1TotalRaces > 500 ? 
-        (await ergastClient.get(`/drivers/${driver1Id}/results.json?limit=500&offset=500`)).data?.MRData?.RaceTable?.Races || [] :
-        [];
-
-      const driver2AllRaces = driver2TotalRaces > 500 ?
-        (await ergastClient.get(`/drivers/${driver2Id}/results.json?limit=500&offset=500`)).data?.MRData?.RaceTable?.Races || [] :
-        [];
-
-      const driver1Races = [
-        ...(driver1Data.data?.MRData?.RaceTable?.Races || []),
-        ...driver1AllRaces
-      ];
-
-      const driver2Races = [
-        ...(driver2Data.data?.MRData?.RaceTable?.Races || []),
-        ...driver2AllRaces
-      ];
-
-      if (!driver1Races || !driver2Races) {
+      if (!driver1Stats.Races.length || !driver2Stats.Races.length) {
         throw new Error('Could not fetch career comparison data');
       }
 
       return {
         driver1: {
-          Races: driver1Races,
+          Races: driver1Stats.Races,
           driverId: driver1Id,
-          totalRaces: driver1TotalRaces,
-          championships: driver1ChampCount
+          totalRaces: driver1Stats.totalRaces,
+          championships: driver1Stats.championships,
+          poles: driver1Stats.poles,
+          fastestLaps: driver1Stats.fastestLaps
         },
         driver2: {
-          Races: driver2Races,
+          Races: driver2Stats.Races,
           driverId: driver2Id,
-          totalRaces: driver2TotalRaces,
-          championships: driver2ChampCount
+          totalRaces: driver2Stats.totalRaces,
+          championships: driver2Stats.championships,
+          poles: driver2Stats.poles,
+          fastestLaps: driver2Stats.fastestLaps
         }
       };
     });
@@ -330,25 +332,72 @@ export const api = {
 
   async compareTeams(team1Id: string, team2Id: string) {
     return retryRequest(async () => {
-      const [team1Data, team2Data] = await Promise.all([
-        ergastClient.get(`/current/constructors/${team1Id}/results.json`),
-        ergastClient.get(`/current/constructors/${team2Id}/results.json`)
+      // Optimized function to get all team stats in parallel
+      const getTeamStats = async (teamId: string) => {
+        const [
+          resultsResponse,
+          championshipsResponse,
+          polesResponse,
+          fastestLapsResponse
+        ] = await Promise.all([
+          ergastClient.get(`/constructors/${teamId}/results.json?limit=1000`),
+          ergastClient.get(`/constructors/${teamId}/constructorStandings/1.json`),
+          ergastClient.get(`/constructors/${teamId}/qualifying/1.json`),
+          ergastClient.get(`/constructors/${teamId}/fastest/1/results.json`)
+        ]);
+
+        const totalRaces = parseInt(resultsResponse.data?.MRData?.total || '0');
+        const championships = parseInt(championshipsResponse.data?.MRData?.total || '0');
+        const poles = parseInt(polesResponse.data?.MRData?.total || '0');
+        const fastestLaps = parseInt(fastestLapsResponse.data?.MRData?.total || '0');
+
+        // Get all results in parallel batches if needed
+        const results = [resultsResponse.data?.MRData?.RaceTable?.Races || []];
+        if (totalRaces > 1000) {
+          const remainingBatches = Math.ceil((totalRaces - 1000) / 1000);
+          const batchPromises = Array.from({ length: remainingBatches }, (_, i) =>
+            ergastClient.get(`/constructors/${teamId}/results.json?limit=1000&offset=${(i + 1) * 1000}`)
+          );
+          const batchResults = await Promise.all(batchPromises);
+          results.push(...batchResults.map(batch => batch.data?.MRData?.RaceTable?.Races || []));
+        }
+
+        return {
+          Races: results.flat(),
+          totalRaces,
+          championships,
+          poles,
+          fastestLaps
+        };
+      };
+
+      // Get stats for both teams in parallel
+      const [team1Stats, team2Stats] = await Promise.all([
+        getTeamStats(team1Id),
+        getTeamStats(team2Id)
       ]);
-      
-      if (!team1Data.data?.MRData?.RaceTable?.Races || !team2Data.data?.MRData?.RaceTable?.Races) {
+
+      if (!team1Stats.Races.length || !team2Stats.Races.length) {
         throw new Error('Could not fetch comparison data');
       }
-      
-      const team1Results = team1Data.data.MRData.RaceTable;
-      const team2Results = team2Data.data.MRData.RaceTable;
-      
-      // Add constructorId to help with name lookup
-      team1Results.constructorId = team1Id;
-      team2Results.constructorId = team2Id;
-      
+
       return {
-        team1: team1Results,
-        team2: team2Results
+        team1: {
+          Races: team1Stats.Races,
+          constructorId: team1Id,
+          totalRaces: team1Stats.totalRaces,
+          championships: team1Stats.championships,
+          poles: team1Stats.poles,
+          fastestLaps: team1Stats.fastestLaps
+        },
+        team2: {
+          Races: team2Stats.Races,
+          constructorId: team2Id,
+          totalRaces: team2Stats.totalRaces,
+          championships: team2Stats.championships,
+          poles: team2Stats.poles,
+          fastestLaps: team2Stats.fastestLaps
+        }
       };
     });
   },

@@ -110,8 +110,7 @@
 }
 
 .terminal-window {
-  @apply bg-card/80 text-primary;
-  backdrop-filter: blur(16px);
+  @apply bg-card/30 text-primary;
   border: 1px solid hsl(var(--border)/0.2);
   border-radius: 6px;
   box-shadow: 
@@ -120,11 +119,13 @@
   height: 100%;
   position: relative;
   cursor: default;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 .terminal-input-wrapper {
-  @apply bg-card/60 border-b border-border/10;
-  backdrop-filter: blur(16px);
+  @apply bg-card/40 border-b border-border/10;
+  backdrop-filter: blur(12px);
   user-select: none;
   position: relative;
   z-index: 50;
@@ -139,7 +140,7 @@
     hsl(var(--primary)/0.03),
     hsl(var(--primary)/0.02)
   );
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   z-index: -1;
   border-radius: inherit;
 }
@@ -160,6 +161,7 @@
   scroll-behavior: smooth;
   position: relative;
   z-index: 10;
+  backdrop-filter: none;
 }
 
 @keyframes cursor-blink {
@@ -291,6 +293,17 @@ html {
   align-items: center;
 }
 
+.terminal-status-bar {
+  @apply bg-card/40;
+  backdrop-filter: blur(12px);
+  z-index: 40;
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground)/0.6);
+  letter-spacing: 0.02em;
+  position: relative;
+  isolation: isolate;
+}
+
 /* Fullscreen Terminal Styles */
 .fullscreen-terminal {
   @apply fixed inset-0 z-50;
@@ -315,4 +328,40 @@ html {
 .fullscreen-terminal .terminal-input-wrapper {
   background: hsl(var(--card)/0.4);
   border-color: hsl(var(--border)/0.2);
+}
+
+/* Bottom Status Bar */
+.terminal-window > div:last-child {
+  @apply bg-card/30;
+  backdrop-filter: blur(12px);
+  border-color: hsl(var(--border)/0.2);
+  position: relative;
+  z-index: 20;
+  box-shadow: 0 -4px 20px -10px hsl(var(--background));
+}
+
+/* Command Suggestions Dropdown */
+.terminal-window .absolute > div {
+  @apply bg-card/30;
+  backdrop-filter: blur(24px);
+  border: 1px solid hsl(var(--border)/0.2);
+  box-shadow: 
+    0 4px 30px -10px hsl(var(--primary)/0.1),
+    0 0 15px -5px hsl(var(--primary)/0.05),
+    inset 0 0 20px hsl(var(--primary)/0.05);
+  z-index: 60;
+  animation: fadeIn 0.15s ease-in-out;
+  isolation: isolate;
+}
+
+.terminal-window .absolute > div > div {
+  @apply bg-transparent px-1;
+}
+
+.terminal-window .absolute > div > div > div:hover {
+  @apply bg-card/50;
+  box-shadow: 
+    inset 0 1px 3px hsl(var(--primary)/0.05),
+    inset 0 0 2px hsl(var(--primary)/0.02);
+  transition: all 0.15s ease-in-out;
 }

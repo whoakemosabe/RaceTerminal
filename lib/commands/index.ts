@@ -1,6 +1,16 @@
 export const commands = [
   // System Commands
   {
+    command: '/list (/ls) <type>',
+    description: 'List available drivers, teams, or tracks',
+    source: 'System'
+  },
+  {
+    command: '/list (/ls)',
+    description: 'List available drivers, teams, or tracks',
+    source: 'System'
+  },
+  {
     command: '/help (/h)',
     description: 'Show help and available commands',
     source: 'System'

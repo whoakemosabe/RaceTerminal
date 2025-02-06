@@ -1,10 +1,12 @@
 import { api } from '@/lib/api/client';
-import { formatDriver, formatCircuit, formatWithTeamColor, formatTime, formatDate, getDriverNicknames, findDriverId, getFlagUrl, countryToCode, findTrackId, trackNicknames, formatDriverComparison, findTeamId, formatTeamComparison, icons, driverNumbers, calculateCountdown, getTrackDetails } from '@/lib/utils';
+import { formatDriver, formatCircuit, formatWithTeamColor, formatTime, formatDate, getDriverNicknames, findDriverId, getFlagUrl, countryToCode, findTrackId, trackNicknames, formatDriverComparison, findTeamId, formatTeamComparison, icons, driverNumbers, calculateCountdown, getTrackDetails, driverNicknames, teamNicknames, getTeamColor } from '@/lib/utils';
 import { commands } from '@/lib/commands';
 
 // Command aliases mapping
 export const commandAliases: Record<string, string> = {
   // Single letter shortcuts
+  '/ls': '/list',
+  '/ls': '/list',
   '/d': '/driver',
   '/t': '/track',
   '/s': '/standings',
@@ -29,7 +31,7 @@ export const commandAliases: Record<string, string> = {
   '/fl': '/fastest',
   '/ql': '/qualifying',
   '/nx': '/next',
-  '/ls': '/last',
+  '/la': '/last',
   '/cl': '/clear',
   '/rs': '/reset',
   '/sc': '/schedule',
@@ -139,7 +141,7 @@ export async function processCommand(cmd: string) {
       case '/driver': {
         if (!args[0]) {
           const cmd = originalCommand === '/d' ? '/d' : '/driver';
-          return `❌ Error: Please provide a driver name\nUsage: ${cmd} <name> (e.g., ${cmd} hamilton)\nShortcuts: /d, /driver`;
+          return `❌ Error: Please provide a driver name\nUsage: ${cmd} <name> (e.g., ${cmd} hamilton)\nTip: Use /list drivers to see all available drivers\nShortcuts: /d, /driver`;
         }
         const searchTerm = args[0].toLowerCase();
         const driverId = findDriverId(searchTerm);
@@ -208,14 +210,14 @@ export async function processCommand(cmd: string) {
       case '/track': {
         if (!args[0]) {
           const cmd = originalCommand === '/t' ? '/t' : '/track';
-          return `❌ Error: Please provide a track name\nUsage: ${cmd} <name>\nYou can use:\n• Track name (e.g., monza)\n• Nickname (e.g., temple of speed)\n• Location (e.g., italian gp)\nShortcuts: /t, /track`;
+          return `❌ Error: Please provide a track name\nUsage: ${cmd} <name>\nYou can use:\n• Track name (e.g., monza)\n• Nickname (e.g., temple of speed)\n• Location (e.g., italian gp)\nTip: Use /list tracks to see all available tracks\nShortcuts: /t, /track`;
         }
         return await handleTrackCommand(args);
       }
 
       case '/team': {
         if (!args[0]) {
-          return `❌ Error: Please provide a team name\nUsage: /team <name> (e.g., /team ferrari)\nShortcuts: /tm, /team`;
+          return `❌ Error: Please provide a team name\nUsage: /team <name> (e.g., /team ferrari)\nTip: Use /list teams to see all available teams\nShortcuts: /tm, /team`;
         }
         const teamId = findTeamId(args[0]);
         if (!teamId) {
@@ -264,9 +266,9 @@ export async function processCommand(cmd: string) {
       case '/teams': {
         const data = await api.getConstructorStandings();
         if (!data || data.length === 0) {
-          return 'No team standings available for the current season yet.';
+          return '❌ Error: No team standings available for the current season yet.';
         }
-        return data.slice(0, 5).map(standing => {
+        return data.map(standing => {
           const flagUrl = getFlagUrl(standing.Constructor.nationality);
           const flag = flagUrl ? 
             `<img src="${flagUrl}" alt="${standing.Constructor.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
@@ -274,12 +276,8 @@ export async function processCommand(cmd: string) {
           const teamColor = getTeamColor(standing.Constructor.name);
           const teamName = `<span style="color: ${teamColor}">${standing.Constructor.name}</span>`;
           return [
-            `${icons.trophy} P${standing.position}`,
-            teamName,
-            flag,
-            `${icons.activity} ${standing.points} pts`,
-            `${icons.car} Wins: ${standing.wins}`
-          ].join(' | ');
+            `${icons.trophy} P${standing.position} | ${teamName} ${flag} | ${icons.activity} ${standing.points} pts | ${icons.car} Wins: ${standing.wins}`
+          ].join('');
         }).join('\n');
       }
 
@@ -361,6 +359,61 @@ export async function processCommand(cmd: string) {
                `🛞 Current: ${data.compound}\n` +
                `⏱️ Age: ${data.laps} laps\n` +
                `📊 Wear: ${data.wear}%`;
+      }
+
+      case '/telemetry': {
+        if (!args[0]) {
+          return '❌ Error: Please provide a driver number (e.g., /telemetry 44)';
+        }
+        const data = await api.getDriverTelemetry(args[0]);
+        if (!data) {
+          return '❌ Error: Telemetry data is only available during active sessions';
+        }
+        return [
+          `🏎️ Car #${args[0]} Telemetry:`,
+          `⚡ Speed: ${data.speed || 'N/A'} km/h`,
+          `🔄 RPM: ${data.rpm || 'N/A'}`,
+          `🎮 Throttle: ${data.throttle || 'N/A'}%`,
+          `🛑 Brake: ${data.brake || 'N/A'}%`,
+          `⚙️ Gear: ${data.gear || 'N/A'}`,
+          `🌡️ Engine Temp: ${data.engine_temperature || 'N/A'}°C`,
+          `⏱️ Updated: ${new Date(data.timestamp).toLocaleTimeString()}`
+        ].join('\n');
+      }
+
+      case '/status': {
+        const data = await api.getTrackStatus();
+        if (!data) {
+          return '❌ Error: Track status is only available during active sessions';
+        }
+        
+        const statusMap: Record<string, string> = {
+          '1': '🟢 Track Clear',
+          '2': '🟡 Yellow Flag',
+          '3': '🟣 Safety Car Deployed',
+          '4': '🔴 Red Flag',
+          '5': '⚫ Session Ended',
+          '6': '🟠 Virtual Safety Car Deployed'
+        };
+        
+        return [
+          `🏁 Track Status: ${statusMap[data.status] || 'Unknown'}`,
+          `⏱️ Updated: ${new Date(data.timestamp).toLocaleTimeString()}`
+        ].join('\n');
+      }
+
+      case '/live': {
+        const data = await api.getLiveTimings();
+        if (!data || data.length === 0) {
+          return '❌ Error: Live timing data is only available during active sessions';
+        }
+        
+        return data.map(timing => [
+          `P${timing.position} | Car #${timing.driver}`,
+          `⏱️ Last Lap: ${timing.lastLapTime || 'N/A'}`,
+          `S1: ${timing.sector1 || 'N/A'} | S2: ${timing.sector2 || 'N/A'} | S3: ${timing.sector3 || 'N/A'}`,
+          `🚀 Speed Trap: ${timing.speed || 'N/A'} km/h`
+        ].join(' | ')).join('\n');
       }
 
       case '/fastest': {
@@ -490,6 +543,12 @@ export async function processCommand(cmd: string) {
 
       case '/help': {
         const categories = {
+          'LISTS AND REFERENCES': [
+            { command: '/list (/ls) <type>', description: 'List available drivers, teams, or tracks' },
+            { command: '/list drivers', description: 'Show all available drivers' },
+            { command: '/list teams', description: 'Show all available teams' },
+            { command: '/list tracks', description: 'Show all available tracks' }
+          ],
           'SYSTEM COMMANDS': [
             { command: '/help (/h)', description: 'Show this help message' },
             { command: '/clear (/cl)', description: 'Clear terminal history' },
@@ -548,6 +607,89 @@ export async function processCommand(cmd: string) {
           '  Esc           Close suggestions/fullscreen';
 
         return `${header}\n${separator}${sections.join('\n')}\n${shortcuts}`;
+      }
+
+      case '/list': {
+        if (!args[0]) {
+          return `❌ Error: Please specify what to list\nUsage: /list <type>\nAvailable types:\n• drivers - List all drivers\n• teams - List all teams\n• tracks - List all tracks\nShortcuts: /ls, /list`;
+        }
+
+        const type = args[0].toLowerCase();
+
+        switch (type) {
+          case 'drivers': {
+            const currentDrivers = Object.entries(driverNicknames)
+              .filter(([id]) => driverNumbers[id])
+              .map(([id, nicknames]) => {
+                const number = driverNumbers[id];
+                const mainName = nicknames[0];
+                const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '';
+                return { id, name: mainName, number, code };
+              })
+              .sort((a, b) => a.name.localeCompare(b.name));
+
+            const legendaryDrivers = Object.entries(driverNicknames)
+              .filter(([id]) => !driverNumbers[id])
+              .map(([id, nicknames]) => {
+                const mainName = nicknames[0];
+                const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '';
+                return { id, name: mainName, code };
+              })
+              .sort((a, b) => a.name.localeCompare(b.name));
+
+            return [
+              '👤 Current F1 Drivers:',
+              ...currentDrivers.map(d => `  #${d.number.padStart(2, '0')} | ${d.name} (${d.code})`),
+              '',
+              '🏆 Legendary Champions & Notable Drivers:',
+              ...legendaryDrivers.map(d => `  ${d.name} (${d.code})`)
+            ].join('\n');
+          }
+
+          case 'teams': {
+            const teams = Object.entries(teamNicknames)
+              .map(([id, names]) => {
+                const mainName = names[0];
+                const code = names.find(n => n.length === 3 && n === n.toUpperCase()) || '';
+                const hq = names[3];
+                const established = names[4];
+                const championships = names[5];
+                const nationality = names[6];
+                const color = getTeamColor(mainName);
+                const flagUrl = getFlagUrl(nationality);
+                const flag = flagUrl ? 
+                  `<img src="${flagUrl}" alt="${nationality} flag" style="display:inline-block;vertical-align:middle;margin:0 2px;height:13px;width:25px;object-fit:cover;">` : 
+                  '';
+                
+                return `${flag} <span style="color: ${color}">${mainName}</span> (${code}) | 📍 ${hq} | 📅 ${established} | 🏆 ${championships}`;
+              })
+              .sort();
+
+            return [
+              '🏎️ Current F1 Teams:',
+              ...teams
+            ].join('\n');
+          }
+
+          case 'tracks': {
+            const tracks = Object.entries(trackNicknames)
+              .map(([id, names]) => {
+                const details = getTrackDetails(id);
+                const mainName = names[0];
+                const nickname = names.length > 1 ? names[1] : '';
+                return `  ${mainName} (${nickname}) - ${details.length}km, ${details.turns} turns`;
+              })
+              .sort();
+
+            return [
+              '🏁 F1 Circuits:',
+              ...tracks
+            ].join('\n');
+          }
+
+          default:
+            return `❌ Error: Invalid list type "${type}"\nAvailable types: drivers, teams, tracks`;
+        }
       }
 
       default:

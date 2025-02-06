@@ -229,6 +229,7 @@ export const driverNicknames: Record<string, string[]> = {
 
 // Driver number mapping
 export const driverNumbers: Record<string, string> = {
+  // Current Drivers
   'hamilton': '44',
   'max_verstappen': '1',
   'leclerc': '16',
@@ -248,7 +249,28 @@ export const driverNumbers: Record<string, string> = {
   'hulkenberg': '27',
   'ricciardo': '3',
   'piastri': '81',
-  'sargeant': '2'
+  'sargeant': '2',
+  // Historic Champions
+  'senna': '12',
+  'prost': '1',
+  'michael_schumacher': '1',
+  'fangio': '1',
+  'clark': '1',
+  'lauda': '1',
+  'stewart': '1',
+  'hill_g': '5',
+  'hill_d': '0',
+  'mansell': '5',
+  'piquet': '1',
+  'brabham': '1',
+  'fittipaldi': '1',
+  'ascari': '1',
+  'hakkinen': '1',
+  'raikkonen': '7',
+  'button': '22',
+  'rosberg_k': '6',
+  'rosberg_n': '6',
+  'vettel': '5'
 };
 
 export function getDriverNicknames(driverId: string): string[] {
@@ -299,14 +321,22 @@ export function findDriverId(search: string): string | null {
 const teamColors: Record<string, string> = {
   'Mercedes': '#00D2BE',
   'Red Bull': '#0600EF',
+  'Red Bull Racing': '#0600EF',
   'Ferrari': '#DC0000',
+  'Scuderia Ferrari': '#DC0000',
   'McLaren': '#FF8700',
+  'McLaren F1 Team': '#FF8700',
   'Aston Martin': '#006F62',
+  'Aston Martin F1 Team': '#006F62',
   'Alpine': '#0090FF',
+  'Alpine F1 Team': '#0090FF',
   'AlphaTauri': '#2B4562',
+  'Scuderia AlphaTauri': '#2B4562',
   'Alfa Romeo': '#900000',
+  'Alfa Romeo F1 Team': '#900000',
   'Haas F1 Team': '#FFFFFF',
   'Williams': '#005AFF',
+  'Williams Racing': '#005AFF'
 };
 
 export function getTeamColor(team: string): string {
@@ -323,7 +353,7 @@ export function formatDriver(text: string, nationality: string): string {
   if (!text || !nationality) return 'Unknown Driver';
   const flagUrl = getFlagUrl(nationality);
   const flag = flagUrl ? ` <img src="${flagUrl}" alt="${nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
-  return `${text || 'Unknown'} [${nationality}${flag}]`;
+  return `${text} [${nationality}${flag}]`;
 }
 
 export function formatCircuit(name: string, country: string): string {
@@ -335,7 +365,7 @@ export function formatCircuit(name: string, country: string): string {
 
 export function formatWithTeamColor(text: string, team: string): string {
   const color = getTeamColor(team);
-  return `${text} (${team})`;
+  return `${text} <span style="color: ${color}">${team}</span>`;
 }
 
 export function formatTime(time: string): string {
@@ -395,9 +425,12 @@ export function formatDriverComparison(data: any): string {
   const stats1 = calculateDriverStats(driver1.Races);
   const stats2 = calculateDriverStats(driver2.Races);
   
-  // Use the total races from the API
-  const totalRaces1 = driver1.totalRaces;
-  const totalRaces2 = driver2.totalRaces;
+  const totalRaces1 = driver1.totalRaces || 0;
+  const totalRaces2 = driver2.totalRaces || 0;
+  const poles1 = driver1.poles || 0;
+  const poles2 = driver2.poles || 0;
+  const fastestLaps1 = driver1.fastestLaps || 0;
+  const fastestLaps2 = driver2.fastestLaps || 0;
   
   const flag1 = getFlagUrl(driver1Nationality);
   const flag2 = getFlagUrl(driver2Nationality);
@@ -418,54 +451,80 @@ export function formatDriverComparison(data: any): string {
     `🏎️ Races: ${totalRaces1}${' '.repeat(Math.max(0, sideWidth - totalRaces1.toString().length - 8))}     🏎️ Races: ${totalRaces2}`,
     `🏆 Race Wins: ${stats1.wins}${' '.repeat(Math.max(0, sideWidth - stats1.wins.toString().length - 12))}     🏆 Race Wins: ${stats2.wins}`,
     `🥇 Podiums: ${stats1.podiums}${' '.repeat(Math.max(0, sideWidth - stats1.podiums.toString().length - 10))}     🥇 Podiums: ${stats2.podiums}`,
+    `🎯 Pole Positions: ${poles1}${' '.repeat(Math.max(0, sideWidth - poles1.toString().length - 16))}     🎯 Pole Positions: ${poles2}`,
+    `⚡ Fastest Laps: ${fastestLaps1}${' '.repeat(Math.max(0, sideWidth - fastestLaps1.toString().length - 15))}     ⚡ Fastest Laps: ${fastestLaps2}`,
     `💫 Points: ${stats1.points}${' '.repeat(Math.max(0, sideWidth - stats1.points.toString().length - 9))}     💫 Points: ${stats2.points}`,
     `🔥 Best Finish: P${stats1.bestFinish}${' '.repeat(Math.max(0, sideWidth - stats1.bestFinish.toString().length - 14))}     🔥 Best Finish: P${stats2.bestFinish}`,
-    `⚡ Fastest Laps: ${stats1.fastestLaps}${' '.repeat(Math.max(0, sideWidth - stats1.fastestLaps.toString().length - 15))}     ⚡ Fastest Laps: ${stats2.fastestLaps}`,
+    `🌟 Points/Race: ${(stats1.points / totalRaces1).toFixed(1)}${' '.repeat(Math.max(0, sideWidth - (stats1.points / totalRaces1).toFixed(1).length - 14))}     🌟 Points/Race: ${(stats2.points / totalRaces2).toFixed(1)}`,
     `🌟 Win Rate: ${((stats1.wins / totalRaces1) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((stats1.wins / totalRaces1) * 100).toFixed(1).length - 11))}     🌟 Win Rate: ${((stats2.wins / totalRaces2) * 100).toFixed(1)}%`,
     `🎯 Podium Rate: ${((stats1.podiums / totalRaces1) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((stats1.podiums / totalRaces1) * 100).toFixed(1).length - 14))}     🎯 Podium Rate: ${((stats2.podiums / totalRaces2) * 100).toFixed(1)}%`,
+    `🎖️ Pole Rate: ${((poles1 / totalRaces1) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((poles1 / totalRaces1) * 100).toFixed(1).length - 12))}     🎖️ Pole Rate: ${((poles2 / totalRaces2) * 100).toFixed(1)}%`,
     separator
   ].join('\n');
 }
 
+function calculateTeamStats(results: any[]) {
+  // Filter out invalid results
+  const validResults = results.filter(r => r.Results?.[0]);
+  
+  return {
+    wins: validResults.filter((r: any) => r.Results?.[0]?.position === "1").length,
+    podiums: validResults.filter((r: any) => {
+      const pos = parseInt(r.Results?.[0]?.position);
+      return !isNaN(pos) && pos <= 3;
+    }).length,
+    points: validResults.reduce((acc: number, r: any) => {
+      const points = parseFloat(r.Results?.[0]?.points || '0');
+      return acc + (isNaN(points) ? 0 : points);
+    }, 0),
+    bestFinish: Math.min(...validResults.map((r: any) => {
+      const pos = parseInt(r.Results?.[0]?.position);
+      return !isNaN(pos) ? pos : Infinity;
+    })),
+    fastestLaps: validResults.filter((r: any) => 
+      r.Results?.[0]?.FastestLap?.rank === "1"
+    ).length
+  };
+}
+
 function calculateDriverStats(results: any[]) {
   // Filter out races where the driver didn't participate or was disqualified
-  const validResults = results.filter(race => race.Results?.[0]);
+  const validResults = results.filter(race => 
+    race.Results?.[0] && race.Results[0].position !== undefined
+  );
 
   return {
     wins: validResults.filter((race: any) => 
-      race.Results?.[0]?.position === "1" || race.Results?.[0]?.position === 1
+      race.Results[0].position === "1" || race.Results[0].position === 1
     ).length,
     podiums: validResults.filter((r: any) => {
       const pos = parseInt(r.Results?.[0]?.position);
       return !isNaN(pos) && pos <= 3;
     }).length,
     points: validResults.reduce((acc: number, race: any) => {
-      const points = parseFloat(race.Results?.[0]?.points || '0');
+      const points = parseFloat(race.Results[0].points || '0');
       return acc + (isNaN(points) ? 0 : points);
     }, 0
     ),
     bestFinish: Math.min(...validResults.map((r: any) => {
       const pos = parseInt(r.Results?.[0]?.position);
       return !isNaN(pos) ? pos : Infinity;
-    })),
-    fastestLaps: validResults.filter((race: any) => 
-      race.Results?.[0]?.FastestLap?.rank === "1"
-    ).length
+    }))
   };
 }
 
 // Team nickname mappings
 export const teamNicknames: Record<string, string[]> = {
-  'red_bull': ['Red Bull', 'RBR', 'redbull'],
-  'mercedes': ['Mercedes', 'Merc', 'mercs'],
-  'ferrari': ['Ferrari', 'Scuderia', 'SF'],
-  'mclaren': ['McLaren', 'MCL', 'papaya'],
-  'aston_martin': ['Aston Martin', 'AMR', 'aston'],
-  'alpine': ['Alpine', 'ALP', 'renault'],
-  'williams': ['Williams', 'WIL', 'grove'],
-  'alphatauri': ['AlphaTauri', 'AT', 'tauri'],
-  'alfa': ['Alfa Romeo', 'ALF', 'sauber'],
-  'haas': ['Haas F1 Team', 'HAS', 'haas']
+  'red_bull': ['Red Bull Racing', 'RBR', 'redbull', 'Milton Keynes, UK', '2005', '6', 'British'],
+  'mercedes': ['Mercedes-AMG Petronas', 'MER', 'mercs', 'Brackley, UK', '1954', '8', 'British'],
+  'ferrari': ['Scuderia Ferrari', 'FER', 'SF', 'Maranello, Italy', '1950', '16', 'Italian'],
+  'mclaren': ['McLaren F1 Team', 'MCL', 'papaya', 'Woking, UK', '1966', '8', 'British'],
+  'aston_martin': ['Aston Martin F1 Team', 'AMR', 'aston', 'Silverstone, UK', '2021', '0', 'British'],
+  'alpine': ['Alpine F1 Team', 'ALP', 'renault', 'Enstone, UK', '1986', '2', 'French'],
+  'williams': ['Williams Racing', 'WIL', 'grove', 'Grove, UK', '1977', '9', 'British'],
+  'alphatauri': ['Scuderia AlphaTauri', 'ALT', 'tauri', 'Faenza, Italy', '1985', '0', 'Italian'],
+  'alfa': ['Alfa Romeo F1 Team', 'ALF', 'sauber', 'Hinwil, Switzerland', '1993', '0', 'Swiss'],
+  'haas': ['Haas F1 Team', 'HAS', 'haas', 'Kannapolis, USA', '2016', '0', 'American']
 };
 
 export function findTeamId(search: string): string | null {
@@ -490,7 +549,7 @@ export function findTeamId(search: string): string | null {
 export function formatTeamComparison(data: any): string {
   const { team1, team2 } = data;
   
-  if (!team1?.Races || !team2?.Races || team1.Races.length === 0 || team2.Races.length === 0) {
+  if (!team1?.Races || !team2?.Races) {
     return 'Error: Could not fetch comparison data for one or both teams';
   }
 
@@ -505,8 +564,8 @@ export function formatTeamComparison(data: any): string {
   const stats1 = calculateTeamStats(team1.Races);
   const stats2 = calculateTeamStats(team2.Races);
   
-  const team1Nationality = team1.Races[0]?.Constructor?.nationality;
-  const team2Nationality = team2.Races[0]?.Constructor?.nationality;
+  const team1Nationality = team1.Races[0]?.Constructor?.nationality || 'Unknown';
+  const team2Nationality = team2.Races[0]?.Constructor?.nationality || 'Unknown';
   
   const flag1 = getFlagUrl(team1Nationality);
   const flag2 = getFlagUrl(team2Nationality);
@@ -514,30 +573,30 @@ export function formatTeamComparison(data: any): string {
   const flagImg1 = flag1 ? `<img src="${flag1}" alt="${team1Nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
   const flagImg2 = flag2 ? `<img src="${flag2}" alt="${team2Nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
   
-  const separator = '\n' + '─'.repeat(40) + ' VS ' + '─'.repeat(40) + '\n';
+  const maxNameLength = Math.max(team1Name.length, team2Name.length);
+  const padding = 5;
+  const sideWidth = maxNameLength + padding;
+  const separator = '\n' + '═'.repeat(sideWidth) + ' 🏁 TEAM STATS 🏁 ' + '═'.repeat(sideWidth) + '\n';
   
   const coloredTeam1 = `<span style="color: ${getTeamColor(team1Name)}">${team1Name}</span>`;
   const coloredTeam2 = `<span style="color: ${getTeamColor(team2Name)}">${team2Name}</span>`;
   
   return [
-    '🏎️ CONSTRUCTOR HEAD-TO-HEAD COMPARISON',
+    '🏎️ TEAM HEAD-TO-HEAD COMPARISON 🏎️',
     separator,
-    `${flagImg1} ${coloredTeam1}${' '.repeat(Math.max(0, 40 - team1Name.length))}     ${flagImg2} ${coloredTeam2}`,
-    `🏆 Wins: ${stats1.wins}${' '.repeat(Math.max(0, 33 - stats1.wins.toString().length))}     🏆 Wins: ${stats2.wins}`,
-    `🥇 Podiums: ${stats1.podiums}${' '.repeat(Math.max(0, 30 - stats1.podiums.toString().length))}     🥇 Podiums: ${stats2.podiums}`,
-    `📊 Points: ${stats1.points}${' '.repeat(Math.max(0, 31 - stats1.points.toString().length))}     📊 Points: ${stats2.points}`,
-    `🔥 Best: P${stats1.bestFinish}${' '.repeat(Math.max(0, 32 - stats1.bestFinish.toString().length))}     🔥 Best: P${stats2.bestFinish}`,
-    `⚡ Fast Laps: ${stats1.fastestLaps}${' '.repeat(Math.max(0, 27 - stats1.fastestLaps.toString().length))}     ⚡ Fast Laps: ${stats2.fastestLaps}`,
+    `${flagImg1} ${coloredTeam1}${' '.repeat(Math.max(0, sideWidth - team1Name.length))}     ${flagImg2} ${coloredTeam2}`,
+    `👑 Championships: ${team1.championships}${' '.repeat(Math.max(0, sideWidth - team1.championships.toString().length - 15))}     👑 Championships: ${team2.championships}`,
+    `🏎️ Races: ${team1.totalRaces}${' '.repeat(Math.max(0, sideWidth - team1.totalRaces.toString().length - 8))}     🏎️ Races: ${team2.totalRaces}`,
+    `🏆 Race Wins: ${stats1.wins}${' '.repeat(Math.max(0, sideWidth - stats1.wins.toString().length - 12))}     🏆 Race Wins: ${stats2.wins}`,
+    `🥇 Podiums: ${stats1.podiums}${' '.repeat(Math.max(0, sideWidth - stats1.podiums.toString().length - 10))}     🥇 Podiums: ${stats2.podiums}`,
+    `🎯 Pole Positions: ${team1.poles}${' '.repeat(Math.max(0, sideWidth - team1.poles.toString().length - 16))}     🎯 Pole Positions: ${team2.poles}`,
+    `⚡ Fastest Laps: ${team1.fastestLaps}${' '.repeat(Math.max(0, sideWidth - team1.fastestLaps.toString().length - 15))}     ⚡ Fastest Laps: ${team2.fastestLaps}`,
+    `💫 Points: ${stats1.points}${' '.repeat(Math.max(0, sideWidth - stats1.points.toString().length - 9))}     💫 Points: ${stats2.points}`,
+    `🔥 Best Finish: P${stats1.bestFinish}${' '.repeat(Math.max(0, sideWidth - stats1.bestFinish.toString().length - 14))}     🔥 Best Finish: P${stats2.bestFinish}`,
+    `📊 Points/Race: ${(stats1.points / team1.totalRaces).toFixed(1)}${' '.repeat(Math.max(0, sideWidth - (stats1.points / team1.totalRaces).toFixed(1).length - 14))}     📊 Points/Race: ${(stats2.points / team2.totalRaces).toFixed(1)}`,
+    `🌟 Win Rate: ${((stats1.wins / team1.totalRaces) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((stats1.wins / team1.totalRaces) * 100).toFixed(1).length - 11))}     🌟 Win Rate: ${((stats2.wins / team2.totalRaces) * 100).toFixed(1)}%`,
+    `🎯 Podium Rate: ${((stats1.podiums / team1.totalRaces) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((stats1.podiums / team1.totalRaces) * 100).toFixed(1).length - 14))}     🎯 Podium Rate: ${((stats2.podiums / team2.totalRaces) * 100).toFixed(1)}%`,
+    `🎖️ Pole Rate: ${((team1.poles / team1.totalRaces) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((team1.poles / team1.totalRaces) * 100).toFixed(1).length - 12))}     🎖️ Pole Rate: ${((team2.poles / team2.totalRaces) * 100).toFixed(1)}%`,
     separator.replace('VS', '🏁')
   ].join('\n');
-}
-
-function calculateTeamStats(results: any[]) {
-  return {
-    wins: results.filter((r: any) => r.position === "1").length,
-    podiums: results.filter((r: any) => parseInt(r.position) <= 3).length,
-    points: results.reduce((acc: number, r: any) => acc + parseInt(r.points || '0'), 0),
-    bestFinish: Math.min(...results.map((r: any) => parseInt(r.position))),
-    fastestLaps: results.filter((r: any) => r.FastestLap?.rank === "1").length
-  };
 }
