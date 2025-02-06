@@ -1,11 +1,6 @@
 export const commands = [
   // System Commands
   {
-    command: '/list (/ls) <type>',
-    description: 'List available drivers, teams, or tracks',
-    source: 'System'
-  },
-  {
     command: '/list (/ls)',
     description: 'List available drivers, teams, or tracks',
     source: 'System'
@@ -132,5 +127,15 @@ export const commands = [
     command: '/sprint <year> <round>',
     description: 'Get sprint race results and statistics',
     source: 'F1 Racing Results API'
+  },
+  {
+    command: '/theme <team>',
+    description: 'Change terminal theme to F1 team colors',
+    source: 'System'
+  },
+  {
+    command: '/fontsize <size|+|-|reset>',
+    description: 'Change terminal history text size (e.g., /fontsize 14 or /fontsize +)',
+    source: 'System'
   }
 ];

@@ -37,8 +37,7 @@
 }
 
 .tooltip-content {
-  @apply bg-card/80;
-  backdrop-filter: blur(12px);
+  @apply bg-card;
   border: 1px solid hsl(var(--border)/0.2);
   border-radius: 6px;
   box-shadow: 0 0 15px hsl(var(--primary)/0.05),
@@ -54,16 +53,20 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes slideIn {
+  from { transform: translateY(-4px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 .execute-button {
-  @apply bg-card/80;
-  backdrop-filter: blur(8px);
+  @apply bg-card;
   border: 1px solid hsl(var(--border)/0.2);
   box-shadow: 0 0 15px hsl(var(--primary)/0.05),
               inset 0 0 10px hsl(var(--primary)/0.05);
   color: hsl(var(--muted-foreground));
   font-size: 0.9rem;
   letter-spacing: 0.02em;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease-out;
 }
 
 .execute-button:hover {
@@ -78,7 +81,7 @@
   transform: scale(0.96);
   box-shadow: 0 0 10px hsl(var(--primary)/0.05),
               inset 0 0 5px hsl(var(--primary)/0.05);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
 }
 
 .gradient-bg {
@@ -99,18 +102,19 @@
   user-select: text !important;
 }
 
-.terminal-container.resizing {
+body.resizing {
   cursor: row-resize;
   user-select: none !important;
 }
 
-.terminal-container.resizing * {
+body.resizing * {
   pointer-events: none !important;
   user-select: none !important;
 }
 
 .terminal-window {
-  @apply bg-card/30 text-primary;
+  @apply text-primary;
+  background: transparent;
   border: 1px solid hsl(var(--border)/0.2);
   border-radius: 6px;
   box-shadow: 
@@ -120,12 +124,12 @@
   position: relative;
   cursor: default;
   overflow: hidden;
-  isolation: isolate;
+  display: flex;
+  flex-direction: column;
 }
 
 .terminal-input-wrapper {
-  @apply bg-card/40 border-b border-border/10;
-  backdrop-filter: blur(12px);
+  @apply bg-card border-b border-border/10;
   user-select: none;
   position: relative;
   z-index: 50;
@@ -135,12 +139,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    hsl(var(--primary)/0.03),
-    hsl(var(--primary)/0.02)
-  );
-  backdrop-filter: blur(12px);
+  background: hsl(var(--card));
   z-index: -1;
   border-radius: inherit;
 }
@@ -148,20 +147,21 @@
 .terminal-input {
   @apply bg-transparent border-none;
   color: hsl(var(--primary));
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  caret-color: hsl(var(--primary));
 }
 
 .terminal-history {
   @apply px-4 py-2;
+  flex: 1;
   min-height: 200px;
-  margin-bottom: 0;
   padding-bottom: 1rem;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
   scroll-behavior: smooth;
-  position: relative;
-  z-index: 10;
-  backdrop-filter: none;
 }
 
 @keyframes cursor-blink {
@@ -178,15 +178,16 @@
 
 @keyframes retro-dots {
   0% { content: '.'; }
-  33% { content: '..'; }
-  66% { content: '...'; }
+  25% { content: '..'; }
+  50% { content: '...'; }
+  75% { content: '....'; }
   100% { content: '...'; }
 }
 
 .processing-dots::after {
   content: '.';
   display: inline-block;
-  animation: retro-dots 1.2s steps(1) infinite;
+  animation: retro-dots 0.8s steps(1) infinite;
   font-family: monospace;
   font-weight: bold;
   color: hsl(var(--primary));
@@ -204,7 +205,6 @@
 
 .terminal-timestamp {
   font-family: monospace;
-  font-size: 0.8rem;
   color: hsl(var(--secondary));
 }
 
@@ -214,32 +214,43 @@
   margin-right: 0.5rem;
 }
 
-.typing-effect {
-  overflow: hidden;
-  white-space: nowrap;
-  animation: typing 0.5s steps(30, end);
+.glass-panel {
+  @apply bg-card border border-border/10 rounded-lg;
+  box-shadow: 
+    0 0 15px hsl(var(--primary)/0.05),
+    inset 0 0 10px hsl(var(--primary)/0.05);
 }
-
-.terminal-input input:focus {
   outline: none;
+input.terminal-input {
+  @apply bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none;
   box-shadow: none;
-  backdrop-filter: blur(16px);
-  border: 1px solid hsl(var(--border)/0.2);
-  background: hsl(var(--card)/0.4);
-  border-radius: 4px;
-  padding: 0 0.5rem;
-  margin: 0 0.5rem;
-  transition: all 0.2s ease;
+  border: none;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.terminal-input input:hover {
-  border-color: hsl(var(--border)/0.4);
-  background: hsl(var(--card)/0.4);
+input.terminal-input:focus {
+  @apply bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none;
+  box-shadow: none;
+  border: none;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.terminal-input input:focus:hover {
-  border-color: hsl(var(--border)/0.6);
-  background: hsl(var(--card)/0.5);
+input.terminal-input:hover {
+  @apply bg-transparent border-none outline-none ring-0;
+  box-shadow: none;
+  border: none;
+  outline: none;
+}
+
+input.terminal-input:focus:hover {
+  @apply bg-transparent border-none outline-none ring-0;
+  box-shadow: none;
+  border: none;
+  outline: none;
 }
 
 /* Scrollbar Styles */
@@ -277,52 +288,68 @@ html {
 }
 
 
+/* Status Bar Styles */
+.terminal-status-bar {
+  animation: fadeIn 0.15s ease-in-out;
+  backdrop-filter: blur(18px);
+  background: hsl(var(--card)/0.05);
+  position: relative;
+  z-index: 20;
+}
+
 /* Fullscreen Terminal Styles */
 .fullscreen-terminal {
   @apply fixed inset-0 z-50;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(24px);
+  background: transparent;
+  transition: all 0.3s ease-in-out;
 }
 
 .fullscreen-terminal .terminal-window {
   height: calc(100vh - 100px);
   margin: 20px;
   border: 1px solid hsl(var(--border)/0.3);
-  box-shadow: 
-    0 0 30px hsl(var(--primary)/0.1),
-    inset 0 0 20px hsl(var(--primary)/0.1);
-}
-
-.fullscreen-terminal .terminal-status-bar {
-  background: hsl(var(--card)/0.4);
-  border-color: hsl(var(--border)/0.2);
+  box-shadow: 0 0 30px hsl(var(--primary)/0.1);
+  transition: all 0.3s ease-in-out;
 }
 
 .fullscreen-terminal .terminal-input-wrapper {
-  background: hsl(var(--card)/0.4);
+  background: hsl(var(--card));
   border-color: hsl(var(--border)/0.2);
 }
 
 /* Command Suggestions Dropdown */
 .terminal-window .absolute > div {
-  border: 1px solid hsl(var(--border)/0.2);
+  @apply bg-transparent;
+  border: 1px solid hsl(var(--border)/0.15);
   box-shadow: 
-    0 4px 30px -10px hsl(var(--primary)/0.1),
-    0 0 15px -5px hsl(var(--primary)/0.05),
-    inset 0 0 20px hsl(var(--primary)/0.05);
+    0 8px 32px -12px hsl(var(--primary)/0.2),
+    0 4px 16px -8px hsl(var(--primary)/0.1),
+    inset 0 2px 15px -5px hsl(var(--primary)/0.1);
   z-index: 60;
   animation: fadeIn 0.15s ease-in-out;
-  isolation: isolate;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(16px);
+  /* background: hsl(var(--card)/0.01); */
 }
 
 .terminal-window .absolute > div > div {
-  @apply bg-transparent px-1;
+  @apply px-1;
+}
+
+.terminal-window .absolute > div > div > div {
+  position: relative;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  transition: all 0.15s ease-out;
 }
 
 .terminal-window .absolute > div > div > div:hover {
-  @apply bg-card/50;
+  @apply bg-card/10;
   box-shadow: 
-    inset 0 1px 3px hsl(var(--primary)/0.05),
-    inset 0 0 2px hsl(var(--primary)/0.02);
-  transition: all 0.15s ease-in-out;
+    inset 0 1px 2px -1px hsl(var(--primary)/0.05),
+    inset 0 0 4px -2px hsl(var(--primary)/0.025);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: hsl(var(--border)/0.1);
 }

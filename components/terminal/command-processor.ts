@@ -1,5 +1,5 @@
 import { api } from '@/lib/api/client';
-import { formatDriver, formatCircuit, formatWithTeamColor, formatTime, formatDate, getDriverNicknames, findDriverId, getFlagUrl, countryToCode, findTrackId, trackNicknames, formatDriverComparison, findTeamId, formatTeamComparison, icons, driverNumbers, calculateCountdown, getTrackDetails, driverNicknames, teamNicknames, getTeamColor } from '@/lib/utils';
+import { formatDriver, formatCircuit, formatWithTeamColor, formatTime, formatDate, getDriverNicknames, findDriverId, getFlagUrl, countryToCode, findTrackId, trackNicknames, formatDriverComparison, findTeamId, formatTeamComparison, icons, driverNumbers, calculateCountdown, getTrackDetails, driverNicknames, teamNicknames, getTeamColor, teamThemes } from '@/lib/utils';
 import { commands } from '@/lib/commands';
 
 // Command aliases mapping
@@ -134,8 +134,88 @@ export async function processCommand(cmd: string) {
 
       case '/reset': {
         localStorage.removeItem('commandHistory');
+        localStorage.removeItem('terminal_theme');
         window.location.reload();
         return 'Resetting terminal session...';
+      }
+      
+      case '/theme': {
+        if (!args[0]) {
+          const teamList = Object.entries(teamNicknames)
+            .map(([id, names]) => {
+              const teamName = names[0];
+              const teamColor = getTeamColor(teamName);
+              return `• <span style="color: ${teamColor}">${teamName}</span>`;
+            })
+            .join('\n');
+          
+          return `❌ Error: Please provide a team name\nUsage: /theme <team> (e.g., /theme ferrari)\n\nAvailable themes:\n${teamList}\n\nOr use "/theme default" to reset to original theme`;
+        }
+
+        if (args[0].toLowerCase() === 'default') {
+          document.documentElement.style.setProperty('--primary', '186 100% 50%');
+          document.documentElement.style.setProperty('--secondary', '288 100% 73%');
+          document.documentElement.style.setProperty('--accent', '288 100% 73%');
+          document.documentElement.style.setProperty('--border', '186 100% 50%');
+          localStorage.removeItem('terminal_theme');
+          return '🎨 Terminal theme reset to default colors!';
+        }
+
+        const teamId = findTeamId(args[0]);
+        if (!teamId) {
+          return `❌ Error: Team "${args[0]}" not found. Try using the team name (e.g., ferrari, mercedes)`;
+        }
+
+        const theme = teamThemes[teamId];
+        if (!theme) {
+          return `❌ Error: No theme available for ${teamNicknames[teamId][0]}`;
+        }
+
+        try {
+          document.documentElement.style.setProperty('--primary', theme.primary);
+          document.documentElement.style.setProperty('--secondary', theme.secondary);
+          document.documentElement.style.setProperty('--accent', theme.accent);
+          document.documentElement.style.setProperty('--border', theme.border);
+          
+          localStorage.setItem('terminal_theme', teamId);
+          
+          return `🎨 Terminal theme changed to ${teamNicknames[teamId][0]} colors!`;
+        } catch (error) {
+          console.error('Failed to set theme:', error);
+          return '❌ Error: Failed to apply theme. Please try again.';
+        }
+      }
+      
+      case '/fontsize': {
+        if (!args[0]) {
+          return `❌ Error: Please specify a size or action\nUsage:\n• /fontsize <number> - Set specific size (e.g., /fontsize 14)\n• /fontsize + - Increase size\n• /fontsize - - Decrease size\n• /fontsize reset - Reset to default`;
+        }
+
+        const currentSize = parseInt(localStorage.getItem('terminal_font_size') || '14');
+        let newSize = currentSize;
+
+        if (args[0] === '+') {
+          newSize = Math.min(currentSize + 1, 24);
+        } else if (args[0] === '-') {
+          newSize = Math.max(currentSize - 1, 10);
+        } else if (args[0] === 'reset') {
+          newSize = 14;
+        } else {
+          const size = parseInt(args[0]);
+          if (isNaN(size) || size < 10 || size > 24) {
+            return '❌ Error: Font size must be between 10 and 24';
+          }
+          newSize = size;
+        }
+
+        try {
+          localStorage.setItem('terminal_font_size', newSize.toString());
+          window.dispatchEvent(new CustomEvent('fontSizeChange', { detail: newSize }));
+          return `Font size changed to ${newSize}px`;
+        } catch (error) {
+          console.error('Failed to save font size:', error);
+          return '❌ Error: Failed to change font size. Please try again.';
+        }
       }
 
       case '/driver': {

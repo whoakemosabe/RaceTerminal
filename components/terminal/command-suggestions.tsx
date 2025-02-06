@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { commands } from '@/lib/commands';
 import { commandAliases } from '@/components/terminal/command-processor';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { ChevronRight } from 'lucide-react';
 
 interface CommandSuggestionsProps {
   command: string;
@@ -29,10 +30,17 @@ export function CommandSuggestions({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const lastCommandRef = useRef<string>('');
+  const isFirstRenderRef = useRef(true);
 
   // Reset refs array when suggestions change
   useEffect(() => {
     itemRefs.current = itemRefs.current.slice(0, suggestions.length);
+    if (isFirstRenderRef.current) {
+      setSelectedIndex(0);
+      isFirstRenderRef.current = false;
+    }
+    lastCommandRef.current = command;
   }, [suggestions]);
 
   // Check if the input exactly matches a command or alias
@@ -87,7 +95,7 @@ export function CommandSuggestions({
   useEffect(() => {
     if (isVisible && suggestions.length > 0) {
       const selectedElement = itemRefs.current[selectedIndex];
-      if (selectedElement) {
+      if (selectedElement && isNavigatingSuggestions) {
         selectedElement.scrollIntoView({
           block: 'nearest',
           behavior: 'smooth'
@@ -99,30 +107,42 @@ export function CommandSuggestions({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isVisible || suggestions.length === 0) return;
+      
+      // Always allow Enter to execute the selected suggestion
+      if (e.key === 'Enter' && suggestions[selectedIndex]) {
+        e.preventDefault();
+        handleSelect(suggestions[selectedIndex]);
+        onClose();
+        inputRef.current?.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter' }));
+        onNavigationStateChange(false);
+        return;
+      }
 
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          onNavigationStateChange(true);
-          setSelectedIndex(prev => (prev + 1) % suggestions.length);
+          if (!isNavigatingSuggestions) {
+            onNavigationStateChange(true);
+            return;
+          }
+          const nextIndex = (selectedIndex + 1) % suggestions.length;
+          setSelectedIndex(nextIndex);
           break;
         case 'ArrowUp':
           e.preventDefault();
-          onNavigationStateChange(true);
-          setSelectedIndex(prev => (prev - 1 + suggestions.length) % suggestions.length);
-          break;
-        case 'Enter':
-          e.preventDefault();
-          if (suggestions[selectedIndex]) {
-            handleSelect(suggestions[selectedIndex]);
-            onNavigationStateChange(false);
+          if (!isNavigatingSuggestions) {
+            onNavigationStateChange(true);
+            return;
           }
+          const prevIndex = (selectedIndex - 1 + suggestions.length) % suggestions.length;
+          setSelectedIndex(prevIndex);
           break;
         case 'Tab':
           e.preventDefault();
           if (suggestions[selectedIndex]) {
-            handleSelect(suggestions[selectedIndex]);
+            onSelect(suggestions[selectedIndex] + ' ');
             onNavigationStateChange(false);
+            onClose();
           }
           break;
         case 'Escape':
@@ -141,18 +161,29 @@ export function CommandSuggestions({
   if (!isVisible || suggestions.length === 0) return null;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 10 }}
-        transition={{ duration: 0.15, ease: "easeOut" }}
-        className="absolute left-0 right-0 top-full mt-2 z-[60]"
+        transition={{ duration: 0.1, ease: "easeOut" }}
+        className="absolute left-0 right-0 top-full mt-2 z-[60] overflow-hidden"
       >
-        <div className="bg-card/30 backdrop-blur-xl border border-border/20 rounded-lg overflow-hidden shadow-lg">
+        <div className="bg-card/30 backdrop-blur-xl border border-border/20 rounded-lg overflow-hidden shadow-lg relative">
+          {/* Header */}
+          <div className="px-3 py-2 border-b border-border/10 bg-card/40">
+            <div className="text-xs text-muted-foreground">
+              {suggestions.length} suggestion{suggestions.length !== 1 ? 's' : ''} available
+              <span className="ml-2 text-primary/50">
+                (Use ↑↓ to navigate, Enter to select)
+              </span>
+            </div>
+          </div>
+
+          {/* Suggestions List */}
           <div 
             ref={containerRef} 
-            className="p-2 space-y-1 max-h-[300px] overflow-y-auto"
+            className="p-2 space-y-1 max-h-[300px] overflow-y-auto relative"
             style={{ scrollbarGutter: 'stable' }}
           >
             {suggestions.map((suggestion, index) => {
@@ -160,20 +191,33 @@ export function CommandSuggestions({
               const cmd = commands.find(c => 
                 c.command.split(' ')[0] === (isAlias ? commandAliases[suggestion] : suggestion)
               );
+              const isSelected = index === selectedIndex;
               
               return (
-                <div
+                <motion.div
                   key={suggestion}
                   ref={el => itemRefs.current[index] = el}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm cursor-pointer transition-all duration-150",
-                    "hover:bg-card/50 hover:shadow-inner",
-                    index === selectedIndex && "bg-card/60 shadow-inner"
+                    "hover:bg-card/50 relative group",
+                    isSelected ? "bg-card/60 shadow-inner" : "hover:shadow-inner"
                   )}
                   onClick={() => handleSelect(suggestion)}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.1, delay: index * 0.02 }}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-primary font-medium">
+                  <div className="flex items-center gap-2 relative">
+                    <ChevronRight 
+                      className={cn(
+                        "w-4 h-4 transition-all duration-150 absolute -left-2",
+                        isSelected ? "opacity-100 text-primary" : "opacity-0"
+                      )}
+                    />
+                    <span className={cn(
+                      "font-mono font-medium transition-colors duration-150 ml-2",
+                      isSelected ? "text-primary" : "text-primary/80"
+                    )}>
                       {suggestion}
                       {isAlias && (
                         <span className="text-secondary/70 ml-2 text-xs tracking-wide">
@@ -181,15 +225,30 @@ export function CommandSuggestions({
                         </span>
                       )}
                     </span>
-                    {cmd && (
-                      <span className="text-xs text-muted-foreground/70 truncate ml-4 font-light tracking-wide">
-                        {cmd.description}
-                      </span>
-                    )}
                   </div>
-                </div>
+                  {cmd && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      transition={{ duration: 0.1, ease: "easeOut" }}
+                      className={cn(
+                        "mt-1 text-xs font-light tracking-wide pl-6",
+                        isSelected ? "text-muted-foreground" : "text-muted-foreground/50"
+                      )}
+                    >
+                      {cmd.description}
+                    </motion.div>
+                  )}
+                </motion.div>
               );
             })}
+          </div>
+
+          {/* Footer */}
+          <div className="px-3 py-2 border-t border-border/10 bg-card/40">
+            <div className="text-xs text-muted-foreground/60">
+              Press Tab to complete • Esc to close
+            </div>
           </div>
         </div>
       </motion.div>

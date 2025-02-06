@@ -47,27 +47,36 @@ export function FullscreenTerminal({
     <div
       ref={containerRef}
       className={cn(
-        'fixed inset-0 z-50 bg-background/80 backdrop-blur-md transition-all duration-200',
-        isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        'fixed inset-0 z-50 transition-all duration-200 ease-out',
+        isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
       )}
+      style={{
+        backgroundColor: isOpen ? 'hsl(var(--background))' : 'transparent',
+        backdropFilter: isOpen ? 'blur(16px)' : 'blur(0px)',
+        WebkitBackdropFilter: isOpen ? 'blur(16px)' : 'blur(0px)'
+      }}
     >
       <div className="absolute top-4 right-4 z-50">
         <button
           onClick={onClose}
-          className="p-2 rounded-full bg-card/50 hover:bg-card/70 transition-colors"
+          className="p-2 rounded-full bg-card hover:bg-card/70 transition-colors"
         >
           <X className="w-5 h-5 text-primary" />
         </button>
       </div>
 
       <div className="container mx-auto h-screen max-w-6xl p-4">
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col transform transition-all duration-150 ease-out"
+             style={{ 
+               transform: isOpen ? 'none' : 'scale(0.95) translateY(20px)',
+               opacity: isOpen ? '1' : '0'
+             }}>
           <div className="flex items-center gap-2 mb-2 text-primary">
             <TerminalIcon className="w-5 h-5" />
             <h2 className="text-lg font-medium">RaceTerminal Pro</h2>
           </div>
 
-          <div className="flex-1 glass-panel">
+          <div className="flex-1 terminal-window">
             <Terminal {...props} />
           </div>
         </div>

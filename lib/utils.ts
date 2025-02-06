@@ -168,26 +168,26 @@ export const countryToCode: Record<string, string> = {
 // Driver nickname mappings
 export const driverNicknames: Record<string, string[]> = {
   // Current Drivers
-  'hamilton': ['Lewis Hamilton', 'King Lewis', 'HAM', 'The Hammer', 'lewis', '44'],
-  'max_verstappen': ['Max Verstappen', 'Mad Max', 'Super Max', 'VER', 'max', 'verstappen', '1'],
-  'leclerc': ['Charles Leclerc', 'Sharl', 'LEC', 'The Monégasque', 'charles', '16'],
-  'perez': ['Sergio Perez', 'Checo', 'PER', 'Mexican Minister of Defense', 'sergio', '11'],
-  'russell': ['George Russell', 'Mr. Saturday', 'RUS', 'George', '63'],
-  'norris': ['Lando Norris', 'NOR', 'Last Lap Lando', 'lando', '4'],
-  'sainz': ['Carlos Sainz', 'Smooth Operator', 'SAI', 'Carlos', '55'],
-  'alonso': ['Fernando Alonso', 'El Plan', 'ALO', 'Magic Alonso', 'fernando', '14'],
-  'stroll': ['Lance Stroll', 'STR', 'Mr. Fashion', 'lance', '18'],
-  'ocon': ['Esteban Ocon', 'OCO', 'The Resistance', 'esteban', '31'],
-  'gasly': ['Pierre Gasly', 'GAS', 'El Gasly', 'pierre', '10'],
-  'albon': ['Alexander Albon', 'Alex', 'ALB', 'Mr. Nice Guy', '23'],
-  'bottas': ['Valtteri Bottas', 'Val', 'BOT', 'To whom it may concern', 'valtteri', '77'],
-  'tsunoda': ['Yuki Tsunoda', 'TSU', 'Radio Yuki', 'yuki', '22'],
-  'zhou': ['Zhou Guanyu', 'ZHO', 'Joe', 'guanyu', '24'],
-  'magnussen': ['Kevin Magnussen', 'K-Mag', 'MAG', 'Viking', 'kevin', '20'],
-  'hulkenberg': ['Nico Hulkenberg', 'Hulk', 'HUL', 'The Hulk', 'nico', '27'],
-  'ricciardo': ['Daniel Ricciardo', 'Danny Ric', 'RIC', 'Honey Badger', 'daniel', '3'],
-  'piastri': ['Oscar Piastri', 'PIA', 'The Rookie', 'oscar', '81'],
-  'sargeant': ['Logan Sargeant', 'SAR', 'The American', 'logan', '2'],
+  'hamilton': ['Lewis Hamilton', 'King Lewis', 'HAM', 'The Hammer', 'lewis'],
+  'max_verstappen': ['Max Verstappen', 'Mad Max', 'Super Max', 'VER', 'max', 'verstappen'],
+  'leclerc': ['Charles Leclerc', 'Sharl', 'LEC', 'The Monégasque', 'charles'],
+  'perez': ['Sergio Perez', 'Checo', 'PER', 'Mexican Minister of Defense', 'sergio'],
+  'russell': ['George Russell', 'Mr. Saturday', 'RUS', 'George'],
+  'norris': ['Lando Norris', 'NOR', 'Last Lap Lando', 'lando'],
+  'sainz': ['Carlos Sainz', 'Smooth Operator', 'SAI', 'Carlos'],
+  'alonso': ['Fernando Alonso', 'El Plan', 'ALO', 'Magic Alonso', 'fernando'],
+  'stroll': ['Lance Stroll', 'STR', 'Mr. Fashion', 'lance'],
+  'ocon': ['Esteban Ocon', 'OCO', 'The Resistance', 'esteban'],
+  'gasly': ['Pierre Gasly', 'GAS', 'El Gasly', 'pierre'],
+  'albon': ['Alexander Albon', 'Alex', 'ALB', 'Mr. Nice Guy'],
+  'bottas': ['Valtteri Bottas', 'Val', 'BOT', 'To whom it may concern', 'valtteri'],
+  'tsunoda': ['Yuki Tsunoda', 'TSU', 'Radio Yuki', 'yuki'],
+  'zhou': ['Zhou Guanyu', 'ZHO', 'Joe', 'guanyu'],
+  'magnussen': ['Kevin Magnussen', 'K-Mag', 'MAG', 'Viking', 'kevin'],
+  'hulkenberg': ['Nico Hulkenberg', 'Hulk', 'HUL', 'The Hulk', 'nico'],
+  'ricciardo': ['Daniel Ricciardo', 'Danny Ric', 'RIC', 'Honey Badger', 'daniel'],
+  'piastri': ['Oscar Piastri', 'PIA', 'The Rookie', 'oscar'],
+  'sargeant': ['Logan Sargeant', 'SAR', 'The American', 'logan'],
   // Legendary Champions
   'senna': ['Ayrton Senna', 'SEN', 'Magic', 'The Master of Monaco', 'The Rain Master', 'ayrton'],
   'prost': ['Alain Prost', 'PRO', 'The Professor', 'Le Professeur', 'alain'],
@@ -526,6 +526,71 @@ export const teamNicknames: Record<string, string[]> = {
   'alfa': ['Alfa Romeo F1 Team', 'ALF', 'sauber', 'Hinwil, Switzerland', '1993', '0', 'Swiss'],
   'haas': ['Haas F1 Team', 'HAS', 'haas', 'Kannapolis, USA', '2016', '0', 'American']
 };
+
+// Team themes with their corresponding colors
+export const teamThemes: Record<string, { primary: string; secondary: string; accent: string; border: string }> = {
+  'red_bull': {
+    primary: '217 100% 50%',
+    secondary: '240 100% 47%',
+    accent: '217 100% 50%',
+    border: '240 100% 47%'
+  },
+  'mercedes': {
+    primary: '174 100% 41%',
+    secondary: '174 100% 41%',
+    accent: '174 100% 41%',
+    border: '174 100% 41%'
+  },
+  'ferrari': {
+    primary: '0 100% 43%',
+    secondary: '48 100% 50%',
+    accent: '0 100% 43%',
+    border: '0 100% 43%'
+  },
+  'mclaren': {
+    primary: '32 100% 50%',
+    secondary: '199 100% 40%',
+    accent: '32 100% 50%',
+    border: '32 100% 50%'
+  },
+  'aston_martin': {
+    primary: '170 100% 22%',
+    secondary: '170 100% 35%',
+    accent: '170 100% 22%',
+    border: '170 100% 22%'
+  },
+  'alpine': {
+    primary: '203 100% 50%',
+    secondary: '339 85% 55%',
+    accent: '203 100% 50%',
+    border: '203 100% 50%'
+  },
+  'williams': {
+    primary: '217 100% 50%',
+    secondary: '217 100% 65%',
+    accent: '217 100% 50%',
+    border: '217 100% 50%'
+  },
+  'alphatauri': {
+    primary: '212 39% 27%',
+    secondary: '212 39% 40%',
+    accent: '212 39% 27%',
+    border: '212 39% 27%'
+  },
+  'alfa': {
+    primary: '0 100% 28%',
+    secondary: '0 100% 40%',
+    accent: '0 100% 28%',
+    border: '0 100% 28%'
+  },
+  'haas': {
+    primary: '0 0% 100%',
+    secondary: '0 0% 80%',
+    accent: '0 0% 100%',
+    border: '0 0% 100%'
+  }
+};
+
 
 export function findTeamId(search: string): string | null {
   search = search.toLowerCase().trim();

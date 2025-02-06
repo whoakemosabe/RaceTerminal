@@ -40,6 +40,7 @@ export function Terminal({
   const [currentTime, setCurrentTime] = useState<string>('');
   const [mounted, setMounted] = useState(false);
   const [sessionStart] = useState(new Date().toLocaleString());
+  const [fontSize, setFontSize] = useState(14);
 
   // Scroll to top when new command is added
   useEffect(() => {
@@ -53,6 +54,20 @@ export function Terminal({
     
     // Initial focus only on mount
     inputRef.current?.focus();
+    
+    // Load saved font size
+    const savedSize = parseInt(localStorage.getItem('terminal_font_size') || '14');
+    setFontSize(savedSize);
+
+    // Listen for font size changes
+    const handleFontSizeChange = (e: CustomEvent) => {
+      setFontSize(e.detail);
+    };
+
+    window.addEventListener('fontSizeChange', handleFontSizeChange as EventListener);
+    return () => {
+      window.removeEventListener('fontSizeChange', handleFontSizeChange as EventListener);
+    };
 
     const updateTime = () => {
       setCurrentTime(new Date().toLocaleTimeString());
@@ -74,7 +89,7 @@ export function Terminal({
   return (
     <div className="flex flex-col flex-1 overflow-hidden terminal-window">
       {/* Top Status Bar */}
-      <div className="top-0 z-10 sticky flex items-center bg-card/60 px-3 py-1 border-b border-border/10 h-8 terminal-status-bar">
+      <div className="top-0 z-10 sticky flex items-center bg-card/60 px-3 py-1 border-b border-border/10 h-8">
         <div className="grid grid-cols-3 w-full">
           
           <div className="flex justify-start gap-2 text-primary">
@@ -148,7 +163,7 @@ export function Terminal({
                 }
               }}
               placeholder="Enter command (e.g., /driver hamilton)"
-              className="flex-1 h-7 font-mono text-sm cursor-blink focus:outline-none placeholder-primary/50 terminal-input"
+              className="flex-1 h-7 font-mono text-sm cursor-blink placeholder-primary/50 terminal-input"
             />
             <Button
               onClick={onExecute}
@@ -164,23 +179,27 @@ export function Terminal({
       {/* Command History */}
       {history.length > 0 && (
         <div className="relative flex-1 font-mono text-sm overflow-y-auto terminal-history"
-            ref={historyRef}
-            style={{ scrollBehavior: 'smooth' }}>
+            ref={historyRef} 
+            style={{ 
+              scrollBehavior: 'smooth', 
+              fontSize: `${fontSize}px`,
+              '--terminal-font-size': `${fontSize}px`
+            } as React.CSSProperties}>
           <div className="flex flex-col space-y-2">
             {[...history].reverse().map((entry, index) => {
               return (
                 <div key={index} className="space-y-2">
-                  <div className="flex items-center gap-2 terminal-prompt">
+                  <div className="flex items-center gap-2 terminal-prompt" style={{ fontSize: `${fontSize}px` }}>
                     {mounted && (
-                      <span className="terminal-timestamp">
+                      <span className="terminal-timestamp" style={{ fontSize: `${fontSize}px` }}>
                         [{entry.timestamp || 'unknown'}] {entry.username}@terminal
                       </span>
                     )}
-                    <code className="text-primary">{entry.command}</code>
+                    <code className="text-primary" style={{ fontSize: `${fontSize}px` }}>{entry.command}</code>
                   </div>
                   <div
                     className={cn(
-                      "pl-4 whitespace-pre-wrap break-words typing-effect",
+                      "pl-4 whitespace-pre-wrap break-words",
                       entry.output === 'Processing command' && "processing-dots",
                       entry.output.startsWith('❌') || entry.output.startsWith('Error:') || entry.output.includes('not found') || entry.output.includes('No ') 
                         ? 'text-red-500' 
@@ -245,7 +264,7 @@ export function Terminal({
       )}
       
       {/* Bottom Status Bar */}
-      <div className="z-10 sticky flex items-center bg-card/40 backdrop-blur-md px-3 py-1 border-t border-border/10 select-none">
+      <div className="relative flex items-center px-3 py-1 border-t border-border/10 select-none terminal-status-bar">
 
       <div className="grid grid-cols-3 w-full">
          {/* Left Section */}

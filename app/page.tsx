@@ -13,6 +13,7 @@ import { commands } from '@/lib/commands';
 import { commandAliases } from '@/components/terminal/command-processor';
 import { driverNicknames, teamNicknames, trackNicknames } from '@/lib/utils';
 import { processCommand } from '@/components/terminal/command-processor';
+import { teamThemes } from '@/lib/utils';
 
 const MAX_HISTORY_SIZE = 100; // Maximum number of commands to store
 
@@ -33,9 +34,11 @@ export default function Home() {
   const [isNavigatingSuggestions, setIsNavigatingSuggestions] = useState(false);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [terminalHeight, setTerminalHeight] = useState(500); // Default height
+  const [isMainVisible, setIsMainVisible] = useState(true);
   const resizeRef = useRef<HTMLDivElement>(null);
+  const terminalRef = useRef<HTMLDivElement>(null);
   const isResizingRef = useRef(false);
+  const initialHeightRef = useRef(500);
   const { username } = useUsername();
 
   // Handle resize functionality
@@ -43,17 +46,19 @@ export default function Home() {
     const handleMouseDown = (e: MouseEvent) => {
       if (resizeRef.current?.contains(e.target as Node)) {
         isResizingRef.current = true;
+        document.body.classList.add('resizing');
       }
     };
 
     const handleMouseUp = () => {
       isResizingRef.current = false;
+      document.body.classList.remove('resizing');
     };
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizingRef.current) return;
 
-      const container = document.querySelector('.terminal-container');
+      const container = terminalRef.current;
       if (!container) return;
 
       const containerRect = container.getBoundingClientRect();
@@ -63,7 +68,8 @@ export default function Home() {
       const minHeight = 200;
       const maxHeight = window.innerHeight - 200; // Leave space for help panel
       
-      setTerminalHeight(Math.min(Math.max(newHeight, minHeight), maxHeight));
+      const height = Math.min(Math.max(newHeight, minHeight), maxHeight);
+      container.style.height = `${height}px`;
     };
 
     document.addEventListener('mousedown', handleMouseDown);
@@ -82,13 +88,19 @@ export default function Home() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 'Enter') {
         e.preventDefault();
-        setIsFullscreen(prev => !prev);
+        if (!isFullscreen) {
+          setIsMainVisible(false);
+          setTimeout(() => setIsFullscreen(true), 300);
+        } else {
+          setIsFullscreen(false);
+          setTimeout(() => setIsMainVisible(true), 100);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isFullscreen]);
 
   const clearHistory = useCallback(() => {
     localStorage.removeItem('commandHistory');
@@ -142,6 +154,16 @@ export default function Home() {
   useEffect(() => {
     if (!isHistoryLoaded) {
       try { 
+        // Load saved theme
+        const savedTheme = localStorage.getItem('terminal_theme');
+        if (savedTheme && teamThemes[savedTheme]) {
+          const theme = teamThemes[savedTheme];
+          document.documentElement.style.setProperty('--primary', theme.primary);
+          document.documentElement.style.setProperty('--secondary', theme.secondary);
+          document.documentElement.style.setProperty('--accent', theme.accent);
+          document.documentElement.style.setProperty('--border', theme.border);
+        }
+
         const savedHistory = localStorage.getItem('commandHistory');
         if (savedHistory) {
           const parsedHistory = JSON.parse(savedHistory);
@@ -355,7 +377,10 @@ export default function Home() {
       <div className="flex flex-col flex-1 mx-auto px-8 w-full max-w-7xl overflow-hidden terminal-container">
         <FullscreenTerminal
           isOpen={isFullscreen}
-          onClose={() => setIsFullscreen(false)}
+          onClose={() => {
+            setIsFullscreen(false);
+            setTimeout(() => setIsMainVisible(true), 100);
+          }}
           command={command}
           isProcessing={isProcessing}
           history={history}
@@ -373,7 +398,13 @@ export default function Home() {
           onExecute={handleCommand}
         />
 
-        <div style={{ height: terminalHeight }} className="flex-shrink-0">
+        <div 
+          ref={terminalRef}
+          style={{ height: initialHeightRef.current }}
+          className={cn(
+            "flex-shrink-0 transition-all duration-300 ease-in-out",
+            isMainVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}>
           <Terminal
             command={command}
             isProcessing={isProcessing}

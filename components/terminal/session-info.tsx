@@ -28,22 +28,22 @@ export function SessionInfo() {
   if (!mounted) {
     return (
       <div className="mb-2 p-2 glass-panel">
-        <div className="grid grid-cols-4 md:grid-cols-1 gap-4">
+        <div className="gap-4 grid grid-cols-4 md:grid-cols-1">
           <div className="flex items-center gap-2 text-primary">
             <Terminal size={16} />
-            <span className="text-sm font-mono">RaceTerminal Pro v1.0.0</span>
+            <span className="font-mono text-sm">RaceTerminal Pro</span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground opacity-0">
+          <div className="flex items-center gap-2 opacity-0 text-muted-foreground">
             <Calendar size={16} />
-            <span className="text-sm font-mono">Loading...</span>
+            <span className="font-mono text-sm">Loading...</span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground opacity-0">
+          <div className="flex items-center gap-2 opacity-0 text-muted-foreground">
             <Clock size={16} />
-            <span className="text-sm font-mono">Loading...</span>
+            <span className="font-mono text-sm">Loading...</span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground opacity-0">
+          <div className="flex items-center gap-2 opacity-0 text-muted-foreground">
             <Cpu size={16} />
-            <span className="text-sm font-mono">Loading...</span>
+            <span className="font-mono text-sm">Loading...</span>
           </div>
         </div>
       </div>
@@ -52,17 +52,17 @@ export function SessionInfo() {
 
   return (
     <div className="mb-2 p-2 glass-panel">
-      <div className="flex items-center justify-between gap-6">
+      <div className="flex justify-between items-center gap-6">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Info size={16} />
-          <span className="text-sm font-mono">v{APP_VERSION}</span>
+          <span className="font-mono text-sm">v{APP_VERSION}</span>
         </div>
-        <div className="flex-1 flex items-center gap-2 text-muted-foreground justify-center">
+        <div className="flex flex-1 justify-center items-center gap-2 text-muted-foreground">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2 cursor-help">
                 <Calendar size={16} />
-                <span className="text-sm font-mono">
+                <span className="font-mono text-sm">
                   {sessionStart.toLocaleDateString()}
                 </span>
               </div>
@@ -72,12 +72,12 @@ export function SessionInfo() {
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex-1 flex items-center gap-2 text-muted-foreground justify-center">
+        <div className="flex flex-1 justify-center items-center gap-2 text-muted-foreground">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2 cursor-help">
                 <Clock size={16} />
-                <span className="text-sm font-mono">
+                <span className="font-mono text-sm">
                   {currentTime.toLocaleTimeString()}
                 </span>
               </div>
@@ -87,12 +87,12 @@ export function SessionInfo() {
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground justify-end">
+        <div className="flex justify-end items-center gap-2 text-muted-foreground">
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2 cursor-help">
                 <Cpu size={16} />
-                <span className="text-sm font-mono">Uptime: {uptime}</span>
+                <span className="font-mono text-sm">Uptime: {uptime}</span>
               </div>
             </TooltipTrigger>
             <TooltipContent side="top" className="tooltip-content">

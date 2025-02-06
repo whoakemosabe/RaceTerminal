@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { APP_VERSION, LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TerminalHistoryProps {
   history: Array<{
@@ -24,7 +25,7 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
   if (history.length === 0) return null;
 
   return (
-    <div className="mt-4 h-[350px] font-mono text-sm overflow-y-auto">
+    <div className="mt-4 h-[350px] font-mono overflow-y-auto transition-all duration-200">
       <div className="flex flex-col space-y-2">
         {[...history].reverse().map((entry, index) => {
           return (
@@ -39,7 +40,7 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
             </div>
             <div
               className={cn(
-                "pl-4 whitespace-pre-wrap break-words typing-effect",
+                "pl-4 whitespace-pre-wrap break-words",
                 entry.output.startsWith('❌') || entry.output.startsWith('Error:') || entry.output.includes('not found') || entry.output.includes('No ') 
                   ? 'text-red-500' 
                   : 'text-white'
