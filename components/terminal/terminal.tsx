@@ -245,7 +245,7 @@ export function Terminal({
       )}
       
       {/* Bottom Status Bar */}
-      <div className="z-10 sticky flex items-center bg-card/40 backdrop-blur-sm px-3 py-1 border-t border-border/10 select-none">
+      <div className="z-10 sticky flex items-center bg-card/40 backdrop-blur-md px-3 py-1 border-t border-border/10 select-none">
 
       <div className="grid grid-cols-3 w-full">
          {/* Left Section */}
