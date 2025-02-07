@@ -40,21 +40,36 @@ const openF1Client = axios.create({
 
 export const api = {
   async getDriverStandings(year: number = new Date().getFullYear()): Promise<DriverStanding[]> {
-    const { data } = await ergastClient.get(`/${year}/driverStandings.json`);
-    const standings = data?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings;
-    if (!standings) {
+    try {
+      const { data } = await retryRequest(async () => {
+        return await ergastClient.get(`/${year}/driverStandings.json`);
+      });
+      
+      const standings = data?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings;
+      if (!standings || !Array.isArray(standings)) {
+        return [];
+      }
+      
+      return standings.map((standing: any): DriverStanding => ({
+        position: standing.position || '?',
+        points: standing.points || '0',
+        Driver: {
+          driverId: standing.Driver?.driverId || '',
+          code: standing.Driver?.code || '',
+          permanentNumber: standing.Driver?.permanentNumber || '',
+          driverId: standing.Driver?.driverId || '',
+          code: standing.Driver?.code || '',
+          permanentNumber: standing.Driver?.permanentNumber || '',
+          givenName: standing.Driver?.givenName || '',
+          familyName: standing.Driver?.familyName || '',
+          nationality: standing.Driver?.nationality || 'Unknown'
+        },
+        Constructor: standing.Constructors?.[0] || { name: 'Unknown Team' }
+      }));
+    } catch (error) {
+      console.error('Error fetching driver standings:', error);
       return [];
     }
-    return standings.map((standing: any): DriverStanding => ({
-      position: standing.position || '?',
-      points: standing.points || '0',
-      Driver: {
-        givenName: standing.Driver?.givenName || '',
-        familyName: standing.Driver?.familyName || '',
-        nationality: standing.Driver?.nationality || 'Unknown'
-      },
-      Constructor: standing.Constructors?.[0] || { name: 'Unknown Team' }
-    }));
   },
 
   async getConstructorStandings(year: number = new Date().getFullYear()) {
@@ -93,11 +108,19 @@ export const api = {
 
   async getDriverInfo(driverId: string) {
     return retryRequest(async () => {
-      const { data } = await ergastClient.get(`/drivers/${driverId}.json`);
-      if (!data?.MRData?.DriverTable?.Drivers?.[0]) {
-        throw new Error('Driver not found');
+      try {
+        const { data } = await ergastClient.get(`/drivers/${driverId}.json`);
+        if (!data?.MRData?.DriverTable?.Drivers?.[0]) {
+          throw new Error('Driver not found');
+        }
+        return data.MRData.DriverTable.Drivers[0];
+      } catch (error) {
+        console.error('Error fetching driver info:', error);
+        if (error instanceof Error) {
+          throw new Error(`Could not fetch driver data: ${error.message}`);
+        }
+        throw new Error('Could not fetch driver data');
       }
-      return data.MRData.DriverTable.Drivers[0];
     });
   },
 
@@ -248,11 +271,26 @@ export const api = {
 
   async getConstructorInfo(constructorId: string) {
     return retryRequest(async () => {
-      const { data } = await ergastClient.get(`/constructors/${constructorId}.json`);
-      if (!data?.MRData?.ConstructorTable?.Constructors?.[0]) {
+      const [infoResponse, championshipsResponse, resultsResponse] = await Promise.all([
+        ergastClient.get(`/constructors/${constructorId}.json`),
+        ergastClient.get(`/constructors/${constructorId}/constructorStandings/1.json`),
+        ergastClient.get(`/constructors/${constructorId}/results.json?limit=1&order=season`)
+      ]);
+
+      if (!infoResponse.data?.MRData?.ConstructorTable?.Constructors?.[0]) {
         return null;
       }
-      return data.MRData.ConstructorTable.Constructors[0];
+
+      const constructor = infoResponse.data.MRData.ConstructorTable.Constructors[0];
+      const championships = parseInt(championshipsResponse.data?.MRData?.total || '0');
+      const firstRace = resultsResponse.data?.MRData?.RaceTable?.Races?.[0];
+      const firstEntry = firstRace?.season || null;
+
+      return {
+        ...constructor,
+        championships,
+        firstEntry
+      };
     });
   },
 

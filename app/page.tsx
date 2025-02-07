@@ -37,9 +37,46 @@ export default function Home() {
   const [isMainVisible, setIsMainVisible] = useState(true);
   const resizeRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
+  const [hasSetUsername, setHasSetUsername] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const isResizingRef = useRef(false);
   const initialHeightRef = useRef(500);
   const { username } = useUsername();
+
+  // Check if username has been set
+  useEffect(() => {
+    const savedUsername = localStorage.getItem(LOCALSTORAGE_USERNAME_KEY);
+    const isValidUsername = !!savedUsername && savedUsername !== DEFAULT_USERNAME;
+    setHasSetUsername(isValidUsername);
+    
+    // Show welcome message if username is valid
+    if (isValidUsername) {
+      setShowWelcome(true);
+    }
+
+    // Listen for welcome message event
+    const handleShowWelcome = () => {
+      setShowWelcome(true);
+    };
+
+    // Listen for username changes
+    const handleUsernameChange = (e: CustomEvent) => {
+      const newUsername = e.detail;
+      const isValid = !!newUsername && newUsername !== DEFAULT_USERNAME;
+      setHasSetUsername(isValid);
+      if (isValid) {
+        setShowWelcome(true);
+      }
+    };
+
+    window.addEventListener('showWelcome', handleShowWelcome);
+    window.addEventListener('usernameChange', handleUsernameChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('showWelcome', handleShowWelcome);
+      window.removeEventListener('usernameChange', handleUsernameChange as EventListener);
+    };
+  }, [username]);
 
   // Handle resize functionality
   useEffect(() => {
@@ -112,6 +149,33 @@ export default function Home() {
   // Memoize command processor to prevent recreation
   const handleCommand = useCallback(async () => {
     if (!command.trim() || isProcessing) return;
+    
+    // Only allow /user command if username hasn't been set
+    if (!hasSetUsername && !command.toLowerCase().startsWith('/user')) {
+      const newEntry = {
+        command: command.trim(),
+        output: '❌ Please set your username first using the /user command (e.g., /user max)',
+        username: DEFAULT_USERNAME,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setHistory(prev => [...prev, newEntry]);
+      setCommand('');
+      return;
+    }
+
+    // Show welcome message after setting username
+    if (command.toLowerCase().startsWith('/user') && !command.toLowerCase().includes('reset')) {
+      setShowWelcome(true);
+    }
+
+    // Special handling for reset command
+    if (command.trim().toLowerCase() === '/rs' || command.trim().toLowerCase() === '/reset') {
+      localStorage.removeItem('commandHistory');
+      localStorage.removeItem('terminal_theme');
+      localStorage.removeItem(LOCALSTORAGE_USERNAME_KEY);
+      window.location.replace(window.location.href);
+      return;
+    }
     
     const timestamp = new Date().toLocaleTimeString();
     const cmd = command.trim();
@@ -194,13 +258,15 @@ export default function Home() {
     if (isHistoryLoaded && history.length > 0) {
       try {
         // Only keep the most recent MAX_HISTORY_SIZE commands
-        const historyToSave = history.slice(-MAX_HISTORY_SIZE);
-        localStorage.setItem('commandHistory', JSON.stringify(historyToSave));
+        if (hasSetUsername) {
+          const historyToSave = history.slice(-MAX_HISTORY_SIZE);
+          localStorage.setItem('commandHistory', JSON.stringify(historyToSave));
+        }
       } catch (error) {
         console.error('Failed to save history:', error);
       }
     }
-  }, [history, isHistoryLoaded]);
+  }, [history, isHistoryLoaded, hasSetUsername]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
@@ -395,7 +461,9 @@ export default function Home() {
             }
           }}
           onKeyDown={handleKeyDown}
-          onExecute={handleCommand}
+          onExecute={handleCommand} 
+          showWelcome={showWelcome}
+          onCloseWelcome={() => setShowWelcome(false)}
         />
 
         <div 
@@ -421,6 +489,8 @@ export default function Home() {
             }}
             onKeyDown={handleKeyDown}
             onExecute={handleCommand}
+            showWelcome={showWelcome}
+            onCloseWelcome={() => setShowWelcome(false)}
           />
         </div>
 

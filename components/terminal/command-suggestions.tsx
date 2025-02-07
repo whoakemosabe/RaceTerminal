@@ -6,6 +6,7 @@ import { commandAliases } from '@/components/terminal/command-processor';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ChevronRight } from 'lucide-react';
+import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
 
 interface CommandSuggestionsProps {
   command: string;
@@ -30,9 +31,24 @@ export function CommandSuggestions({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [hasSetUsername, setHasSetUsername] = useState(false);
   const lastCommandRef = useRef<string>('');
   const isFirstRenderRef = useRef(true);
 
+  // Check if username has been set
+  useEffect(() => {
+    const savedUsername = localStorage.getItem(LOCALSTORAGE_USERNAME_KEY);
+    setHasSetUsername(!!savedUsername && savedUsername !== DEFAULT_USERNAME);
+
+    // Listen for username changes
+    const handleUsernameChange = () => {
+      const currentUsername = localStorage.getItem(LOCALSTORAGE_USERNAME_KEY);
+      setHasSetUsername(!!currentUsername && currentUsername !== DEFAULT_USERNAME);
+    };
+
+    window.addEventListener('usernameChange', handleUsernameChange);
+    return () => window.removeEventListener('usernameChange', handleUsernameChange);
+  }, []);
   // Reset refs array when suggestions change
   useEffect(() => {
     itemRefs.current = itemRefs.current.slice(0, suggestions.length);
@@ -55,8 +71,20 @@ export function CommandSuggestions({
 
   // Focus input after selection
   const handleSelect = (suggestion: string) => {
-    onSelect(suggestion);
-    inputRef.current?.focus();
+    // Preserve any arguments after the command
+    const parts = command.split(' ');
+    const args = parts.slice(1).join(' ');
+    const newCommand = suggestion + (args ? ' ' + args : '');
+    onSelect(newCommand);
+
+    // Keep focus on input but don't add space
+    const input = inputRef.current;
+    if (input) {
+      input.focus();
+      // Set cursor position to end of input
+      const length = input.value.length;
+      input.setSelectionRange(length, length);
+    }
   };
 
   useEffect(() => {
@@ -69,8 +97,17 @@ export function CommandSuggestions({
     const parts = input.split(' ');
     const firstPart = parts[0];
 
+    // If no username is set, only show /user command
+    if (!hasSetUsername) {
+      const userCommands = ['/user', '/u'];
+      const matches = userCommands.filter(c => c.startsWith(firstPart));
+      setSuggestions(matches);
+      setSelectedIndex(0);
+      return;
+    }
+
     // Don't show suggestions if there's an exact match
-    if (isExactMatch(firstPart)) {
+    if (isExactMatch(firstPart) && parts.length === 1) {
       setSuggestions([]);
       return;
     }
@@ -89,7 +126,7 @@ export function CommandSuggestions({
 
     setSuggestions(matches);
     setSelectedIndex(0);
-  }, [command]);
+  }, [command, hasSetUsername]);
 
   // Scroll selected item into view
   useEffect(() => {
@@ -112,7 +149,6 @@ export function CommandSuggestions({
       if (e.key === 'Enter' && suggestions[selectedIndex]) {
         e.preventDefault();
         handleSelect(suggestions[selectedIndex]);
-        onClose();
         inputRef.current?.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter' }));
         onNavigationStateChange(false);
         return;
@@ -140,9 +176,12 @@ export function CommandSuggestions({
         case 'Tab':
           e.preventDefault();
           if (suggestions[selectedIndex]) {
-            onSelect(suggestions[selectedIndex] + ' ');
+            // Preserve any arguments after the command
+            const parts = command.split(' ');
+            const args = parts.slice(1).join(' ');
+            const newCommand = suggestions[selectedIndex] + (args ? ' ' + args : ' ');
+            onSelect(newCommand);
             onNavigationStateChange(false);
-            onClose();
           }
           break;
         case 'Escape':
@@ -156,7 +195,7 @@ export function CommandSuggestions({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [suggestions, selectedIndex, isVisible, onSelect]);
+  }, [suggestions, selectedIndex, isVisible, onSelect, command]);
 
   if (!isVisible || suggestions.length === 0) return null;
 

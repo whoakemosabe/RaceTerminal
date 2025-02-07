@@ -146,11 +146,15 @@ body.resizing * {
 
 .terminal-input {
   @apply bg-transparent border-none;
-  color: hsl(var(--primary));
+  color: hsl(var(--foreground));
   outline: none !important;
   box-shadow: none !important;
   border: none !important;
-  caret-color: hsl(var(--primary));
+  caret-color: hsl(var(--secondary));
+}
+
+.terminal-input::placeholder {
+  color: hsl(var(--muted-foreground)/0.7);
 }
 
 .terminal-history {
@@ -162,6 +166,28 @@ body.resizing * {
   overflow-x: hidden;
   scrollbar-gutter: stable;
   scroll-behavior: smooth;
+  background: rgb(20, 20, 20);
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 0 4px hsl(var(--primary)/0.3),
+               0 0 8px hsl(var(--primary)/0.2),
+               0 0 12px hsl(var(--primary)/0.1);
+  position: relative;
+}
+
+.terminal-history::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 2;
 }
 
 @keyframes cursor-blink {
@@ -208,10 +234,21 @@ body.resizing * {
   color: hsl(var(--secondary));
 }
 
-.terminal-prompt::before {
-  content: ' ~ $ ';
+.terminal-prompt {
+  font-family: monospace;
   color: hsl(var(--secondary));
-  margin-right: 0.5rem;
+}
+
+.terminal-history code {
+  text-shadow: 0 0 4px hsl(var(--primary)/0.5),
+               0 0 8px hsl(var(--primary)/0.2),
+               0 0 12px hsl(var(--primary)/0.1);
+}
+
+.terminal-history .terminal-timestamp {
+  text-shadow: 0 0 4px hsl(var(--secondary)/0.5),
+               0 0 8px hsl(var(--secondary)/0.2),
+               0 0 12px hsl(var(--secondary)/0.1);
 }
 
 .glass-panel {
@@ -285,6 +322,39 @@ input.terminal-input:focus:hover {
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Retro text effect classes */
+.retro-text-enabled .terminal-history {
+  text-shadow: 0 0 4px hsl(var(--primary)/0.5),
+               0 0 8px hsl(var(--primary)/0.2),
+               0 0 12px hsl(var(--primary)/0.1);
+}
+
+.retro-text-enabled .terminal-history code {
+  text-shadow: 0 0 4px hsl(var(--primary)/0.5),
+               0 0 8px hsl(var(--primary)/0.2),
+               0 0 12px hsl(var(--primary)/0.1);
+}
+
+.retro-text-enabled .terminal-history .terminal-timestamp {
+  text-shadow: 0 0 4px hsl(var(--secondary)/0.5),
+               0 0 8px hsl(var(--secondary)/0.2),
+               0 0 12px hsl(var(--secondary)/0.1);
+}
+
+.retro-text-enabled .terminal-prompt::before {
+  text-shadow: 0 0 4px hsl(var(--secondary)/0.5),
+               0 0 8px hsl(var(--secondary)/0.2),
+               0 0 12px hsl(var(--secondary)/0.1);
+}
+
+/* Remove text shadows when disabled */
+.retro-text-disabled .terminal-history,
+.retro-text-disabled .terminal-history code,
+.retro-text-disabled .terminal-history .terminal-timestamp,
+.retro-text-disabled .terminal-prompt::before {
+  text-shadow: none;
 }
 
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Terminal as TerminalIcon, Info, Clock, Calendar, Cpu, RotateCw, HelpCircle } from 'lucide-react';
-import { APP_VERSION } from '@/lib/constants';
+import { APP_VERSION, LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -20,6 +20,8 @@ interface TerminalProps {
   onCommandChange: (value: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onExecute: () => void;
+  showWelcome?: boolean;
+  onCloseWelcome?: () => void;
   onReset?: () => void;
 }
 
@@ -33,14 +35,17 @@ export function Terminal({
   onNavigationStateChange,
   onCommandChange,
   onKeyDown,
-  onExecute
+  onExecute,
+  showWelcome,
+  onCloseWelcome
 }: TerminalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
-  const [currentTime, setCurrentTime] = useState<string>('');
+  const [currentTime, setCurrentTime] = useState('');
   const [mounted, setMounted] = useState(false);
-  const [sessionStart] = useState(new Date().toLocaleString());
+  const [sessionStart, setSessionStart] = useState('');
   const [fontSize, setFontSize] = useState(14);
+  const [hasSetUsername, setHasSetUsername] = useState(false);
 
   // Scroll to top when new command is added
   useEffect(() => {
@@ -52,37 +57,50 @@ export function Terminal({
   useEffect(() => {
     setMounted(true);
     
-    // Initial focus only on mount
+    const savedUsername = localStorage.getItem(LOCALSTORAGE_USERNAME_KEY);
+    setHasSetUsername(!!savedUsername && savedUsername !== DEFAULT_USERNAME);
+
+    // Listen for username changes
+    const handleUsernameChange = (e: CustomEvent) => {
+      const newUsername = e.detail;
+      setHasSetUsername(!!newUsername && newUsername !== DEFAULT_USERNAME);
+    };
+
+    window.addEventListener('usernameChange', handleUsernameChange as EventListener);
+    return () => window.removeEventListener('usernameChange', handleUsernameChange as EventListener);
+
+    setSessionStart(new Date().toLocaleString());
     inputRef.current?.focus();
-    
-    // Load saved font size
     const savedSize = parseInt(localStorage.getItem('terminal_font_size') || '14');
     setFontSize(savedSize);
 
-    // Listen for font size changes
     const handleFontSizeChange = (e: CustomEvent) => {
       setFontSize(e.detail);
     };
 
     window.addEventListener('fontSizeChange', handleFontSizeChange as EventListener);
-    return () => {
-      window.removeEventListener('fontSizeChange', handleFontSizeChange as EventListener);
-    };
 
+    // Update clock every second
     const updateTime = () => {
       setCurrentTime(new Date().toLocaleTimeString());
     };
-    
+
+    // Initial update
     updateTime();
+    
+    // Set up interval for updates
     const interval = setInterval(updateTime, 1000);
     
     return () => {
+      window.removeEventListener('fontSizeChange', handleFontSizeChange as EventListener);
       clearInterval(interval);
     };
   }, []);
 
   const handleReset = () => {
     localStorage.removeItem('commandHistory');
+    localStorage.removeItem('terminal_theme');
+    localStorage.removeItem(LOCALSTORAGE_USERNAME_KEY);
     window.location.reload();
   };
 
@@ -112,7 +130,9 @@ export function Terminal({
           <div className="flex justify-end items-center gap-2 text-muted-foreground">
             <div className="flex items-center gap-2">
               <Clock className="w-3.5 h-3.5" />
-              <span className="font-mono text-xs">{currentTime}</span>
+              <span className="font-mono text-xs">
+                {currentTime}
+              </span>
             </div>
           </div>
 
@@ -223,41 +243,71 @@ export function Terminal({
       {history.length === 0 && (
         <div className="flex flex-col flex-1">
           <div className="flex flex-col flex-1 justify-center items-center -mt-8 px-4">
-            <div className="space-y-6 p-8 w-full max-w-2xl text-center glass-panel">
-              <div className="flex justify-center items-center gap-3 font-semibold text-2xl text-primary">
-                <Info className="w-8 h-8" />
-                <h2>Welcome to RaceTerminal Pro</h2>
+            <div className="space-y-6 p-8 w-full max-w-2xl text-center glass-panel relative">
+              <div className="space-y-4">
+                <h3 className="text-2xl font-semibold text-primary">Welcome to RaceTerminal Pro</h3>
+                <p className="text-lg text-muted-foreground">Your advanced Formula 1 data companion</p>
               </div>
-              
-              <p className="text-lg text-muted-foreground">
-                Your advanced Formula 1 data companion
-              </p>
-              
-              <div className="space-y-4 text-sm">
-                <div className="flex justify-center items-center gap-2 text-secondary">
-                  <HelpCircle className="w-5 h-5" />
-                  <p>Type <code className="bg-card/50 px-2 py-0.5 rounded">/help</code> to see all available commands</p>
-                </div>
-                
-                <div className="gap-4 grid grid-cols-2 mx-auto max-w-lg text-muted-foreground/80">
-                  <div className="p-3 glass-panel">
-                    <p className="mb-1 font-medium text-primary">Quick Start</p>
-                    <ul className="space-y-1 text-xs">
-                      <li>/driver hamilton</li>
-                      <li>/standings</li>
-                      <li>/next</li>
-                    </ul>
-                  </div>
-                  <div className="p-3 glass-panel">
-                    <p className="mb-1 font-medium text-primary">Popular Commands</p>
-                    <ul className="space-y-1 text-xs">
-                      <li>/schedule</li>
-                      <li>/track monza (Temple of Speed)</li>
-                      <li>/live</li>
-                    </ul>
+              {!hasSetUsername && (
+                <div className="space-y-6">
+                  <div className="p-6 glass-panel border border-primary/20">
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-medium text-primary">Set Your Username to Begin</h4>
+                      <div className="flex flex-col items-center gap-3">
+                        <code className="bg-card/50 px-4 py-2 rounded-md text-primary font-mono">/user your_name</code>
+                        <p className="text-sm text-muted-foreground">
+                          Example: <code className="text-primary/80">/user max</code>
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+              {showWelcome && hasSetUsername && (
+                <div className="space-y-6">
+                  <div className="flex justify-center items-center gap-2 text-secondary">
+                    <HelpCircle className="w-5 h-5" />
+                    <p className="text-sm">Type <code className="bg-card/50 px-2 py-0.5 rounded">/help</code> to see all available commands</p>
+                  </div>
+                  
+                  <div className="p-4 glass-panel border border-primary/20">
+                    <div className="space-y-3">
+                      <h4 className="text-lg font-medium text-primary">Welcome aboard, {localStorage.getItem(LOCALSTORAGE_USERNAME_KEY)}!</h4>
+                      <p className="text-sm text-muted-foreground">
+                        You're all set to explore Formula 1 data. Here are some commands to get you started:
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="gap-4 grid grid-cols-2 mx-auto max-w-lg text-muted-foreground/80">
+                    <div className="p-3 glass-panel">
+                      <p className="mb-1 font-medium text-primary">Quick Start</p>
+                      <ul className="space-y-1 text-xs">
+                        <li>/driver hamilton</li>
+                        <li>/standings</li>
+                        <li>/next</li>
+                      </ul>
+                    </div>
+                    <div className="p-3 glass-panel">
+                      <p className="mb-1 font-medium text-primary">Popular Commands</p>
+                      <ul className="space-y-1 text-xs">
+                        <li>/schedule</li>
+                        <li>/track monza</li>
+                        <li>/live</li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onCloseWelcome}
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    Start Using Terminal
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -267,56 +317,66 @@ export function Terminal({
       <div className="relative flex items-center px-3 py-1 border-t border-border/10 select-none terminal-status-bar">
 
       <div className="grid grid-cols-3 w-full">
-         {/* Left Section */}
+          {/* Left Section - Version */}
           <div className="flex justify-start items-center gap-2 text-muted-foreground">
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2 cursor-help">
                   <TerminalIcon className="w-3.5 h-3.5" />
-            <span className="font-mono text-xs">
-              RaceTerminal Pro v{APP_VERSION}
-            </span>
+                  <span className="font-mono text-xs">
+                    RaceTerminal Pro v{APP_VERSION}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" align="start" className="tooltip-content">
+                <p>System Version</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
-        </TooltipTrigger>
-        <TooltipContent side="top" align="start" className="tooltip-content">
-          <p>System Version</p>
-        </TooltipContent>
-      </Tooltip>
-    </div>
 
-    {/* Middle Section */}
-    <div className="flex justify-center items-center gap-4">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            onClick={handleReset}
-            className="flex items-center hover:text-secondary transition-colors duration-200"
-          >
-            <RotateCw className="w-3.5 h-3.5" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="top" align="center" className="tooltip-content">
-          <p>Reset Terminal Session</p>
-        </TooltipContent>
-      </Tooltip>
-    </div>
-
-    {/* Right Section */}
-    <div className="flex justify-end items-center gap-2">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-2 cursor-help status-active">
-            <Cpu className="w-3.5 h-3.5" />
-            <span className="font-mono text-xs">Active</span>
+          {/* Middle Section - Session Info */}
+          <div className="flex justify-center items-center gap-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleReset}
+                  className="h-6 w-6 hover:text-secondary transition-colors duration-200"
+                >
+                  <RotateCw className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" align="center" className="tooltip-content">
+                <p>Reset Terminal</p>
+              </TooltipContent>
+            </Tooltip>
+            <div className="flex flex-col items-center text-xs text-muted-foreground/50">
+              <div>
+                Powered by <a href="http://ergast.com/mrd/" target="_blank" rel="noopener noreferrer" className="text-primary/50 hover:text-primary/80 transition-colors">Ergast</a> & <a href="https://openf1.org" target="_blank" rel="noopener noreferrer" className="text-secondary/50 hover:text-secondary/80 transition-colors">OpenF1</a>
+              </div>
+              {mounted && hasSetUsername && <div className="text-[10px] opacity-70">
+                Session started at {sessionStart}
+              </div>}
+            </div>
           </div>
-        </TooltipTrigger>
-        <TooltipContent side="top" align="end" className="tooltip-content">
-          <p>Terminal Status</p>
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  </div>
-</div>
+
+          {/* Right Section - Status */}
+          <div className="flex justify-end items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 cursor-help status-active">
+                  <Cpu className="w-3.5 h-3.5" />
+                  <span className="font-mono text-xs">{hasSetUsername ? 'Active' : 'Waiting for username'}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" align="end" className="tooltip-content">
+                <p>Terminal Status</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

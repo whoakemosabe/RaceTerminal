@@ -137,5 +137,10 @@ export const commands = [
     command: '/fontsize <size|+|-|reset>',
     description: 'Change terminal history text size (e.g., /fontsize 14 or /fontsize +)',
     source: 'System'
+  },
+  {
+    command: '/retro',
+    description: 'Toggle retro text glow effect on/off',
+    source: 'System'
   }
 ];

@@ -6,7 +6,6 @@ import { commands } from '@/lib/commands';
 export const commandAliases: Record<string, string> = {
   // Single letter shortcuts
   '/ls': '/list',
-  '/ls': '/list',
   '/d': '/driver',
   '/t': '/track',
   '/s': '/standings',
@@ -23,8 +22,8 @@ export const commandAliases: Record<string, string> = {
   '/m': '/compare',
 
   // Multi-letter shortcuts
-  '/md': '/compare driver',  // Compare drivers
-  '/mt': '/compare team',    // Compare teams
+  '/md': '/compare driver',
+  '/mt': '/compare team',
   '/st': '/standings',
   '/cs': '/teams',          // Constructor standings
   '/ps': '/pitstops',
@@ -75,22 +74,17 @@ export async function processCommand(cmd: string) {
   const parts = cmd.split(' ');
   let inputCommand = parts[0].toLowerCase();
   const originalCommand = inputCommand;
+  const args = parts.slice(1).map(arg => arg.trim()).filter(Boolean);
   
-  // Handle command aliases (both single-letter and multi-letter)
-  
-  // Handle multi-word aliases (like "/md verstappen hamilton")
+  // Handle aliases
   const aliasedCommand = commandAliases[inputCommand];
   if (aliasedCommand) {
     const aliasedParts = aliasedCommand.split(' ');
     inputCommand = aliasedParts[0];
     if (aliasedParts.length > 1) {
-      // For multi-word aliases (like "/md" -> "/compare driver")
-      // Insert the additional parts before user's args
-      parts.splice(1, 0, ...aliasedParts.slice(1));
+      args.unshift(...aliasedParts.slice(1));
     }
   }
-  
-  const args = parts.slice(1).map(arg => arg.trim()).filter(Boolean);
 
   try {
     switch (inputCommand) {
@@ -126,6 +120,10 @@ export async function processCommand(cmd: string) {
         try {
           localStorage.setItem(LOCALSTORAGE_USERNAME_KEY, newUsername);
           window.dispatchEvent(new CustomEvent('usernameChange', { detail: newUsername }));
+          // Add a small delay to ensure the username is set before showing welcome
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('showWelcome'));
+          }, 100);
           return `Username successfully changed to "${newUsername}"`;
         } catch (error) {
           console.error('Failed to save username:', error);
@@ -135,87 +133,7 @@ export async function processCommand(cmd: string) {
       case '/reset': {
         localStorage.removeItem('commandHistory');
         localStorage.removeItem('terminal_theme');
-        window.location.reload();
-        return 'Resetting terminal session...';
-      }
-      
-      case '/theme': {
-        if (!args[0]) {
-          const teamList = Object.entries(teamNicknames)
-            .map(([id, names]) => {
-              const teamName = names[0];
-              const teamColor = getTeamColor(teamName);
-              return `• <span style="color: ${teamColor}">${teamName}</span>`;
-            })
-            .join('\n');
-          
-          return `❌ Error: Please provide a team name\nUsage: /theme <team> (e.g., /theme ferrari)\n\nAvailable themes:\n${teamList}\n\nOr use "/theme default" to reset to original theme`;
-        }
-
-        if (args[0].toLowerCase() === 'default') {
-          document.documentElement.style.setProperty('--primary', '186 100% 50%');
-          document.documentElement.style.setProperty('--secondary', '288 100% 73%');
-          document.documentElement.style.setProperty('--accent', '288 100% 73%');
-          document.documentElement.style.setProperty('--border', '186 100% 50%');
-          localStorage.removeItem('terminal_theme');
-          return '🎨 Terminal theme reset to default colors!';
-        }
-
-        const teamId = findTeamId(args[0]);
-        if (!teamId) {
-          return `❌ Error: Team "${args[0]}" not found. Try using the team name (e.g., ferrari, mercedes)`;
-        }
-
-        const theme = teamThemes[teamId];
-        if (!theme) {
-          return `❌ Error: No theme available for ${teamNicknames[teamId][0]}`;
-        }
-
-        try {
-          document.documentElement.style.setProperty('--primary', theme.primary);
-          document.documentElement.style.setProperty('--secondary', theme.secondary);
-          document.documentElement.style.setProperty('--accent', theme.accent);
-          document.documentElement.style.setProperty('--border', theme.border);
-          
-          localStorage.setItem('terminal_theme', teamId);
-          
-          return `🎨 Terminal theme changed to ${teamNicknames[teamId][0]} colors!`;
-        } catch (error) {
-          console.error('Failed to set theme:', error);
-          return '❌ Error: Failed to apply theme. Please try again.';
-        }
-      }
-      
-      case '/fontsize': {
-        if (!args[0]) {
-          return `❌ Error: Please specify a size or action\nUsage:\n• /fontsize <number> - Set specific size (e.g., /fontsize 14)\n• /fontsize + - Increase size\n• /fontsize - - Decrease size\n• /fontsize reset - Reset to default`;
-        }
-
-        const currentSize = parseInt(localStorage.getItem('terminal_font_size') || '14');
-        let newSize = currentSize;
-
-        if (args[0] === '+') {
-          newSize = Math.min(currentSize + 1, 24);
-        } else if (args[0] === '-') {
-          newSize = Math.max(currentSize - 1, 10);
-        } else if (args[0] === 'reset') {
-          newSize = 14;
-        } else {
-          const size = parseInt(args[0]);
-          if (isNaN(size) || size < 10 || size > 24) {
-            return '❌ Error: Font size must be between 10 and 24';
-          }
-          newSize = size;
-        }
-
-        try {
-          localStorage.setItem('terminal_font_size', newSize.toString());
-          window.dispatchEvent(new CustomEvent('fontSizeChange', { detail: newSize }));
-          return `Font size changed to ${newSize}px`;
-        } catch (error) {
-          console.error('Failed to save font size:', error);
-          return '❌ Error: Failed to change font size. Please try again.';
-        }
+        return null;
       }
 
       case '/driver': {
@@ -623,70 +541,144 @@ export async function processCommand(cmd: string) {
 
       case '/help': {
         const categories = {
-          'LISTS AND REFERENCES': [
-            { command: '/list (/ls) <type>', description: 'List available drivers, teams, or tracks' },
-            { command: '/list drivers', description: 'Show all available drivers' },
-            { command: '/list teams', description: 'Show all available teams' },
-            { command: '/list tracks', description: 'Show all available tracks' }
+          '🔍 ESSENTIAL COMMANDS': [
+            { command: '/help', aliases: '/h', description: 'Show this help message' },
+            { command: '/list', aliases: '/ls', description: 'List all drivers, teams, or tracks' },
+            { command: '/clear', aliases: '/c', description: 'Clear terminal history' },
+            { command: '/reset', aliases: '/rs', description: 'Reset terminal session' }
           ],
-          'SYSTEM COMMANDS': [
-            { command: '/help (/h)', description: 'Show this help message' },
-            { command: '/clear (/cl)', description: 'Clear terminal history' },
-            { command: '/reset (/rs)', description: 'Reset terminal session' },
-            { command: '/user (/u) <name|reset>', description: 'Change username or reset to default' }
+          '⚙️ CUSTOMIZATION': [
+            { command: '/user', aliases: '/u', args: '<name|reset>', description: 'Change username or reset to default' },
+            { command: '/theme', args: '<team|default>', description: 'Change terminal theme to team colors' },
+            { command: '/fontsize', args: '<size|+|-|reset>', description: 'Adjust terminal text size' }
           ],
-          'RACE INFORMATION': [
-            { command: '/standings (/s)', description: 'View current driver standings' },
-            { command: '/teams (/c)', description: 'View constructor standings' },
-            { command: '/schedule (/sc)', description: 'View race schedule' },
-            { command: '/next (/n)', description: 'Get next race information' },
-            { command: '/last (/ls)', description: 'Get last race results' },
-            { command: '/track (/t) <name>', description: 'Get circuit information' }
+          '🏆 CURRENT SEASON': [
+            { command: '/standings', aliases: '/s', description: 'Driver championship standings' },
+            { command: '/teams', aliases: '/cs', description: 'Constructor championship standings' },
+            { command: '/schedule', aliases: '/sc', description: 'Full season race calendar' },
+            { command: '/next', aliases: '/n, /nx', description: 'Next race info and countdown' },
+            { command: '/last', aliases: '/la', description: 'Last race results' }
           ],
-          'LIVE SESSION DATA': [
-            { command: '/live (/l)', description: 'Get live timing data' },
-            { command: '/telemetry <number>', description: 'Get car telemetry data' },
-            { command: '/status (/st)', description: 'Get track status' },
-            { command: '/weather (/w, /wx)', description: 'Get weather conditions' },
-            { command: '/tires <number>', description: 'Get tire information' }
+          '📊 LIVE SESSION DATA': [
+            { command: '/live', aliases: '/l', description: 'Real-time timing and scoring' },
+            { command: '/telemetry', args: '<number>', description: 'Live car telemetry data' },
+            { command: '/status', aliases: '/st', description: 'Track status and flags' },
+            { command: '/weather', aliases: '/w, /wx', description: 'Track weather conditions' },
+            { command: '/tires', args: '<number>', description: 'Tire compound and wear data' }
           ],
-          'DRIVER & TEAM DATA': [
-            { command: '/driver (/d) <name>', description: 'Get driver information' },
-            { command: '/team (/tm) <name>', description: 'Get team information' },
-            { command: '/compare (/m) <type> <name1> <name2>', description: 'Compare drivers or teams' },
-            { command: '/compare driver (/md)', description: 'Compare two drivers' },
-            { command: '/compare team (/mt)', description: 'Compare two teams' }
+          '🏎️ INFORMATION': [
+            { command: '/driver', aliases: '/d', args: '<name>', description: 'Driver details and stats' },
+            { command: '/team', aliases: '/tm', args: '<name>', description: 'Team history and info' },
+            { command: '/track', aliases: '/t', args: '<name>', description: 'Circuit details and records' },
+            { command: '/compare driver', aliases: '/md', args: '<name1> <name2>', description: 'Compare drivers' },
+            { command: '/compare team', aliases: '/mt', args: '<name1> <name2>', description: 'Compare teams' }
           ],
-          'HISTORICAL DATA': [
-            { command: '/race (/r) <year> [round]', description: 'Get race results' },
-            { command: '/qualifying (/q) <year> <round>', description: 'Get qualifying results' },
-            { command: '/sprint (/sp) <year> <round>', description: 'Get sprint results' },
-            { command: '/pitstops (/p) <year> <round>', description: 'Get pit stop data' },
-            { command: '/fastest (/f) <year> <round>', description: 'Get fastest laps' },
-            { command: '/laps <year> <round> [driver]', description: 'Get lap times' }
+          '📅 HISTORICAL DATA': [
+            { command: '/race', aliases: '/r', args: '<year> [round]', description: 'Historical race results' },
+            { command: '/qualifying', aliases: '/q', args: '<year> <round>', description: 'Qualifying results' },
+            { command: '/sprint', aliases: '/sp', args: '<year> <round>', description: 'Sprint race results' },
+            { command: '/pitstops', aliases: '/p', args: '<year> <round>', description: 'Pit stop data' },
+            { command: '/fastest', aliases: '/f, /fl', args: '<year> <round>', description: 'Fastest laps' }
           ]
         };
 
-        const header = 'RaceTerminal Pro Commands';
-        const separator = '='.repeat(header.length);
+        const header = '🏎️  RACETERMINAL PRO COMMAND REFERENCE  🏁';
+        const separator = '═'.repeat(50);
         
         const sections = Object.entries(categories).map(([category, cmds]) => {
-          const header = `\n${category}\n${'-'.repeat(category.length)}\n`;
+          const header = `\n${category}\n${'─'.repeat(50)}\n`;
           const commandList = cmds.map(cmd => 
-            `  ${cmd.command.padEnd(35)} ${cmd.description}`
+            `  ${cmd.command}${cmd.args ? ' ' + cmd.args : ''}` +
+            `${cmd.aliases ? '\n    ↳ Aliases: ' + cmd.aliases : ''}` +
+            `\n    ↳ ${cmd.description}\n`
           ).join('\n');
           return header + commandList;
         });
 
-        const shortcuts = `\nKEYBOARD SHORTCUTS\n${'-'.repeat(17)}\n` +
-          '  Alt+Enter     Toggle fullscreen terminal\n' +
-          '  Tab           Auto-complete command\n' +
-          '  Up/Down       Navigate command history\n' +
-          '  Ctrl+L        Clear terminal\n' +
-          '  Ctrl+C        Cancel command\n' +
-          '  Esc           Close suggestions/fullscreen';
+        const shortcuts = `\n⌨️  KEYBOARD SHORTCUTS\n${'─'.repeat(50)}\n` +
+          '  Alt + Enter    Toggle fullscreen terminal\n' +
+          '  Tab            Auto-complete command\n' +
+          '  ↑/↓            Navigate command history\n' +
+          '  Ctrl + L       Clear terminal\n' +
+          '  Ctrl + C       Cancel command\n' +
+          '  Esc            Close suggestions/fullscreen';
 
-        return `${header}\n${separator}${sections.join('\n')}\n${shortcuts}`;
+        const tips = `\n💡 TIPS\n${'─'.repeat(50)}\n` +
+          '  • Use Tab to auto-complete commands and arguments\n' +
+          '  • Commands are case-insensitive\n' +
+          '  • Most commands have shorter aliases (shown in parentheses)\n' +
+          '  • Use /list to see all available drivers, teams, and tracks\n' +
+          '  • Type /theme to customize terminal colors';
+        return `${header}\n${separator}${sections.join('\n')}\n${shortcuts}\n${tips}`;
+      }
+
+      case '/theme': {
+        if (!args[0]) {
+          const teamList = Object.entries(teamNicknames)
+            .map(([id, names]) => {
+              const teamName = names[0];
+              const teamColor = getTeamColor(teamName);
+              return `• <span style="color: ${teamColor}">${teamName}</span>`;
+            })
+            .join('\n');
+          
+          return `❌ Error: Please provide a team name\nUsage: /theme <team> (e.g., /theme ferrari)\n\nAvailable themes:\n${teamList}\n\nOr use "/theme default" to reset to original theme`;
+        }
+
+        if (args[0].toLowerCase() === 'default') {
+          document.documentElement.style.setProperty('--primary', '186 100% 50%');
+          document.documentElement.style.setProperty('--secondary', '288 100% 73%');
+          document.documentElement.style.setProperty('--accent', '288 100% 73%');
+          document.documentElement.style.setProperty('--border', '186 100% 50%');
+          localStorage.removeItem('terminal_theme');
+          return '🎨 Terminal theme reset to default colors!';
+        }
+
+        const teamId = findTeamId(args[0]);
+        if (!teamId) {
+          return `❌ Error: Team "${args[0]}" not found. Try using the team name (e.g., ferrari, mercedes)`;
+        }
+
+        const theme = teamThemes[teamId];
+        if (!theme) {
+          return `❌ Error: No theme available for ${teamNicknames[teamId][0]}`;
+        }
+
+        try {
+          document.documentElement.style.setProperty('--primary', theme.primary);
+          document.documentElement.style.setProperty('--secondary', theme.secondary);
+          document.documentElement.style.setProperty('--accent', theme.accent);
+          document.documentElement.style.setProperty('--border', theme.border);
+          
+          localStorage.setItem('terminal_theme', teamId);
+          
+          return `🎨 Terminal theme changed to ${teamNicknames[teamId][0]} colors!`;
+        } catch (error) {
+          console.error('Failed to set theme:', error);
+          return '❌ Error: Failed to apply theme. Please try again.';
+        }
+      }
+
+      case '/retro': {
+        if (args.length > 0) {
+          return '❌ Error: /retro is a simple toggle command and does not accept any arguments';
+        }
+
+        const currentState = localStorage.getItem('retro_text_enabled');
+        const newState = currentState === 'true' ? 'false' : 'true';
+        
+        try {
+          localStorage.setItem('retro_text_enabled', newState);
+          document.documentElement.classList.remove('retro-text-enabled', 'retro-text-disabled');
+          document.documentElement.classList.add(newState === 'true' ? 'retro-text-enabled' : 'retro-text-disabled');
+          
+          return newState === 'true' 
+            ? '✨ Retro text effect enabled!'
+            : '✨ Retro text effect disabled. Terminal text will be normal.';
+        } catch (error) {
+          console.error('Failed to toggle retro effect:', error);
+          return '❌ Error: Failed to toggle retro effect. Please try again.';
+        }
       }
 
       case '/list': {
@@ -698,32 +690,129 @@ export async function processCommand(cmd: string) {
 
         switch (type) {
           case 'drivers': {
+            // Get current drivers
             const currentDrivers = Object.entries(driverNicknames)
-              .filter(([id]) => driverNumbers[id])
+              .filter(([id]) => [
+                'albon', 'alonso', 'bearman', 'bottas', 'gasly', 'hamilton',
+                'hulkenberg', 'leclerc', 'magnussen', 'max_verstappen', 'norris',
+                'ocon', 'perez', 'piastri', 'ricciardo', 'russell', 'sainz',
+                'sargeant', 'stroll', 'tsunoda', 'zhou'
+              ].includes(id))
               .map(([id, nicknames]) => {
-                const number = driverNumbers[id];
-                const mainName = nicknames[0];
+                const name = nicknames[0];
                 const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '';
-                return { id, name: mainName, number, code };
+                const nationality = nicknames.find(n => countryToCode[n]) || '';
+                const number = driverNumbers[id] || '';
+                // Add team information
+                const team = (() => {
+                  switch(id) {
+                    case 'max_verstappen':
+                    case 'perez':
+                      return 'Red Bull Racing';
+                    case 'hamilton':
+                    case 'russell':
+                      return 'Mercedes-AMG Petronas';
+                    case 'leclerc':
+                    case 'sainz':
+                    case 'bearman':
+                      return 'Scuderia Ferrari';
+                    case 'norris':
+                    case 'piastri':
+                      return 'McLaren F1 Team';
+                    case 'alonso':
+                    case 'stroll':
+                      return 'Aston Martin F1 Team';
+                    case 'ocon':
+                    case 'gasly':
+                      return 'Alpine F1 Team';
+                    case 'albon':
+                    case 'sargeant':
+                      return 'Williams Racing';
+                    case 'ricciardo':
+                    case 'tsunoda':
+                      return 'AlphaTauri';
+                    case 'bottas':
+                    case 'zhou':
+                      return 'Alfa Romeo F1 Team';
+                    case 'hulkenberg':
+                    case 'magnussen':
+                      return 'Haas F1 Team';
+                    default:
+                      return 'Unknown Team';
+                  }
+                })();
+                return { id, name, code, nationality, number, team };
               })
               .sort((a, b) => a.name.localeCompare(b.name));
 
-            const legendaryDrivers = Object.entries(driverNicknames)
-              .filter(([id]) => !driverNumbers[id])
-              .map(([id, nicknames]) => {
-                const mainName = nicknames[0];
-                const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '';
-                return { id, name: mainName, code };
-              })
+            // Get retired world champions
+            const retiredChampions = Object.entries(driverNicknames)
+              .filter(([id, nicknames]) => nicknames.length >= 5 && nicknames[4]?.includes(','))
+              .map(([id, nicknames]) => ({
+                id,
+                name: nicknames[0],
+                code: nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '',
+                nationality: nicknames.find(n => countryToCode[n]) || '',
+                championships: nicknames[4]
+              }))
               .sort((a, b) => a.name.localeCompare(b.name));
 
-            return [
-              '👤 Current F1 Drivers:',
-              ...currentDrivers.map(d => `  #${d.number.padStart(2, '0')} | ${d.name} (${d.code})`),
+            // Get notable non-champion drivers
+            const notableDrivers = Object.entries(driverNicknames)
+              .filter(([id, nicknames]) => {
+                // Not a current driver and not a champion
+                return !currentDrivers.some(d => d.id === id) && 
+                       !retiredChampions.some(d => d.id === id);
+              })
+              .map(([id, nicknames]) => ({
+                id,
+                name: nicknames[0],
+                code: nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '',
+                nationality: nicknames.find(n => countryToCode[n]) || ''
+              }))
+              .sort((a, b) => a.name.localeCompare(b.name));
+
+            // Format sections
+            const currentSection = [
+              '🏎️ Current F1 Drivers (2024 Season)',
+              '═'.repeat(60),
+              ...currentDrivers.map(d => {
+                const flagUrl = getFlagUrl(d.nationality);
+                const flag = flagUrl ? 
+                  `<img src="${flagUrl}" alt="${d.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
+                  '';
+                const teamColor = getTeamColor(d.team);
+                return `  #${d.number.padStart(2, '0')} | ${d.name} (${d.code}) ${flag} | <span style="color: ${teamColor}">${d.team}</span>`;
+              })
+            ];
+
+            const championsSection = [
               '',
-              '🏆 Legendary Champions & Notable Drivers:',
-              ...legendaryDrivers.map(d => `  ${d.name} (${d.code})`)
-            ].join('\n');
+              '👑 World Champions',
+              '═'.repeat(60),
+              ...retiredChampions.map(d => {
+                const flagUrl = getFlagUrl(d.nationality);
+                const flag = flagUrl ? 
+                  `<img src="${flagUrl}" alt="${d.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
+                  '';
+                return `  ${d.name} (${d.code}) ${flag} | 🏆 ${d.championships}`;
+              })
+            ];
+
+            const notableSection = [
+              '',
+              '🌟 Notable Drivers',
+              '═'.repeat(60),
+              ...notableDrivers.map(d => {
+                const flagUrl = getFlagUrl(d.nationality);
+                const flag = flagUrl ? 
+                  `<img src="${flagUrl}" alt="${d.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
+                  '';
+                return `  ${d.name} (${d.code}) ${flag}`;
+              })
+            ];
+
+            return [...currentSection, ...championsSection, ...notableSection].join('\n');
           }
 
           case 'teams': {
@@ -753,16 +842,34 @@ export async function processCommand(cmd: string) {
 
           case 'tracks': {
             const tracks = Object.entries(trackNicknames)
-              .map(([id, names]) => {
+              .map(([id, [name, nickname, code, ...rest]]) => {
                 const details = getTrackDetails(id);
-                const mainName = names[0];
-                const nickname = names.length > 1 ? names[1] : '';
-                return `  ${mainName} (${nickname}) - ${details.length}km, ${details.turns} turns`;
+                const country = name.includes('GP') ? 
+                  name.split(' ').pop()?.replace('GP', '').trim() : 
+                  nickname.split(' ').pop()?.replace('GP', '').trim();
+                
+                const flagUrl = country ? getFlagUrl(country) : '';
+                const flag = flagUrl ? 
+                  `<img src="${flagUrl}" alt="${country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
+                  '';
+                
+                const lapRecord = details.lapRecord ? 
+                  `${details.lapRecord.time} (${details.lapRecord.driver}, ${details.lapRecord.year})` : 
+                  'No record';
+                
+                return [
+                  `  ${flag} ${name}`,
+                  `    ${icons.mapPin} ${nickname} | ${icons.car} ${code}`,
+                  `    📏 Length: ${details.length}km | ↩️ Turns: ${details.turns}`,
+                  `    ⚡ Lap Record: ${lapRecord}`
+                ].join('\n');
               })
               .sort();
 
             return [
-              '🏁 F1 Circuits:',
+              '🏁 Formula 1 Grand Prix Circuits',
+              '═'.repeat(60),
+              '',
               ...tracks
             ].join('\n');
           }

@@ -30,11 +30,9 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
         {[...history].reverse().map((entry, index) => {
           return (
           <div key={index} className="space-y-2">
-            <div className="flex items-center gap-2 terminal-prompt">
+            <div className="flex items-center gap-2">
               {mounted && (
-                <span className="terminal-timestamp">
-                  [{entry.timestamp}] {entry.username}@terminal
-                </span>
+                <span className="text-secondary font-mono">[{entry.timestamp}] {entry.username}:~$ </span>
               )}
               <code className="text-primary">{entry.command}</code>
             </div>
