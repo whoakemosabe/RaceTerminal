@@ -63,7 +63,11 @@ export function SessionInfo() {
               <div className="flex items-center gap-2 cursor-help">
                 <Calendar size={16} />
                 <span className="font-mono text-sm">
-                  {sessionStart.toLocaleDateString()}
+                  {new Date(sessionStart).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
                 </span>
               </div>
             </TooltipTrigger>

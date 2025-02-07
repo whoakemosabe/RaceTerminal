@@ -6,7 +6,7 @@ import { commandAliases } from '@/components/terminal/command-processor';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ChevronRight } from 'lucide-react';
-import { driverNicknames, teamNicknames, trackNicknames } from '@/lib/utils';
+import { driverNicknames, teamNicknames, trackNicknames, countryToCode, driverNumbers, getTrackDetails, getTeamColor } from '@/lib/utils';
 import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
 
 interface CommandSuggestionsProps {
@@ -16,6 +16,7 @@ interface CommandSuggestionsProps {
   isNavigatingSuggestions: boolean;
   onNavigationStateChange: (isNavigating: boolean) => void;
   onClose: () => void;
+  onShowSuggestionsChange: (show: boolean) => void;
   inputRef: React.RefObject<HTMLInputElement>;
 }
 
@@ -26,6 +27,7 @@ export function CommandSuggestions({
   isNavigatingSuggestions,
   onNavigationStateChange,
   onClose, 
+  onShowSuggestionsChange,
   inputRef 
 }: CommandSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -74,18 +76,63 @@ export function CommandSuggestions({
   // Focus input after selection
   const handleSelect = (suggestion: string) => {
     // Extract the actual value without description
-    const value = suggestion.includes('(') ? suggestion.split(' (')[0] : suggestion;
+    let value = suggestion.includes('(') ? suggestion.split(' (')[0].trim() : suggestion.trim();
     
     // Get the current command parts
     const currentParts = command.split(' ');
     
-    // If we're completing an argument, preserve the command and previous args
-    if (currentParts.length > 1) {
-      const newParts = [...currentParts.slice(0, -1), value];
-      onSelect(newParts.join(' ') + ' ');
+    // Handle /md and /mt shortcuts
+    if (currentParts[0] === '/md' || currentParts[0] === '/mt') {
+      // Remove the "(First Driver/Team)" or "(Second Driver/Team)" suffix
+      value = value.split(' (')[0];
+      
+      if (currentParts.length === 1) {
+        onSelect(`${currentParts[0]} ${value}`);
+      } else {
+        onSelect(`${currentParts[0]} ${value}`);
+      }
+      
+      setTimeout(() => {
+        if (onShowSuggestionsChange) {
+          onShowSuggestionsChange(true);
+        }
+        inputRef.current?.dispatchEvent(new Event('focus'));
+      }, 0);
+      return;
+    }
+    
+    // Special handling for compare commands
+    if (['/compare', '/m'].includes(currentParts[0])) {
+      if (currentParts.length === 1) {
+        onSelect(`${currentParts[0]} ${value}`);
+        // Show suggestions immediately after selecting driver/team
+        setTimeout(() => {
+          if (onShowSuggestionsChange) {
+            onShowSuggestionsChange(true);
+          }
+          inputRef.current?.dispatchEvent(new Event('focus'));
+        }, 0);
+      } else {
+        const prefix = currentParts.slice(0, -1).join(' ').trimEnd();
+        onSelect(`${prefix} ${value}`);
+        // Show suggestions immediately after selecting a driver/team name
+        if (currentParts[1] === 'driver' || currentParts[1] === 'team') {
+          setTimeout(() => {
+            if (onShowSuggestionsChange) {
+              onShowSuggestionsChange(true);
+            }
+            inputRef.current?.dispatchEvent(new Event('focus'));
+          }, 0);
+        }
+      }
     } else {
-      // For base commands, just use the suggestion
-      onSelect(value + ' ');
+      // Standard handling for other commands
+      if (currentParts.length > 1) {
+        const prefix = currentParts.slice(0, -1).join(' ').trimEnd();
+        onSelect(`${prefix} ${value}`);
+      } else {
+        onSelect(`${value}`);
+      }
     }
 
     // Keep focus on input but don't add space
@@ -93,20 +140,33 @@ export function CommandSuggestions({
     if (input) {
       input.focus();
       // Set cursor position to end of input
-      const length = input.value.length;
-      input.setSelectionRange(length, length);
+      requestAnimationFrame(() => {
+        const length = input.value.length;
+        input.setSelectionRange(length, length);
+      });
     }
   };
 
   useEffect(() => {
     if (!command.startsWith('/')) {
       setSuggestions([]);
+      setSelectedIndex(0);
       return;
     }
 
     const input = command.toLowerCase();
     const parts = input.split(' ');
     const firstPart = parts[0];
+
+    // Don't show suggestions for /user command after the space
+    if (firstPart === '/user' || firstPart === '/u') {
+      if (parts.length > 1) {
+        setSuggestions([]);
+        setSelectedIndex(0);
+        return;
+      }
+    }
+
     const lastPart = parts[parts.length - 1];
 
     // Helper function to deduplicate suggestions
@@ -127,14 +187,36 @@ export function CommandSuggestions({
     // Handle command completion
     if (parts.length === 1) {
       setSuggestionType('command');
-      // Complete base command
-      const commandSet = new Set<string>();
-      // Add base commands
-      commands.forEach(c => commandSet.add(c.command.split(' ')[0]));
-      // Add aliases
-      Object.keys(commandAliases).forEach(alias => commandSet.add(alias));
+      const commandSuggestions = new Set<string>();
       
-      matches = Array.from(commandSet).filter(c => c.startsWith(firstPart));
+      // Add base commands with their attributes
+      commands.forEach(c => {
+        const [baseCmd, ...attrs] = c.command.split(' ');
+        if (baseCmd.startsWith(firstPart)) {
+          if (attrs.length > 0) {
+            commandSuggestions.add(`${baseCmd} ${attrs.join(' ')} (${c.description})`);
+          } else {
+            commandSuggestions.add(`${baseCmd} (${c.description})`);
+          }
+        }
+      });
+      
+      // Add aliases with their mapped commands
+      Object.entries(commandAliases).forEach(([alias, target]) => {
+        if (alias.startsWith(firstPart)) {
+          const targetCmd = commands.find(c => c.command.startsWith(target.split(' ')[0]));
+          if (targetCmd) {
+            const [_, ...targetAttrs] = targetCmd.command.split(' ');
+            if (targetAttrs.length > 0) {
+              commandSuggestions.add(`${alias} ${targetAttrs.join(' ')} → ${target}`);
+            } else {
+              commandSuggestions.add(`${alias} → ${target}`);
+            }
+          }
+        }
+      });
+      
+      matches = Array.from(commandSuggestions);
     } else {
       setSuggestionType('argument');
       // Handle argument completion based on command
@@ -235,83 +317,124 @@ export function CommandSuggestions({
         case '/driver':
         case '/d':
           // Driver name completion with deduplication
-          const driverNames = deduplicate(Object.values(driverNicknames).flat());
-          matches = deduplicate(driverNames.filter(name => 
-            name.toLowerCase().startsWith(lastPart.toLowerCase())
-          ));
+          matches = Object.values(driverNicknames)
+            .map(nicknames => {
+              const name = nicknames[0];
+              const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase());
+              const nationality = nicknames.find(n => countryToCode[n]);
+              return `${name} (${code}, ${nationality})`;
+            })
+            .filter(suggestion => {
+              const searchTerm = lastPart.toLowerCase();
+              const suggestionParts = suggestion.toLowerCase().split(' ');
+              return suggestionParts.some(part => part.startsWith(searchTerm));
+            });
+          matches = deduplicate(matches);
           break;
           
         case '/track':
         case '/t':
           // Track name completion with deduplication
-          const trackNames = deduplicate(Object.values(trackNicknames).flat());
-          matches = deduplicate(trackNames.filter(name => 
-            name.toLowerCase().startsWith(lastPart.toLowerCase())
-          ));
+          const trackSuggestions = Object.entries(trackNicknames)
+            .map(([id, [name, nickname]]) => {
+              const details = getTrackDetails(id);
+              return `${name} (${nickname}, ${details.length}km, ${details.turns} turns)`;
+            })
+            .filter(suggestion => suggestion.toLowerCase().includes(lastPart.toLowerCase()));
+          matches = deduplicate(trackSuggestions);
           break;
           
         case '/team':
         case '/tm':
           // Team name completion with deduplication
-          const teamNames = deduplicate(Object.values(teamNicknames).flat());
-          matches = deduplicate(teamNames.filter(name => 
-            name.toLowerCase().startsWith(lastPart.toLowerCase())
-          ));
+          const teamSuggestions = Object.values(teamNicknames)
+            .map(([name, code, _, hq, established]) => 
+              `${name} (${code}, ${hq}, Est. ${established})`
+            )
+            .filter(suggestion => suggestion.toLowerCase().includes(lastPart.toLowerCase()));
+          matches = deduplicate(teamSuggestions);
           break;
           
         case '/compare':
         case '/m':
           if (parts.length === 2) {
             // Type completion
-            matches = ['driver', 'team'].filter(t => 
-              t.startsWith(lastPart.toLowerCase())
-            );
+            matches = [
+              'driver (Compare two drivers)',
+              'team (Compare two teams)'
+            ].filter(t => t.toLowerCase().startsWith(lastPart.toLowerCase()));
           } else if (parts[1] === 'driver') {
             // Driver name completion for comparison
-            const driverNames = Object.values(driverNicknames).flat();
-            matches = deduplicate(driverNames.filter(name => 
-              name.toLowerCase().startsWith(lastPart.toLowerCase())
-            ));
+            matches = Object.values(driverNicknames)
+              .map(nicknames => {
+                const name = nicknames[0];
+                const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase());
+                return `${name} (${code})`;
+              })
+              .filter(suggestion => {
+                const searchTerm = lastPart.toLowerCase();
+                const suggestionParts = suggestion.toLowerCase().split(' ');
+                return suggestionParts.some(part => part.startsWith(searchTerm));
+              });
+            matches = deduplicate(matches);
           } else if (parts[1] === 'team') {
             // Team name completion for comparison
-            const teamNames = Object.values(teamNicknames).flat();
-            if (parts.length === 3) {
-              // First team name
-              matches = deduplicate(teamNames
-                .filter(name => name.toLowerCase().startsWith(lastPart.toLowerCase()))
-                .map(name => `${name} (First Team)`));
-            } else if (parts.length === 4) {
-              // Second team name, exclude the first team
-              const firstTeam = parts[2].toLowerCase();
-              matches = deduplicate(teamNames
-                .filter(name => 
-                  name.toLowerCase().startsWith(lastPart.toLowerCase()) &&
-                  name.toLowerCase() !== firstTeam
-                )
-                .map(name => `${name} (Second Team)`));
-            }
+            matches = Object.values(teamNicknames)
+              .map(([name, code]) => `${name} (${code})`)
+              .filter(suggestion => {
+                const searchTerm = lastPart.toLowerCase();
+                const suggestionParts = suggestion.toLowerCase().split(' ');
+                const isMatch = suggestionParts.some(part => part.startsWith(searchTerm));
+                
+                // If we're selecting the second team, exclude the first team
+                if (parts.length > 2) {
+                  const firstTeam = parts[2].toLowerCase();
+                  return isMatch && !suggestion.toLowerCase().includes(firstTeam);
+                }
+                return isMatch;
+              });
+            matches = deduplicate(matches);
           }
           break;
 
         case '/mt':
-          // Team comparison shortcut
-          if (parts.length === 2) {
-            // First team name
-            const teamNames = Object.values(teamNicknames).flat();
-            matches = deduplicate(teamNames
-              .filter(name => name.toLowerCase().startsWith(lastPart.toLowerCase()))
-              .map(name => `${name} (First Team)`));
-          } else if (parts.length === 3) {
-            // Second team name, exclude the first team
-            const teamNames = Object.values(teamNicknames).flat();
-            const firstTeam = parts[1].toLowerCase();
-            matches = deduplicate(teamNames
-              .filter(name => 
-                name.toLowerCase().startsWith(lastPart.toLowerCase()) &&
-                name.toLowerCase() !== firstTeam
-              )
-              .map(name => `${name} (Second Team)`));
-          }
+          matches = Object.values(teamNicknames)
+            .map(([name, code]) => `${name} (${code})`);
+          matches = matches.filter(suggestion => {
+            const searchTerm = lastPart.toLowerCase();
+            const suggestionParts = suggestion.toLowerCase().split(' ');
+            const isMatch = suggestionParts.some(part => part.startsWith(searchTerm));
+            
+            // If we're selecting the second team, exclude the first team
+            if (parts.length > 1) {
+              const firstTeam = parts[1].toLowerCase();
+              return isMatch && !suggestion.toLowerCase().includes(firstTeam);
+            }
+            return isMatch;
+          });
+          matches = deduplicate(matches);
+          break;
+
+        case '/md':
+          matches = Object.values(driverNicknames)
+            .map(nicknames => {
+              const name = nicknames[0];
+              const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase());
+              return `${name} (${code})`;
+            });
+          matches = matches.filter(suggestion => {
+            const searchTerm = lastPart.toLowerCase();
+            const suggestionParts = suggestion.toLowerCase().split(' ');
+            const isMatch = suggestionParts.some(part => part.startsWith(searchTerm));
+            
+            // If we're selecting the second driver, exclude the first driver
+            if (parts.length > 1) {
+              const firstDriver = parts[1].toLowerCase();
+              return isMatch && !suggestion.toLowerCase().includes(firstDriver);
+            }
+            return isMatch;
+          });
+          matches = deduplicate(matches);
           break;
       }
     }
@@ -338,13 +461,10 @@ export function CommandSuggestions({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isVisible || suggestions.length === 0) return;
       
-      // Always allow Enter to execute the selected suggestion
+      // Handle Enter key for suggestion selection
       if (e.key === 'Enter' && suggestions[selectedIndex]) {
         e.preventDefault();
         handleSelect(suggestions[selectedIndex]);
-        setTimeout(() => {
-          inputRef.current?.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter' }));
-        }, 0);
         onNavigationStateChange(false);
         return;
       }
@@ -371,7 +491,7 @@ export function CommandSuggestions({
         case 'Tab':
           e.preventDefault();
           if (suggestions[selectedIndex]) {
-            handleSelect(suggestions[selectedIndex] + ' ');
+            handleSelect(suggestions[selectedIndex]);
             onNavigationStateChange(false);
           }
           break;

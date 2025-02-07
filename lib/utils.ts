@@ -436,6 +436,8 @@ export function formatDriverComparison(data: any): string {
   const totalRaces2 = driver2.totalRaces || 0;
   const poles1 = driver1.poles || 0;
   const poles2 = driver2.poles || 0;
+  const wins1 = driver1.wins || 0;
+  const wins2 = driver2.wins || 0;
   const fastestLaps1 = driver1.fastestLaps || 0;
   const fastestLaps2 = driver2.fastestLaps || 0;
   
@@ -456,14 +458,14 @@ export function formatDriverComparison(data: any): string {
     `${flagImg1} ${driver1Name}${' '.repeat(Math.max(0, sideWidth - driver1Name.length))}     ${flagImg2} ${driver2Name}`,
     `👑 Championships: ${driver1.championships}${' '.repeat(Math.max(0, sideWidth - driver1.championships.toString().length - 15))}     👑 Championships: ${driver2.championships}`,
     `🏎️ Races: ${totalRaces1}${' '.repeat(Math.max(0, sideWidth - totalRaces1.toString().length - 8))}     🏎️ Races: ${totalRaces2}`,
-    `🏆 Race Wins: ${stats1.wins}${' '.repeat(Math.max(0, sideWidth - stats1.wins.toString().length - 12))}     🏆 Race Wins: ${stats2.wins}`,
+    `🏆 Race Wins: ${wins1}${' '.repeat(Math.max(0, sideWidth - wins1.toString().length - 12))}     🏆 Race Wins: ${wins2}`,
     `🥇 Podiums: ${stats1.podiums}${' '.repeat(Math.max(0, sideWidth - stats1.podiums.toString().length - 10))}     🥇 Podiums: ${stats2.podiums}`,
     `🎯 Pole Positions: ${poles1}${' '.repeat(Math.max(0, sideWidth - poles1.toString().length - 16))}     🎯 Pole Positions: ${poles2}`,
     `⚡ Fastest Laps: ${fastestLaps1}${' '.repeat(Math.max(0, sideWidth - fastestLaps1.toString().length - 15))}     ⚡ Fastest Laps: ${fastestLaps2}`,
     `💫 Points: ${stats1.points}${' '.repeat(Math.max(0, sideWidth - stats1.points.toString().length - 9))}     💫 Points: ${stats2.points}`,
     `🔥 Best Finish: P${stats1.bestFinish}${' '.repeat(Math.max(0, sideWidth - stats1.bestFinish.toString().length - 14))}     🔥 Best Finish: P${stats2.bestFinish}`,
     `🌟 Points/Race: ${(stats1.points / totalRaces1).toFixed(1)}${' '.repeat(Math.max(0, sideWidth - (stats1.points / totalRaces1).toFixed(1).length - 14))}     🌟 Points/Race: ${(stats2.points / totalRaces2).toFixed(1)}`,
-    `🌟 Win Rate: ${((stats1.wins / totalRaces1) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((stats1.wins / totalRaces1) * 100).toFixed(1).length - 11))}     🌟 Win Rate: ${((stats2.wins / totalRaces2) * 100).toFixed(1)}%`,
+    `🌟 Win Rate: ${((wins1 / totalRaces1) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((wins1 / totalRaces1) * 100).toFixed(1).length - 11))}     🌟 Win Rate: ${((wins2 / totalRaces2) * 100).toFixed(1)}%`,
     `🎯 Podium Rate: ${((stats1.podiums / totalRaces1) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((stats1.podiums / totalRaces1) * 100).toFixed(1).length - 14))}     🎯 Podium Rate: ${((stats2.podiums / totalRaces2) * 100).toFixed(1)}%`,
     `🎖️ Pole Rate: ${((poles1 / totalRaces1) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((poles1 / totalRaces1) * 100).toFixed(1).length - 12))}     🎖️ Pole Rate: ${((poles2 / totalRaces2) * 100).toFixed(1)}%`,
     separator
@@ -497,13 +499,17 @@ function calculateTeamStats(results: any[]) {
 function calculateDriverStats(results: any[]) {
   // Filter out races where the driver didn't participate or was disqualified
   const validResults = results.filter(race => 
-    race.Results?.[0] && race.Results[0].position !== undefined
+    race.Results?.[0] && 
+    race.Results[0].position !== undefined &&
+    race.Results[0].position !== "R" &&  // Not retired
+    race.Results[0].position !== "D" &&  // Not disqualified
+    race.Results[0].position !== "E" &&  // Not excluded
+    race.Results[0].position !== "W" &&  // Not withdrawn
+    race.Results[0].position !== "F" &&  // Not failed to qualify
+    race.Results[0].position !== "N"     // Not not classified
   );
 
   return {
-    wins: validResults.filter((race: any) => 
-      race.Results[0].position === "1" || race.Results[0].position === 1
-    ).length,
     podiums: validResults.filter((r: any) => {
       const pos = parseInt(r.Results?.[0]?.position);
       return !isNaN(pos) && pos <= 3;

@@ -41,10 +41,10 @@ export function Terminal({
 }: TerminalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
-  const [currentTime, setCurrentTime] = useState('');
   const [mounted, setMounted] = useState(false);
   const [sessionStart, setSessionStart] = useState('');
   const [fontSize, setFontSize] = useState(14);
+  const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleTimeString());
   const [hasSetUsername, setHasSetUsername] = useState(false);
 
   // Scroll to top when new command is added
@@ -57,6 +57,17 @@ export function Terminal({
   useEffect(() => {
     setMounted(true);
     
+    // Focus input on mount
+    inputRef.current?.focus();
+
+    // Set initial session start time
+    setSessionStart(new Date().toLocaleString());
+    
+    // Load saved font size
+    const savedSize = parseInt(localStorage.getItem('terminal_font_size') || '14');
+    setFontSize(savedSize);
+    
+    // Set up username state
     const savedUsername = localStorage.getItem(LOCALSTORAGE_USERNAME_KEY);
     setHasSetUsername(!!savedUsername && savedUsername !== DEFAULT_USERNAME);
 
@@ -69,30 +80,32 @@ export function Terminal({
     window.addEventListener('usernameChange', handleUsernameChange as EventListener);
     return () => window.removeEventListener('usernameChange', handleUsernameChange as EventListener);
 
-    setSessionStart(new Date().toLocaleString());
-    inputRef.current?.focus();
-    const savedSize = parseInt(localStorage.getItem('terminal_font_size') || '14');
-    setFontSize(savedSize);
 
     const handleFontSizeChange = (e: CustomEvent) => {
       setFontSize(e.detail);
     };
 
     window.addEventListener('fontSizeChange', handleFontSizeChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('fontSizeChange', handleFontSizeChange as EventListener);
+    };
+  }, []);
 
-    // Update clock every second
+  // Separate effect for time updates
+  useEffect(() => {
     const updateTime = () => {
       setCurrentTime(new Date().toLocaleTimeString());
     };
+    
+    // Update immediately
+    setCurrentTime(new Date().toLocaleTimeString());
 
-    // Initial update
-    updateTime();
     
     // Set up interval for updates
     const interval = setInterval(updateTime, 1000);
     
     return () => {
-      window.removeEventListener('fontSizeChange', handleFontSizeChange as EventListener);
       clearInterval(interval);
     };
   }, []);
@@ -110,28 +123,32 @@ export function Terminal({
       <div className="top-0 z-10 sticky flex items-center bg-card/60 px-3 py-1 border-b border-border/10 h-8">
         <div className="grid grid-cols-3 w-full">
           
-          <div className="flex justify-start gap-2 text-primary">
+          <div className="flex justify-start gap-2 text-muted-foreground">
             <div className="flex items-center gap-2">
               <Info className="w-3.5 h-3.5" />
               <span className="font-mono text-xs">v{APP_VERSION}</span>
             </div>
           </div>
 
-          <div className="flex justify-center items-center gap-2 text-muted-foreground">
+          <div className="flex justify-center items-center gap-2">
             <div className="flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5" />
               <span className="font-mono text-xs">
-                {new Date(sessionStart).toLocaleDateString()}
+                {mounted ? new Date().toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                }) : 'Loading...'}
               </span>
             </div>
 
           </div>
 
-          <div className="flex justify-end items-center gap-2 text-muted-foreground">
+          <div className="flex justify-end items-center gap-2">
             <div className="flex items-center gap-2">
               <Clock className="w-3.5 h-3.5" />
-              <span className="font-mono text-xs">
-                {currentTime}
+              <span className="font-mono text-xs text-muted-foreground">
+                {mounted ? currentTime : 'Loading...'}
               </span>
             </div>
           </div>
@@ -143,7 +160,7 @@ export function Terminal({
       <div className="px-4 py-1.5 border-b border-border/10 terminal-input-wrapper">
         <div className="flex items-center gap-2">
           <TerminalIcon className="w-4 h-4 text-primary" />
-          <div className="relative flex flex-1 gap-2">
+          <div className="relative flex flex-1 gap-2" onClick={() => onCloseWelcome?.()}>
             <CommandSuggestions
               command={command}
               isVisible={showSuggestions && command.startsWith('/')}
@@ -178,6 +195,7 @@ export function Terminal({
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   onExecute();
+                  onCloseWelcome?.();
                   onShowSuggestionsChange(false);
                   onNavigationStateChange(false);
                 }
@@ -188,6 +206,7 @@ export function Terminal({
             <Button
               onClick={onExecute}
               size="sm"
+              onMouseDown={() => onCloseWelcome?.()}
               className="px-3 h-6 text-sm execute-button"
               disabled={isProcessing}>
               {isProcessing ? 'Processing...' : 'Execute'}
@@ -197,50 +216,7 @@ export function Terminal({
       </div>
       
       {/* Command History */}
-      {history.length > 0 && (
-        <div className="relative flex-1 font-mono text-sm overflow-y-auto terminal-history"
-            ref={historyRef} 
-            style={{ 
-              scrollBehavior: 'smooth', 
-              fontSize: `${fontSize}px`,
-              '--terminal-font-size': `${fontSize}px`
-            } as React.CSSProperties}>
-          <div className="flex flex-col space-y-2">
-            {[...history].reverse().map((entry, index) => {
-              return (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center gap-2 terminal-prompt" style={{ fontSize: `${fontSize}px` }}>
-                    {mounted && (
-                      <span className="terminal-timestamp" style={{ fontSize: `${fontSize}px` }}>
-                        [{entry.timestamp || 'unknown'}] {entry.username}@terminal
-                      </span>
-                    )}
-                    <code className="text-primary" style={{ fontSize: `${fontSize}px` }}>{entry.command}</code>
-                  </div>
-                  <div
-                    className={cn(
-                      "pl-4 whitespace-pre-wrap break-words",
-                      entry.output === 'Processing command' && "processing-dots",
-                      entry.output.startsWith('❌') || entry.output.startsWith('Error:') || entry.output.includes('not found') || entry.output.includes('No ') 
-                        ? 'text-red-500' 
-                        : 'text-white'
-                    )}
-                    style={{ 
-                      lineHeight: '1.5',
-                      overflowWrap: 'break-word',
-                      fontFamily: 'monospace',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word'
-                    }}
-                    dangerouslySetInnerHTML={{ __html: entry.output }}
-                  />
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-      {history.length === 0 && (
+      {(!hasSetUsername || showWelcome) ? (
         <div className="flex flex-col flex-1">
           <div className="flex flex-col flex-1 justify-center items-center -mt-8 px-4">
             <div className="space-y-6 p-8 w-full max-w-2xl text-center glass-panel relative">
@@ -263,7 +239,7 @@ export function Terminal({
                   </div>
                 </div>
               )}
-              {showWelcome && hasSetUsername && (
+              {hasSetUsername && showWelcome && (
                 <div className="space-y-6">
                   <div className="flex justify-center items-center gap-2 text-secondary">
                     <HelpCircle className="w-5 h-5" />
@@ -309,6 +285,49 @@ export function Terminal({
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      ) : history.length > 0 && (
+        <div className="relative flex-1 font-mono text-sm overflow-y-auto terminal-history"
+            ref={historyRef} 
+            style={{ 
+              scrollBehavior: 'smooth', 
+              fontSize: `${fontSize}px`,
+              '--terminal-font-size': `${fontSize}px`
+            } as React.CSSProperties}>
+          <div className="scanlines-layer absolute inset-0 pointer-events-none" />
+          <div className="flex flex-col space-y-2">
+            {[...history].reverse().map((entry, index) => {
+              return (
+                <div key={index} className="space-y-2">
+                  <div className="flex items-center gap-2 terminal-prompt" style={{ fontSize: `${fontSize}px` }}>
+                    {mounted && (
+                      <span className="terminal-timestamp" style={{ fontSize: `${fontSize}px` }}>
+                        [{entry.timestamp || 'unknown'}] {entry.username}@terminal
+                      </span>
+                    )}
+                    <code className="text-primary" style={{ fontSize: `${fontSize}px` }}>{entry.command}</code>
+                  </div>
+                  <div
+                    className={cn(
+                      "pl-4 whitespace-pre-wrap break-words",
+                      entry.output === 'Processing command' && "processing-dots",
+                      entry.output.startsWith('❌') || entry.output.startsWith('Error:') || entry.output.includes('not found') || entry.output.includes('No ') 
+                        ? 'text-red-500' 
+                        : 'text-white'
+                    )}
+                    style={{ 
+                      lineHeight: '1.5',
+                      overflowWrap: 'break-word',
+                      fontFamily: 'monospace',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word'
+                    }}
+                    dangerouslySetInnerHTML={{ __html: entry.output }}
+                  />
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

@@ -69,6 +69,11 @@ export const commands = [
     description: 'Get detailed circuit information and facts',
     source: 'Ergast F1 API'
   },
+  {
+    command: '/car <name|year> (/c)',
+    description: 'Get detailed F1 car specifications and stats',
+    source: 'System'
+  },
   
   // Live Session Data
   { 
@@ -141,6 +146,67 @@ export const commands = [
   {
     command: '/retro',
     description: 'Toggle retro text glow effect on/off',
-    source: 'System'
+    source: 'System',
+    category: 'Effects'
+  },
+  {
+    command: '/matrix',
+    description: 'Toggle Matrix-style digital rain effect',
+    source: 'System',
+    category: 'Effects'
+  },
+  {
+    command: '/stats',
+    description: 'Show your terminal usage statistics',
+    source: 'System',
+    category: 'System'
+  },
+  {
+    command: '/speed',
+    description: 'Test your command typing speed',
+    source: 'System',
+    category: 'Games'
+  },
+  {
+    command: '/sys',
+    description: 'Display system information and terminal diagnostics',
+    source: 'System',
+    category: 'System'
+  },
+  {
+    command: '/hack <target>',
+    description: 'Simulate a "hacking" sequence with retro visual effects',
+    source: 'System',
+    category: 'Fun'
+  },
+  {
+    command: '/decrypt',
+    description: 'Start an interactive code-breaking minigame',
+    source: 'System',
+    category: 'Games'
+  },
+  {
+    command: '/neofetch',
+    description: 'Display system info in a stylized format',
+    source: 'System',
+    category: 'System'
+  },
+  {
+    command: '/matrix rain',
+    description: 'Toggle digital rain animation in terminal background',
+    source: 'System',
+    category: 'Effects'
+  },
+  {
+    command: '/glitch',
+    description: 'Apply a temporary glitch effect to the terminal',
+    source: 'System',
+    category: 'Effects'
+  },
+  {
+    command: '/crt',
+    description: 'Toggle CRT monitor effects (includes scanlines and flicker)',
+    source: 'System',
+    category: 'Effects'
   }
 ];

@@ -150,8 +150,12 @@ export default function Home() {
   const handleCommand = useCallback(async () => {
     if (!command.trim() || isProcessing) return;
     
-    // Only allow /user command if username hasn't been set
-    if (!hasSetUsername && !command.toLowerCase().startsWith('/user')) {
+    // Close welcome panel when executing any command
+    setShowWelcome(false);
+    
+    // Only allow /user or /u commands if username hasn't been set
+    const isUserCommand = command.toLowerCase().startsWith('/user') || command.toLowerCase().startsWith('/u');
+    if (!hasSetUsername && !isUserCommand) {
       const newEntry = {
         command: command.trim(),
         output: '❌ Please set your username first using the /user command (e.g., /user max)',
@@ -218,6 +222,14 @@ export default function Home() {
   useEffect(() => {
     if (!isHistoryLoaded) {
       try { 
+        // Load saved effects
+        const matrixEnabled = localStorage.getItem('matrix_enabled') === 'true';
+        const scanlinesEnabled = localStorage.getItem('scanlines_enabled') === 'true';
+        
+        if (matrixEnabled) document.documentElement.classList.add('matrix-enabled');
+        if (scanlinesEnabled) document.documentElement.classList.add('scanlines-enabled');
+        document.documentElement.classList.add('retro-text-disabled');
+        
         // Load saved theme
         const savedTheme = localStorage.getItem('terminal_theme');
         if (savedTheme && teamThemes[savedTheme]) {
