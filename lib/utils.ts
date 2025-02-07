@@ -168,71 +168,71 @@ export const driverNicknames: Record<string, string[]> = {
   // Current Drivers
   // Legendary Champions
   // Current Drivers (2024 Season)
-  'albon': ['Alexander Albon', 'ALB', 'Alex', 'Mr. Nice Guy', 'Thai'],
-  'alonso': ['Fernando Alonso', 'ALO', 'El Plan', 'Magic Alonso', 'Spanish'],
-  'bearman': ['Oliver Bearman', 'BEA', 'Ollie', 'British'],
-  'bottas': ['Valtteri Bottas', 'BOT', 'Val', 'To whom it may concern', 'Finnish'],
-  'gasly': ['Pierre Gasly', 'GAS', 'El Gasly', 'French'],
-  'hamilton': ['Lewis Hamilton', 'HAM', 'King Lewis', 'The Hammer', 'British'],
-  'hulkenberg': ['Nico Hulkenberg', 'HUL', 'Hulk', 'The Hulk', 'German'],
-  'leclerc': ['Charles Leclerc', 'LEC', 'Sharl', 'The Monégasque', 'Monegasque'],
-  'magnussen': ['Kevin Magnussen', 'MAG', 'K-Mag', 'Viking', 'Danish'],
-  'max_verstappen': ['Max Verstappen', 'VER', 'Mad Max', 'Super Max', 'Dutch'],
-  'norris': ['Lando Norris', 'NOR', 'Last Lap Lando', 'British'],
-  'ocon': ['Esteban Ocon', 'OCO', 'The Resistance', 'French'],
-  'perez': ['Sergio Perez', 'PER', 'Checo', 'Mexican Minister of Defense', 'Mexican'],
-  'piastri': ['Oscar Piastri', 'PIA', 'The Rookie', 'Australian'],
-  'ricciardo': ['Daniel Ricciardo', 'RIC', 'Danny Ric', 'Honey Badger', 'Australian'],
-  'russell': ['George Russell', 'RUS', 'Mr. Saturday', 'British'],
-  'sainz': ['Carlos Sainz', 'SAI', 'Smooth Operator', 'Spanish'],
-  'sargeant': ['Logan Sargeant', 'SAR', 'The American', 'American'],
-  'stroll': ['Lance Stroll', 'STR', 'Mr. Fashion', 'Canadian'],
-  'tsunoda': ['Yuki Tsunoda', 'TSU', 'Radio Yuki', 'Japanese'],
-  'zhou': ['Zhou Guanyu', 'ZHO', 'Joe', 'Chinese'],
+  'albon': ['Alexander Albon', 'ALB', 'Alex', 'Mr. Nice Guy', 'Thai', 'albon'],
+  'alonso': ['Fernando Alonso', 'ALO', 'El Plan', 'Magic Alonso', 'Spanish', 'alonso'],
+  'bearman': ['Oliver Bearman', 'BEA', 'Ollie', 'British', 'bearman'],
+  'bottas': ['Valtteri Bottas', 'BOT', 'Val', 'To whom it may concern', 'Finnish', 'bottas'],
+  'gasly': ['Pierre Gasly', 'GAS', 'El Gasly', 'French', 'gasly'],
+  'hamilton': ['Lewis Hamilton', 'HAM', 'King Lewis', 'The Hammer', 'British', 'hamilton'],
+  'hulkenberg': ['Nico Hulkenberg', 'HUL', 'Hulk', 'The Hulk', 'German', 'hulkenberg'],
+  'leclerc': ['Charles Leclerc', 'LEC', 'Sharl', 'The Monégasque', 'Monegasque', 'leclerc'],
+  'magnussen': ['Kevin Magnussen', 'MAG', 'K-Mag', 'Viking', 'Danish', 'magnussen'],
+  'max_verstappen': ['Max Verstappen', 'VER', 'Mad Max', 'Super Max', 'Dutch', 'verstappen'],
+  'norris': ['Lando Norris', 'NOR', 'Last Lap Lando', 'British', 'norris'],
+  'ocon': ['Esteban Ocon', 'OCO', 'The Resistance', 'French', 'ocon'],
+  'perez': ['Sergio Perez', 'PER', 'Checo', 'Mexican Minister of Defense', 'Mexican', 'perez'],
+  'piastri': ['Oscar Piastri', 'PIA', 'The Rookie', 'Australian', 'piastri'],
+  'ricciardo': ['Daniel Ricciardo', 'RIC', 'Danny Ric', 'Honey Badger', 'Australian', 'ricciardo'],
+  'russell': ['George Russell', 'RUS', 'Mr. Saturday', 'British', 'russell'],
+  'sainz': ['Carlos Sainz', 'SAI', 'Smooth Operator', 'Spanish', 'sainz'],
+  'sargeant': ['Logan Sargeant', 'SAR', 'The American', 'American', 'sargeant'],
+  'stroll': ['Lance Stroll', 'STR', 'Mr. Fashion', 'Canadian', 'stroll'],
+  'tsunoda': ['Yuki Tsunoda', 'TSU', 'Radio Yuki', 'Japanese', 'tsunoda'],
+  'zhou': ['Zhou Guanyu', 'ZHO', 'Joe', 'Chinese', 'zhou'],
 
   // World Champions (Retired)
-  'ascari': ['Alberto Ascari', 'ASC', 'The Milan Monza', 'Italian', '1952, 1953'],
-  'brabham': ['Jack Brabham', 'BRA', 'Black Jack', 'Australian', '1959, 1960, 1966'],
-  'button': ['Jenson Button', 'BUT', 'JB', 'British', '2009'],
-  'clark': ['Jim Clark', 'CLA', 'The Flying Scotsman', 'British', '1963, 1965'],
-  'fangio': ['Juan Manuel Fangio', 'FAN', 'El Maestro', 'Argentine', '1951, 1954-1957'],
-  'fittipaldi': ['Emerson Fittipaldi', 'FIT', 'Emmo', 'Brazilian', '1972, 1974'],
-  'hakkinen': ['Mika Hakkinen', 'HAK', 'The Flying Finn', 'Finnish', '1998, 1999'],
-  'hill_d': ['Damon Hill', 'HIL', 'The Son of Mr. Monaco', 'British', '1996'],
-  'hill_g': ['Graham Hill', 'HIL', 'Mr. Monaco', 'British', '1962, 1968'],
-  'hunt': ['James Hunt', 'HUN', 'Hunt the Shunt', 'British', '1976'],
-  'lauda': ['Niki Lauda', 'LAU', 'The Rat', 'Austrian', '1975, 1977, 1984'],
-  'mansell': ['Nigel Mansell', 'MAN', 'Il Leone', 'British', '1992'],
-  'piquet': ['Nelson Piquet', 'PIQ', 'The Brazilian', 'Brazilian', '1981, 1983, 1987'],
-  'prost': ['Alain Prost', 'PRO', 'The Professor', 'French', '1985, 1986, 1989, 1993'],
-  'raikkonen': ['Kimi Raikkonen', 'RAI', 'Iceman', 'Finnish', '2007'],
-  'rindt': ['Jochen Rindt', 'RIN', 'The First Posthumous Champion', 'Austrian', '1970'],
-  'rosberg_k': ['Keke Rosberg', 'ROS', 'The Original Flying Finn', 'Finnish', '1982'],
-  'rosberg_n': ['Nico Rosberg', 'ROS', 'Britney', 'German', '2016'],
-  'michael_schumacher': ['Michael Schumacher', 'MSC', 'Schumi', 'German', '1994, 1995, 2000-2004'],
-  'senna': ['Ayrton Senna', 'SEN', 'Magic', 'Brazilian', '1988, 1990, 1991'],
-  'stewart': ['Jackie Stewart', 'STE', 'Flying Scot', 'British', '1969, 1971, 1973'],
-  'vettel': ['Sebastian Vettel', 'VET', 'Baby Schumi', 'German', '2010-2013'],
-  'villeneuve_j': ['Jacques Villeneuve', 'VIL', 'JV', 'Canadian', '1997'],
+  'ascari': ['Alberto Ascari', 'ASC', 'The Milan Monza', 'Italian', '1952, 1953', 'ascari'],
+  'brabham': ['Jack Brabham', 'BRA', 'Black Jack', 'Australian', '1959, 1960, 1966', 'brabham'],
+  'button': ['Jenson Button', 'BUT', 'JB', 'British', '2009', 'button'],
+  'clark': ['Jim Clark', 'CLA', 'The Flying Scotsman', 'British', '1963, 1965', 'clark'],
+  'fangio': ['Juan Manuel Fangio', 'FAN', 'El Maestro', 'Argentine', '1951, 1954-1957', 'fangio'],
+  'fittipaldi': ['Emerson Fittipaldi', 'FIT', 'Emmo', 'Brazilian', '1972, 1974', 'fittipaldi'],
+  'hakkinen': ['Mika Hakkinen', 'HAK', 'The Flying Finn', 'Finnish', '1998, 1999', 'hakkinen'],
+  'hill_d': ['Damon Hill', 'HIL', 'The Son of Mr. Monaco', 'British', '1996', 'hill'],
+  'hill_g': ['Graham Hill', 'HIL', 'Mr. Monaco', 'British', '1962, 1968', 'hill'],
+  'hunt': ['James Hunt', 'HUN', 'Hunt the Shunt', 'British', '1976', 'hunt'],
+  'lauda': ['Niki Lauda', 'LAU', 'The Rat', 'Austrian', '1975, 1977, 1984', 'lauda'],
+  'mansell': ['Nigel Mansell', 'MAN', 'Il Leone', 'British', '1992', 'mansell'],
+  'piquet': ['Nelson Piquet', 'PIQ', 'The Brazilian', 'Brazilian', '1981, 1983, 1987', 'piquet'],
+  'prost': ['Alain Prost', 'PRO', 'The Professor', 'French', '1985, 1986, 1989, 1993', 'prost'],
+  'raikkonen': ['Kimi Raikkonen', 'RAI', 'Iceman', 'Finnish', '2007', 'raikkonen'],
+  'rindt': ['Jochen Rindt', 'RIN', 'The First Posthumous Champion', 'Austrian', '1970', 'rindt'],
+  'rosberg_k': ['Keke Rosberg', 'ROS', 'The Original Flying Finn', 'Finnish', '1982', 'rosberg'],
+  'rosberg_n': ['Nico Rosberg', 'ROS', 'Britney', 'German', '2016', 'rosberg'],
+  'michael_schumacher': ['Michael Schumacher', 'MSC', 'Schumi', 'German', '1994, 1995, 2000-2004', 'schumacher'],
+  'senna': ['Ayrton Senna', 'SEN', 'Magic', 'Brazilian', '1988, 1990, 1991', 'senna'],
+  'stewart': ['Jackie Stewart', 'STE', 'Flying Scot', 'British', '1969, 1971, 1973', 'stewart'],
+  'vettel': ['Sebastian Vettel', 'VET', 'Baby Schumi', 'German', '2010-2013', 'vettel'],
+  'villeneuve_j': ['Jacques Villeneuve', 'VIL', 'JV', 'Canadian', '1997', 'villeneuve'],
 
   // Notable Drivers (Non-Champions)
-  'alesi': ['Jean Alesi', 'ALE', 'The Matador', 'French'],
-  'andretti': ['Mario Andretti', 'AND', 'The American Champion', 'American'],
-  'barrichello': ['Rubens Barrichello', 'BAR', 'Rubinho', 'Brazilian'],
-  'berger': ['Gerhard Berger', 'BER', 'The Austrian', 'Austrian'],
-  'brooks': ['Tony Brooks', 'BRO', 'The Racing Dentist', 'British'],
-  'cevert': ['François Cevert', 'CEV', 'The French Prince', 'French'],
-  'coulthard': ['David Coulthard', 'COU', 'DC', 'British'],
-  'gurney': ['Dan Gurney', 'GUR', 'The Big Eagle', 'American'],
-  'ickx': ['Jacky Ickx', 'ICK', 'Monsieur Le Mans', 'Belgian'],
-  'massa': ['Felipe Massa', 'MAS', 'The Little Brazilian', 'Brazilian'],
-  'montoya': ['Juan Pablo Montoya', 'MON', 'JPM', 'Colombian'],
-  'moss': ['Stirling Moss', 'MOS', 'Mr Motor Racing', 'British'],
-  'peterson': ['Ronnie Peterson', 'PET', 'SuperSwede', 'Swedish'],
-  'regazzoni': ['Clay Regazzoni', 'REG', 'Clay', 'Swiss'],
-  'reutemann': ['Carlos Reutemann', 'REU', 'Lole', 'Argentine'],
-  'villeneuve_g': ['Gilles Villeneuve', 'VIL', 'The Artist', 'Canadian'],
-  'webber': ['Mark Webber', 'WEB', 'Aussie Grit', 'Australian']
+  'alesi': ['Jean Alesi', 'ALE', 'The Matador', 'French', 'alesi'],
+  'andretti': ['Mario Andretti', 'AND', 'The American Champion', 'American', 'andretti'],
+  'barrichello': ['Rubens Barrichello', 'BAR', 'Rubinho', 'Brazilian', 'barrichello'],
+  'berger': ['Gerhard Berger', 'BER', 'The Austrian', 'Austrian', 'berger'],
+  'brooks': ['Tony Brooks', 'BRO', 'The Racing Dentist', 'British', 'brooks'],
+  'cevert': ['François Cevert', 'CEV', 'The French Prince', 'French', 'cevert'],
+  'coulthard': ['David Coulthard', 'COU', 'DC', 'British', 'coulthard'],
+  'gurney': ['Dan Gurney', 'GUR', 'The Big Eagle', 'American', 'gurney'],
+  'ickx': ['Jacky Ickx', 'ICK', 'Monsieur Le Mans', 'Belgian', 'ickx'],
+  'massa': ['Felipe Massa', 'MAS', 'The Little Brazilian', 'Brazilian', 'massa'],
+  'montoya': ['Juan Pablo Montoya', 'MON', 'JPM', 'Colombian', 'montoya'],
+  'moss': ['Stirling Moss', 'MOS', 'Mr Motor Racing', 'British', 'moss'],
+  'peterson': ['Ronnie Peterson', 'PET', 'SuperSwede', 'Swedish', 'peterson'],
+  'regazzoni': ['Clay Regazzoni', 'REG', 'Clay', 'Swiss', 'regazzoni'],
+  'reutemann': ['Carlos Reutemann', 'REU', 'Lole', 'Argentine', 'reutemann'],
+  'villeneuve_g': ['Gilles Villeneuve', 'VIL', 'The Artist', 'Canadian', 'villeneuve'],
+  'webber': ['Mark Webber', 'WEB', 'Aussie Grit', 'Australian', 'webber']
 };
 
 // Driver number mapping
@@ -302,23 +302,22 @@ export function findDriverId(search: string): string | null {
   
   // Search through nicknames
   for (const [driverId, nicknames] of Object.entries(driverNicknames)) {
-    // Check exact matches first
-    const exactMatch = nicknames.some(nick => 
-      nick.toLowerCase() === search || 
-      nick.toLowerCase().replace(/[^a-z0-9]/g, '') === search.replace(/[^a-z0-9]/g, '')
-    );
-    
-    if (exactMatch) {
+    // First try exact matches
+    if (nicknames.some(nick => nick.toLowerCase() === search)) {
       return driverId;
     }
     
-    // Then check partial matches
-    const partialMatch = nicknames.some(nick => 
-      nick.toLowerCase().includes(search) ||
-      nick.toLowerCase().replace(/[^a-z0-9]/g, '').includes(search.replace(/[^a-z0-9]/g, ''))
-    );
+    // Then try exact matches with the last name
+    const lastName = nicknames[0].split(' ').pop()?.toLowerCase() || '';
+    if (lastName === search) {
+      return driverId;
+    }
     
-    if (partialMatch) {
+    // Finally try partial matches with the full name or code
+    if (nicknames.some(nick => 
+      nick.toLowerCase().startsWith(search) || 
+      (nick.length === 3 && nick === nick.toUpperCase() && nick.toLowerCase().startsWith(search))
+    )) {
       return driverId;
     }
   }

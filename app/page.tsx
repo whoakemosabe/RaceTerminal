@@ -298,7 +298,6 @@ export default function Home() {
       case 'Tab':
         e.preventDefault();
         const input = command.toLowerCase();
-        setShowSuggestions(true);
         const suggestions: string[] = [];
         
         // Split command into parts
@@ -378,15 +377,10 @@ export default function Home() {
               (parts.length > 1 ? ' ' : '') + 
               suggestions[0];
             setCommand(completed + ' ');
+            setShowSuggestions(false);
           } else if (suggestions.length > 1) {
-            // Multiple matches - show suggestions
-            const newEntry = {
-              command: command,
-              output: `Available options:\n${suggestions.sort().map(s => `  ${s}`).join('\n')}`,
-              username: username,
-              timestamp: new Date().toLocaleTimeString(),
-            } as HistoryEntry;
-            setHistory(prev => [...prev, newEntry]);
+            // Show suggestions dropdown
+            setShowSuggestions(true);
           }
         }
         break;

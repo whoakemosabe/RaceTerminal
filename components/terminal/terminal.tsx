@@ -182,7 +182,7 @@ export function Terminal({
                   onNavigationStateChange(false);
                 }
               }}
-              placeholder="Enter command (e.g., /driver hamilton)"
+              placeholder={hasSetUsername ? "Enter command (e.g., /driver hamilton)" : "Please enter a username to unlock more commands (e.g., /user max)"}
               className="flex-1 h-7 font-mono text-sm cursor-blink placeholder-primary/50 terminal-input"
             />
             <Button
