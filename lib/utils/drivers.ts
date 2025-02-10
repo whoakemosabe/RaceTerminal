@@ -206,6 +206,16 @@ export function findDriverId(search: string): string | null {
   search = search.toLowerCase();
   search = search.trim();
 
+  // Check if search is a driver number
+  if (/^\d+$/.test(search)) {
+    for (const [driverId, number] of Object.entries(driverNumbers)) {
+      if (number === search) {
+        return driverId;
+      }
+    }
+  }
+
+
   // Split search into parts (for handling multi-word searches)
   const searchParts = search.split(' ').filter(Boolean);
 
@@ -256,14 +266,6 @@ export function findDriverId(search: string): string | null {
     const code = properties.find(p => p.length === 3 && p === p.toUpperCase());
     if (code?.toLowerCase() === search) {
       return driverId;
-    }
-  }
-
-  // Check if search is a driver number
-  if (/^\d+$/.test(search)) {
-    const driverByNumber = findDriverByNumber(search);
-    if (driverByNumber) {
-      return driverByNumber;
     }
   }
 

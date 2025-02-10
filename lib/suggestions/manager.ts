@@ -3,12 +3,14 @@ import { CommandSuggestionProvider } from './command';
 import { DriverSuggestionProvider } from './driver';
 import { TeamSuggestionProvider } from './team';
 import { TrackSuggestionProvider } from './track';
+import { CarSuggestionProvider } from './car';
 
 export class SuggestionManager {
   private commandProvider = new CommandSuggestionProvider();
   private driverProvider = new DriverSuggestionProvider();
   private teamProvider = new TeamSuggestionProvider();
   private trackProvider = new TrackSuggestionProvider();
+  private carProvider = new CarSuggestionProvider();
 
   getSuggestions(command: string): Suggestion[] {
     if (!command.startsWith('/')) return [];
@@ -37,6 +39,11 @@ export class SuggestionManager {
       case '/track':
       case '/t':
         return this.trackProvider.getCompletions(lastPart);
+
+      case '/car':
+      case '/c':
+        const carSuggestions = this.carProvider.getCompletions(lastPart);
+        return carSuggestions;
 
       case '/compare':
       case '/m':

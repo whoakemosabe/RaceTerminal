@@ -21,13 +21,18 @@ export const systemCommands: SystemCommands = {
     // Handle reset command
     if (newUsername.toLowerCase() === 'reset') {
       try {
+        // Clear command history first
+        localStorage.removeItem('commandHistory');
+        window.dispatchEvent(new CustomEvent('clearTerminal'));
+        
+        // Then reset username
         localStorage.setItem(LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME);
         window.dispatchEvent(new CustomEvent('usernameChange', { 
           detail: DEFAULT_USERNAME,
           bubbles: true,
           composed: true
         }));
-        return `Username reset to "${DEFAULT_USERNAME}"`;
+        return `✨ Terminal reset complete!\n• Username reset to "${DEFAULT_USERNAME}"\n• Command history cleared`;
       } catch (error) {
         console.error('Failed to reset username:', error);
         return '❌ Error: Failed to reset username. Please try again.';

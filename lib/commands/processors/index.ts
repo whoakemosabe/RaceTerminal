@@ -23,12 +23,13 @@ Object.assign(processors, listCommands);
 Object.assign(processors, carCommands);
 
 // Add individual command mappings
+processors['/track'] = raceCommands['/track'];
+// Add individual command mappings
 processors['/standings'] = raceCommands['/standings'];
 processors['/teams'] = raceCommands['/teams'];
 processors['/schedule'] = raceCommands['/schedule'];
 processors['/next'] = raceCommands['/next'];
 processors['/last'] = raceCommands['/last'];
-processors['/track'] = raceCommands['/track'];
 processors['/qualifying'] = raceCommands['/qualifying'];
 processors['/sprint'] = raceCommands['/sprint'];
 processors['/pitstops'] = raceCommands['/pitstops'];

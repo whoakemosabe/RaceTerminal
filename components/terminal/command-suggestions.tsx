@@ -223,6 +223,49 @@ export function CommandSuggestions({
       const baseCommand = commandAliases[firstPart] || firstPart;
       
       switch (baseCommand) {
+        case '/car':
+        case '/c':
+          matches = [
+            // Current Cars (2024)
+            'rb20 (Red Bull RB20, 2024)',
+            'w15 (Mercedes W15, 2024)',
+            'sf24 (Ferrari SF-24, 2024)',
+            
+            // Previous Season (2023)
+            'rb19 (Red Bull RB19, 2023)',
+            'w14 (Mercedes W14, 2023)',
+            'sf23 (Ferrari SF-23, 2023)',
+            'amr23 (Aston Martin AMR23, 2023)',
+            'mcl60 (McLaren MCL60, 2023)',
+            'a523 (Alpine A523, 2023)',
+            
+            // Historic Championship Cars
+            'mp4-4 (McLaren MP4/4, 1988)',
+            'f2004 (Ferrari F2004, 2004)',
+            'fw14b (Williams FW14B, 1992)',
+            'rb9 (Red Bull RB9, 2013)',
+            'w11 (Mercedes W11, 2020)',
+            
+            // Search by year
+            '2024 (Show all 2024 F1 cars)',
+            '2023 (Show all 2023 F1 cars)',
+            '2020 (Show Mercedes W11)',
+            '2013 (Show Red Bull RB9)',
+            '2004 (Show Ferrari F2004)',
+            '1992 (Show Williams FW14B)',
+            '1988 (Show McLaren MP4/4)',
+            
+            // Search by team
+            'redbull (Show Red Bull Racing cars)',
+            'mercedes (Show Mercedes F1 cars)',
+            'ferrari (Show Ferrari F1 cars)',
+            'mclaren (Show McLaren F1 cars)',
+            'williams (Show Williams F1 cars)'
+          ].filter(suggestion => 
+            suggestion.toLowerCase().includes(lastPart.toLowerCase())
+          );
+          break;
+
         // Race Results Commands
         case '/race':
         case '/r':

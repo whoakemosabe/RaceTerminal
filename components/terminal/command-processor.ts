@@ -30,7 +30,6 @@ export const commandAliases: Record<string, string> = {
   '/rs': '/reset',
   '/sc': '/schedule',
   '/sp': '/sprint',
-  '/tr': '/track',
   '/tm': '/team',
   '/wx': '/weather'
 };
