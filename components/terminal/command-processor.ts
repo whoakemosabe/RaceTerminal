@@ -24,13 +24,13 @@ export const commandAliases: Record<string, string> = {
   '/ds': '/standings',    // Driver standings
   '/cs': '/teams',        // Constructor standings
   '/ps': '/pitstops',
+  '/tm': '/team',         // Team info
   '/fl': '/fastest',
   '/ql': '/qualifying',
   '/nx': '/next',
   '/rs': '/reset',
   '/sc': '/schedule',
   '/sp': '/sprint',
-  '/tm': '/team',
   '/wx': '/weather'
 };
 

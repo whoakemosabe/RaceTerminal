@@ -202,5 +202,11 @@ export const commands = [
     description: 'Toggle CRT monitor visual effects',
     source: 'System',
     category: 'Effects'
+  },
+  {
+    command: '/calc',
+    description: 'Toggle calculator LCD screen effect',
+    source: 'System',
+    category: 'Effects'
   }
 ];

@@ -177,6 +177,24 @@ const effectsCommands: EffectsCommands = {
       console.error('Failed to toggle scanlines effect:', error);
       return '❌ Error: Failed to toggle scanlines effect. Please try again.';
     }
+  },
+
+  '/calc': async (args: string[], originalCommand: string) => {
+    if (args.length > 0) {
+      return '❌ Error: /calc is a simple toggle command and does not accept any arguments';
+    }
+
+    const currentState = document.documentElement.classList.contains('calculator-enabled');
+    try {
+      document.documentElement.classList.toggle('calculator-enabled');
+      localStorage.setItem('calculator_enabled', (!currentState).toString());
+      return !currentState
+        ? '🖩 Calculator screen effect enabled! Retro LCD vibes...'
+        : '🖩 Calculator screen effect disabled. Back to normal!';
+    } catch (error) {
+      console.error('Failed to toggle calc effect:', error);
+      return '❌ Error: Failed to toggle calc effect. Please try again.';
+    }
   }
 };
 

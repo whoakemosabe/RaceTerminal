@@ -387,7 +387,7 @@ export function Terminal({
                   variant="ghost"
                   size="icon"
                   onClick={handleReset}
-                  className="h-6 w-6 hover:text-secondary transition-colors duration-200"
+                  className="h-6 w-6 hover:text-secondary/80 transition-colors hover:bg-transparent"
                 >
                   <RotateCw className="w-3.5 h-3.5" />
                 </Button>
