@@ -114,6 +114,82 @@ export const systemCommands: SystemCommands = {
   '/help': async (args: string[]) => {
     // Command-specific help documentation
     const commandHelp: Record<string, string> = {
+      'calculator': [
+        '🖩 CALCULATOR MODE REFERENCE',
+        '═'.repeat(50),
+        '',
+        'Toggle calculator LCD screen effect.',
+        '',
+        'Usage: /calc',
+        '',
+        'Features:',
+        '• Retro LCD display effect',
+        '• Green-tinted screen',
+        '• Subtle scan lines',
+        '• Vintage calculator aesthetics',
+        '',
+        'Notes:',
+        '• Toggle on/off with same command',
+        '• Persists between sessions',
+        '• Combines with other effects',
+        '',
+        'Related Commands:',
+        '• /retro - Retro text effects',
+        '• /crt - CRT monitor effects',
+        '• /theme - Color themes'
+      ].join('\n'),
+
+      'stats': [
+        '📊 TERMINAL STATISTICS REFERENCE',
+        '═'.repeat(50),
+        '',
+        'View detailed terminal usage statistics.',
+        '',
+        'Usage: /stats',
+        '',
+        'Displayed Information:',
+        '• Command usage frequency',
+        '• Most used commands',
+        '• Session duration',
+        '• Data retrieved',
+        '• System performance',
+        '',
+        'Notes:',
+        '• Statistics persist between sessions',
+        '• Tracks command history',
+        '• Shows performance metrics',
+        '',
+        'Related Commands:',
+        '• /sys - System diagnostics',
+        '• /clear - Clear history',
+        '• /neofetch - System info'
+      ].join('\n'),
+
+      'decrypt': [
+        '🔓 DECRYPTION GAME REFERENCE',
+        '═'.repeat(50),
+        '',
+        'Play an interactive code-breaking minigame.',
+        '',
+        'Usage: /decrypt',
+        '',
+        'Game Features:',
+        '• Multiple difficulty levels',
+        '• Timed challenges',
+        '• Score tracking',
+        '• Progressive difficulty',
+        '',
+        'Notes:',
+        '• Use logic to crack codes',
+        '• Limited attempts per puzzle',
+        '• Includes tutorial mode',
+        '',
+        'Related Commands:',
+        '• /hack - Hacking simulation',
+        '• /matrix - Matrix effects',
+        '• /glitch - Glitch effects'
+      ].join('\n'),
+
       'telemetry': [
         '📊 TELEMETRY COMMAND REFERENCE',
         '═'.repeat(50),
@@ -345,7 +421,11 @@ export const systemCommands: SystemCommands = {
         ['retro', 'matrix', 'crt', 'glitch', 'scanlines', 'rain'].some(term => 
           c.command.toLowerCase().includes(term)
         )
-      )
+      ).concat(commands.filter(c => 
+        ['calc', 'calculator'].some(term => 
+          c.command.toLowerCase().includes(term)
+        )
+      ))
     };
 
     // If a specific command is provided
@@ -496,6 +576,47 @@ export const systemCommands: SystemCommands = {
       `🔒 Protocol: ${window.location.protocol}`,
       `📡 Connection: ${navigator.onLine ? 'Online' : 'Offline'}`
     ].join('\n');
+  },
+
+  '/fontsize': async (args: string[]) => {
+    if (!args[0]) {
+      return '❌ Error: Please provide a size or action\nUsage:\n• /fontsize <number> (e.g., /fontsize 14)\n• /fontsize + (increase size)\n• /fontsize - (decrease size)\n• /fontsize reset (default size)';
+    }
+
+    const currentSize = parseInt(localStorage.getItem('terminal_font_size') || '14', 10);
+    let newSize = currentSize;
+
+    if (args[0] === 'reset') {
+      newSize = 14;
+    } else if (args[0] === '+') {
+      newSize = Math.min(currentSize + 2, 24);
+    } else if (args[0] === '-') {
+      newSize = Math.max(currentSize - 2, 10);
+    } else {
+      const size = parseInt(args[0]);
+      if (isNaN(size) || size < 10 || size > 24 || !Number.isInteger(size)) {
+        return '❌ Error: Font size must be between 10 and 24';
+      }
+      newSize = size;
+    }
+
+    try {
+      localStorage.setItem('terminal_font_size', newSize.toString());
+      // Dispatch event to update font size in real-time
+      window.dispatchEvent(new CustomEvent('fontSizeChange', {
+        detail: newSize,
+        bubbles: true,
+        composed: true
+      }));
+      
+      // Update CSS variable directly for immediate effect
+      document.documentElement.style.setProperty('--terminal-font-size', `${newSize}px`);
+      
+      return `📊 Font size changed to ${newSize}px`;
+    } catch (error) {
+      console.error('Failed to change font size:', error);
+      return '❌ Error: Failed to change font size. Please try again.';
+    }
   },
 
   '/hack': async (args: string[]) => {

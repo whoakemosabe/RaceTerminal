@@ -131,7 +131,32 @@ export const commands = [
   {
     command: '/sprint <year> <round>',
     description: 'View Formula 1 sprint race results and statistics',
-    source: 'F1 Racing Results API'
+    source: 'F1 Racing Results API',
+    category: 'Historical Data'
+  },
+  {
+    command: '/pace <year> <round>',
+    description: 'Analyze detailed race pace and consistency',
+    source: 'Ergast F1 API',
+    category: 'Analysis'
+  },
+  {
+    command: '/gap <year> <round>',
+    description: 'View detailed race gap analysis',
+    source: 'Ergast F1 API',
+    category: 'Analysis'
+  },
+  {
+    command: '/sector <year> <round>',
+    description: 'Analyze qualifying sector time comparisons',
+    source: 'Ergast F1 API',
+    category: 'Analysis'
+  },
+  {
+    command: '/plot <year> <round> <driver>',
+    description: 'Generate ASCII lap time progression chart',
+    source: 'Ergast F1 API',
+    category: 'Analysis'
   },
   {
     command: '/theme <team>',

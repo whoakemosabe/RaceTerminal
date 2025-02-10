@@ -23,6 +23,7 @@ interface TerminalProps {
   showWelcome?: boolean;
   onCloseWelcome?: () => void;
   onReset?: () => void;
+  inputRef?: React.RefObject<HTMLInputElement>;
 }
 
 export function Terminal({
@@ -37,9 +38,11 @@ export function Terminal({
   onKeyDown,
   onExecute,
   showWelcome,
-  onCloseWelcome
+  onCloseWelcome,
+  inputRef: externalInputRef
 }: TerminalProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const localInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = externalInputRef || localInputRef;
   const historyRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [sessionStart, setSessionStart] = useState('');
@@ -59,6 +62,11 @@ export function Terminal({
   useEffect(() => {
     setMounted(true);
     
+    // Load initial font size and set it
+    const savedSize = parseInt(localStorage.getItem('terminal_font_size') || '14', 10);
+    setFontSize(savedSize);
+    document.documentElement.style.setProperty('--terminal-font-size', `${savedSize}px`);
+
     // Clear any existing intervals
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -69,11 +77,7 @@ export function Terminal({
 
     // Set initial session start time
     setSessionStart(new Date().toLocaleString());
-    
-    // Load saved font size
-    const savedSize = parseInt(localStorage.getItem('terminal_font_size') || '14');
-    setFontSize(savedSize);
-    
+
     // Set up username state
     const savedUsername = localStorage.getItem(LOCALSTORAGE_USERNAME_KEY);
     setHasSetUsername(!!savedUsername && savedUsername !== DEFAULT_USERNAME);
@@ -87,9 +91,21 @@ export function Terminal({
     window.addEventListener('usernameChange', handleUsernameChange as EventListener);
     return () => window.removeEventListener('usernameChange', handleUsernameChange as EventListener);
 
+  }, []);
 
+  // Handle font size changes
+  useEffect(() => {
     const handleFontSizeChange = (e: CustomEvent) => {
-      setFontSize(e.detail);
+      const newSize = e.detail;
+      if (typeof newSize === 'number' && !isNaN(newSize)) {
+        // Update state
+        setFontSize(newSize);
+        // Update CSS variable
+        document.documentElement.style.setProperty(
+          '--terminal-font-size',
+          `${newSize}px`
+        );
+      }
     };
 
     window.addEventListener('fontSizeChange', handleFontSizeChange as EventListener);
@@ -137,14 +153,14 @@ export function Terminal({
           
           <div className="flex justify-start gap-2 text-muted-foreground">
             <div className="flex items-center gap-2">
-              <Info className="w-3.5 h-3.5" />
+              <Info className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="font-mono text-xs">v{APP_VERSION}</span>
             </div>
           </div>
 
           <div className="flex justify-center items-center gap-2">
             <div className="flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5" />
+              <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="font-mono text-xs">
                 {mounted ? new Date().toLocaleDateString('en-US', {
                   year: 'numeric',
@@ -158,7 +174,7 @@ export function Terminal({
 
           <div className="flex justify-end items-center gap-2">
             <div className="flex items-center gap-2">
-              <Clock className="w-3.5 h-3.5" />
+              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="font-mono text-xs text-muted-foreground">
                 {mounted ? currentTime : 'Loading...'}
               </span>
@@ -171,7 +187,7 @@ export function Terminal({
       {/* Command Input */}
       <div className="px-4 py-1.5 border-b border-border/10 terminal-input-wrapper">
         <div className="flex items-center gap-2">
-          <TerminalIcon className="w-4 h-4 text-primary" />
+          <TerminalIcon className="w-4 h-4 text-primary" aria-hidden="true" />
           <div className="relative flex flex-1 gap-2" onClick={() => onCloseWelcome?.()}>
             <CommandSuggestions
               command={command}
@@ -310,9 +326,8 @@ export function Terminal({
         <div className="relative flex-1 font-mono text-sm overflow-y-auto terminal-history"
             ref={historyRef} 
             style={{ 
-              scrollBehavior: 'smooth', 
-              fontSize: `${fontSize}px`,
-              '--terminal-font-size': `${fontSize}px`
+              scrollBehavior: 'smooth',
+              fontSize: `${fontSize}px`
             } as React.CSSProperties}>
           <div className="scanlines-layer absolute inset-0 pointer-events-none" />
           <div className="flex flex-col space-y-2">
@@ -328,13 +343,13 @@ export function Terminal({
               
               return (
                 <div key={index} className="space-y-2">
-                  <div className="flex items-center gap-2 terminal-prompt" style={{ fontSize: `${fontSize}px` }}>
+                  <div className="flex items-center gap-2 terminal-prompt" style={{ lineHeight: '1.5' }}>
                     {mounted && (
-                      <span className="terminal-timestamp" style={{ fontSize: `${fontSize}px` }}>
+                      <span className="terminal-timestamp" style={{ lineHeight: '1.5' }}>
                         [{entry.timestamp || 'unknown'}] {entry.username}@terminal
                       </span>
                     )}
-                    <code className="text-primary" style={{ fontSize: `${fontSize}px` }}>{entry.command}</code>
+                    <code className="text-primary" style={{ lineHeight: '1.5' }}>{entry.command}</code>
                   </div>
                   <div
                     className={cn(

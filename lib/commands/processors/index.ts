@@ -5,6 +5,7 @@ import { liveCommands } from './live';
 import { effectsCommands } from './effects';
 import { listCommands } from './list';
 import { carCommands } from './cars';
+import { analysisCommands } from './analysis';
 import { commandAliases } from '@/components/terminal/command-processor';
 
 // Define the CommandFunction type
@@ -21,6 +22,7 @@ Object.assign(processors, liveCommands);
 Object.assign(processors, effectsCommands);
 Object.assign(processors, listCommands);
 Object.assign(processors, carCommands);
+Object.assign(processors, analysisCommands);
 
 // Add individual command mappings
 processors['/track'] = raceCommands['/track'];
@@ -42,6 +44,9 @@ processors['/crt'] = effectsCommands['/crt'];
 processors['/neofetch'] = systemCommands['/neofetch'];
 processors['/hack'] = systemCommands['/hack'];
 processors['/sys'] = systemCommands['/sys'];
+processors['/pace'] = analysisCommands['/pace'];
+processors['/gap'] = analysisCommands['/gap'];
+processors['/calc'] = effectsCommands['/calc'];
 
 export async function processCommand(cmd: string) {
   const parts = cmd.split(' ');

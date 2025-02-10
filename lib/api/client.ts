@@ -540,23 +540,15 @@ export const api = {
   // New F1 Racing Results API endpoints
   async getRaceResults(year?: number, round?: number) {
     return retryRequest(async () => {
-      const { data } = await ergastClient.get(`/${year}/results${round ? `/${round}` : ''}.json`);
-      if (!data?.MRData?.RaceTable?.Races?.[0]?.Results) {
-        return [];
+      const url = `/${year}/${round}/results.json`;
+      const { data } = await ergastClient.get(url);
+      
+      const race = data?.MRData?.RaceTable?.Races?.[0];
+      if (!race) {
+        throw new Error('No race data found');
       }
-      const results = data.MRData.RaceTable.Races[0].Results;
-      return results.map((result: any) => ({
-        position: result.position,
-        Driver: {
-          givenName: result.Driver.givenName,
-          familyName: result.Driver.familyName,
-          nationality: result.Driver.nationality
-        },
-        Constructor: result.Constructor,
-        Time: result.Time ? { time: result.Time.time } : null,
-        status: result.status,
-        points: result.points
-      }));
+      
+      return race;
     });
   },
 
@@ -812,13 +804,12 @@ export const api = {
   async getTrackWeather() {
     // Set a shorter timeout for weather data since it's time-sensitive
     const weatherTimeout = 5000; // 5 seconds
-
     try {
       // Create a promise that rejects after the timeout
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Weather data request timed out')), weatherTimeout);
       });
-
+      
       // Create the actual data fetch promise
       const fetchPromise = retryRequest(async () => {
         const [statusResponse, weatherResponse] = await Promise.all([
@@ -862,38 +853,6 @@ export const api = {
     }
   },
 
-  async getDriverTires(driverNumber: string) {
-    return retryRequest(async () => {
-      const { data } = await openF1Client.get('/tire_data', {
-        params: { driver_number: driverNumber }
-      });
-      if (!data || data.length === 0) {
-        return null;
-      }
-      return data[0];
-    });
-  },
-
-  async getFastestLaps(year: number, round: number) {
-    return retryRequest(async () => {
-      const { data } = await ergastClient.get(`/${year}/${round}/fastest/1/results.json`);
-      if (!data?.MRData?.RaceTable?.Races?.[0]?.Results) {
-        return [];
-      }
-      return data.MRData.RaceTable.Races[0].Results;
-    });
-  },
-
-  async getSprintResults(year: number, round: number) {
-    return retryRequest(async () => {
-      const { data } = await ergastClient.get(`/${year}/${round}/sprint.json`);
-      if (!data?.MRData?.RaceTable?.Races?.[0]?.SprintResults) {
-        return [];
-      }
-      return data.MRData.RaceTable.Races[0].SprintResults;
-    });
-  },
-
   // Add getCarInfo method to api object
   async getCarInfo(search: string) {
     // Normalize search term
@@ -925,5 +884,5 @@ export const api = {
     return Object.values(F1_CARS_2023).find(car => 
       car.team.replace(/\s+/g, '').toLowerCase().includes(teamSearch)
     );
-  },
+  }
 };

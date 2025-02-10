@@ -206,6 +206,15 @@ body.resizing * {
   position: relative;
 }
 
+.terminal-history,
+.terminal-history code,
+.terminal-history .terminal-timestamp,
+.terminal-history .terminal-prompt,
+.terminal-history div {
+  font-size: var(--terminal-font-size, 14px);
+  line-height: 1.5;
+}
+
 .terminal-history::before {
   content: '';
   position: absolute;
@@ -249,6 +258,7 @@ body.resizing * {
   font-family: monospace;
   font-weight: bold;
   color: hsl(var(--primary));
+  font-size: inherit;
 }
 
 @keyframes status-blink {
@@ -264,11 +274,13 @@ body.resizing * {
 .terminal-timestamp {
   font-family: monospace;
   color: hsl(var(--secondary));
+  font-size: inherit;
 }
 
 .terminal-prompt {
   font-family: monospace;
   color: hsl(var(--secondary));
+  font-size: inherit;
 }
 
 .terminal-history code {

@@ -119,3 +119,120 @@ export function findTeamId(search: string): string | null {
   
   return null;
 }
+
+// Team technical directors
+const teamTechnicalDirectors: Record<string, string> = {
+  'red_bull': 'Pierre Waché',
+  'mercedes': 'James Allison',
+  'ferrari': 'Enrico Cardile',
+  'mclaren': 'Peter Prodromou',
+  'aston_martin': 'Dan Fallows',
+  'alpine': 'Matt Harman',
+  'williams': 'Pat Fry',
+  'alphatauri': 'Jody Egginton',
+  'alfa': 'James Key',
+  'haas': 'Simone Resta'
+};
+
+// Team principals
+const teamPrincipals: Record<string, string> = {
+  'red_bull': 'Christian Horner',
+  'mercedes': 'Toto Wolff',
+  'ferrari': 'Frédéric Vasseur',
+  'mclaren': 'Andrea Stella',
+  'aston_martin': 'Mike Krack',
+  'alpine': 'Bruno Famin',
+  'williams': 'James Vowles',
+  'alphatauri': 'Laurent Mekies',
+  'alfa': 'Alessandro Alunni Bravi',
+  'haas': 'Ayao Komatsu'
+};
+
+// Team power units
+const teamPowerUnits: Record<string, string> = {
+  'red_bull': 'Honda RBPT',
+  'mercedes': 'Mercedes-AMG F1 M15',
+  'ferrari': 'Ferrari 066/12',
+  'mclaren': 'Mercedes-AMG F1 M15',
+  'aston_martin': 'Mercedes-AMG F1 M15',
+  'alpine': 'Renault E-Tech RE24',
+  'williams': 'Mercedes-AMG F1 M15',
+  'alphatauri': 'Honda RBPT',
+  'alfa': 'Ferrari 066/12',
+  'haas': 'Ferrari 066/12'
+};
+
+// Team notable records
+const teamRecords: Record<string, string[]> = {
+  'red_bull': [
+    'Most wins in a season: 21 (2023)',
+    'Highest win percentage in a season: 95.45% (2023)',
+    'Most consecutive wins: 15 (2023)',
+    'Most points in a season: 860 (2023)'
+  ],
+  'mercedes': [
+    'Most consecutive constructor championships: 8 (2014-2021)',
+    'Most consecutive driver & constructor doubles: 7 (2014-2020)',
+    'Most pole positions in a season: 20 (2016)',
+    'Most 1-2 finishes in a season: 12 (2015)'
+  ],
+  'ferrari': [
+    'Most constructor championships: 16',
+    'Most race wins: 243',
+    'Most podium finishes: 798',
+    'Longest-running F1 team (since 1950)'
+  ],
+  'mclaren': [
+    'Second most constructor championships: 8',
+    'Most consecutive race wins: 11 (1988)',
+    'Most 1-2 finishes in a season: 10 (1988)',
+    'Second most race wins: 183'
+  ],
+  'aston_martin': [
+    'First podium as Aston Martin: 2023 Bahrain GP',
+    'Best constructor championship finish: 5th (2023)',
+    'Most podiums in a season: 8 (2023)'
+  ],
+  'alpine': [
+    'First win as Alpine: 2021 Hungarian GP',
+    'Best constructor championship finish as Alpine: 4th (2022)',
+    'Multiple race wins as Renault F1 Team'
+  ],
+  'williams': [
+    '9 constructor championships',
+    '114 race wins',
+    '313 podium finishes',
+    'Most consecutive pole positions: 24 (1992-1993)'
+  ],
+  'alphatauri': [
+    'First win: 2020 Italian GP (as AlphaTauri)',
+    '2008 Italian GP victory (as Toro Rosso)',
+    'Launched careers of multiple Red Bull drivers'
+  ],
+  'alfa': [
+    'Multiple race wins in early F1 era',
+    'First F1 constructor championship (1950)',
+    'Notable technical innovations in early F1'
+  ],
+  'haas': [
+    'First points on debut: 2016 Australian GP',
+    'Best constructor championship finish: 5th (2018)',
+    'First pole position: 2022 Brazilian GP'
+  ]
+};
+
+export function getTeamTechnicalDirector(teamId: string): string {
+  return teamTechnicalDirectors[teamId] || 'Information not available';
+}
+
+export function getTeamPrincipal(teamId: string): string {
+  return teamPrincipals[teamId] || 'Information not available';
+}
+
+export function getTeamPowerUnit(teamId: string): string {
+  return teamPowerUnits[teamId] || 'Information not available';
+}
+
+export function getTeamRecords(teamId: string): string[] {
+  return teamRecords[teamId] || ['No notable records available'];
+}

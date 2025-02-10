@@ -1,5 +1,5 @@
-import { countryToCode } from './countries'; 
-import { getFlagUrl } from './formatting';
+import { countryToCode } from '@/lib/utils/countries';
+import { getFlagUrl } from '@/lib/utils/formatting';
 
 // Driver nickname mappings
 export const driverNicknames: Record<string, string[]> = {
@@ -21,6 +21,7 @@ export const driverNicknames: Record<string, string[]> = {
   'ricciardo': ['Daniel Ricciardo', 'RIC', 'Danny Ric', 'Honey Badger', 'Australian', 'ricciardo'],
   'russell': ['George Russell', 'RUS', 'Mr. Saturday', 'British', 'russell'],
   'sainz': ['Carlos Sainz', 'SAI', 'Smooth Operator', 'Spanish', 'sainz'],
+  'sainz_sr': ['Carlos Sainz Sr.', 'SAI', 'El Matador', 'Spanish', 'sainz_sr'],
   'sargeant': ['Logan Sargeant', 'SAR', 'The American', 'American', 'sargeant'],
   'stroll': ['Lance Stroll', 'STR', 'Mr. Fashion', 'Canadian', 'stroll'],
   'tsunoda': ['Yuki Tsunoda', 'TSU', 'Radio Yuki', 'Japanese', 'tsunoda'],
@@ -45,6 +46,7 @@ export const driverNicknames: Record<string, string[]> = {
   'rindt': ['Jochen Rindt', 'RIN', 'The First Posthumous Champion', 'Austrian', '1970', 'rindt'],
   'rosberg_k': ['Keke Rosberg', 'ROS', 'The Original Flying Finn', 'Finnish', '1982', 'rosberg'],
   'rosberg_n': ['Nico Rosberg', 'ROS', 'Britney', 'German', '2016', 'rosberg'],
+  'bruce_mclaren': ['Bruce McLaren', 'MCL', 'The Boss', 'New Zealander', 'bruce', 'mclaren'],
   'michael_schumacher': ['Michael Schumacher', 'MSC', 'Schumi', 'German', '1994, 1995, 2000-2004', 'schumacher'],
   'senna': ['Ayrton Senna', 'SEN', 'Magic', 'Brazilian', '1988, 1990, 1991', 'senna'],
   'stewart': ['Jackie Stewart', 'STE', 'Flying Scot', 'British', '1969, 1971, 1973', 'stewart'],
@@ -74,11 +76,11 @@ export const driverNicknames: Record<string, string[]> = {
   'bandini': ['Lorenzo Bandini', 'BAN', 'Il Bello', 'Italian', 'bandini'],
   'bonnier': ['Jo Bonnier', 'BON', 'The Flying Swede', 'Swedish', 'bonnier'],
   'depailler': ['Patrick Depailler', 'DEP', 'Le Motard', 'French', 'depailler'],
+  'de_angelis': ['Elio de Angelis', 'DEA', 'Il Principe', 'Italian', 'de_angelis'],
   'ginther': ['Richie Ginther', 'GIN', 'The Californian', 'American', 'ginther'],
   'gonzalez': ['José Froilán González', 'GON', 'El Cabezón', 'Argentine', 'gonzalez'],
   'hawthorn': ['Mike Hawthorn', 'HAW', 'Le Papillon', 'British', '1958', 'hawthorn'],
   'ireland': ['Innes Ireland', 'IRE', 'The Soldier', 'British', 'ireland'],
-  'bruce_mclaren': ['Bruce McLaren', 'MCL', 'The Boss', 'New Zealander', 'mclaren', 'bruce'],
   'rodriguez_p': ['Pedro Rodríguez', 'ROD', 'El Niño', 'Mexican', 'rodriguez'],
   'rodriguez_r': ['Ricardo Rodríguez', 'ROD', 'El Pequeño', 'Mexican', 'rodriguez'],
   'siffert': ['Jo Siffert', 'SIF', 'Seppi', 'Swiss', 'siffert'],
@@ -188,8 +190,8 @@ export function getDriverNicknames(driverId: string): string[] {
 
 // Find driver by number
 export function findDriverByNumber(number: string): string | null {
-  // Remove leading zeros and spaces
-  const searchNumber = number.trim().replace(/^0+/, '');
+  // Normalize search number by removing leading zeros and spaces
+  const searchNumber = number.trim().replace(/^0+/, '') || '0';
   
   // Search through driver numbers
   for (const [driverId, driverNumber] of Object.entries(driverNumbers)) {
@@ -205,140 +207,78 @@ export function findDriverByNumber(number: string): string | null {
 export function findDriverId(search: string): string | null {
   search = search.toLowerCase();
   search = search.trim();
+  // Search priority:
+  // 1. Driver number
+  // 2. Exact full name match
+  // 3. Driver code match
+  // 4. Last name match
+  // 5. Nickname match
+  // 6. First name match (if unique)
+  // 7. Partial name match
 
-  // Check if search is a driver number
+  // Check driver number
   if (/^\d+$/.test(search)) {
-    for (const [driverId, number] of Object.entries(driverNumbers)) {
-      if (number === search) {
-        return driverId;
-      }
-    }
+    const driverByNumber = Object.entries(driverNumbers)
+      .find(([_, number]) => number === search);
+    if (driverByNumber) return driverByNumber[0];
   }
 
-
-  // Split search into parts (for handling multi-word searches)
+  // Process search terms
   const searchParts = search.split(' ').filter(Boolean);
+  const searchTerm = searchParts.join(' ');
 
-  // Handle exact matches first
+  // Search through all drivers
   for (const [driverId, properties] of Object.entries(driverNicknames)) {
-    // Exact match with full name
-    const fullName = properties[0].toLowerCase();
-    if (fullName === search) {
-      return driverId;
-    }
-    
-    // Multi-word exact match
-    if (searchParts.length > 1) {
-      const nameParts = fullName.split(' ');
-      const searchString = searchParts.join(' ');
-      if (fullName.includes(searchString)) {
-        return driverId;
-      }
-    }
-    
-    // Exact match with driver code or nickname
-    for (const prop of properties) {
-      if (prop.toLowerCase() === search) {
-        return driverId;
-      }
-    }
-  }
+    const [fullName, code, ...rest] = properties;
+    const nameParts = fullName.toLowerCase().split(' ');
+    const [firstName, lastName] = nameParts;
 
-  // Handle exact matches first
-  for (const [driverId, properties] of Object.entries(driverNicknames)) {
-    // Exact match with full name
-    const fullName = properties[0].toLowerCase();
-    if (fullName === search) {
-      return driverId;
-    }
-    
-    // Multi-word search match
-    if (searchParts.length > 1) {
-      const nameParts = fullName.split(' ');
-      if (searchParts.every(part => 
-        nameParts.some(namePart => namePart === part)
-      )) {
-        return driverId;
-      }
-    }
-    
-    // Exact match with driver code
-    const code = properties.find(p => p.length === 3 && p === p.toUpperCase());
-    if (code?.toLowerCase() === search) {
-      return driverId;
-    }
-  }
+    // 2. Exact full name match
+    if (fullName.toLowerCase() === searchTerm) return driverId;
 
-  // Handle special cases for Schumacher
-  if (search === 'schumi' || search === 'schumacher') {
-    return 'michael_schumacher';
-  }
-
-  // Handle special case for McLaren
-  if (search === 'mclaren' || search === 'bruce') {
-    return 'bruce_mclaren';
-  }
-
-  // Direct match with driver ID
-  if (driverNicknames[search]) {
-    return search;
-  }
-
-  // Search through entries with more specific matching
-  for (const [driverId, properties] of Object.entries(driverNicknames)) {
-    // Check full name parts (first name, last name)
-    const fullName = properties[0].toLowerCase();
-    
-    // For multi-word searches, require all parts to match
-    if (searchParts.length > 1) {
-      const searchString = searchParts.join(' ');
-      if (fullName.includes(searchString)) {
-        return driverId;
-      }
-      continue;
-    }
-    
-    // Single word search - check exact matches first
-    const nameParts = fullName.split(' ');
-    const lastName = nameParts[nameParts.length - 1];
-    const firstName = nameParts[0];
-    
-    if (lastName.toLowerCase() === search || firstName.toLowerCase() === search) {
+    // 3. Driver code match (exact 3-letter code)
+    if (code.length === 3 && code === code.toUpperCase() && code.toLowerCase() === search) {
       return driverId;
     }
 
-    // Check nicknames (excluding special entries)
-    const nicknames = properties.filter(p => 
+    // 4. Last name match
+    if (lastName === search) return driverId;
+
+    // 5. Nickname match (excluding special entries)
+    const nicknames = rest.filter(p => 
       !p.includes(',') && // Not championship years
       !countryToCode[p] && // Not nationality
       p !== driverId && // Not ID
-      p !== properties[0] && // Not full name
       p.length !== 3 // Not driver code
     );
+    if (nicknames.some(nick => nick.toLowerCase() === search)) return driverId;
 
-    // Exact match with nickname
-    if (nicknames.some(nick => nick.toLowerCase() === search)) {
-      return driverId;
+    // 6. First name match (if unique)
+    if (firstName === search) {
+      const sameFirstName = Object.values(driverNicknames)
+        .filter(props => props[0].toLowerCase().split(' ')[0] === search);
+      if (sameFirstName.length === 1) return driverId;
     }
-  }
 
-  // If no exact matches found, try partial matches
-  for (const [driverId, properties] of Object.entries(driverNicknames)) {
-    const fullName = properties[0].toLowerCase();
-    const nameParts = fullName.split(' ');
-    
-    // For multi-word searches, require all parts to match partially
+    // 7. Multi-word partial match
     if (searchParts.length > 1) {
-      const searchString = searchParts.join(' ');
-      if (fullName.includes(searchString)) {
+      // For multi-word searches, check if all search parts match in order
+      let nameStr = fullName.toLowerCase();
+      let allPartsMatch = true;
+      let lastIndex = -1;
+      
+      for (const part of searchParts) {
+        const index = nameStr.indexOf(part, lastIndex + 1);
+        if (index === -1 || (lastIndex !== -1 && index <= lastIndex)) {
+          allPartsMatch = false;
+          break;
+        }
+        lastIndex = index;
+      }
+      
+      if (allPartsMatch) {
         return driverId;
       }
-      continue;
-    }
-    
-    // For single word searches, check exact word matches first
-    if (nameParts.some(part => part.toLowerCase() === search)) {
-      return driverId;
     }
   }
 
