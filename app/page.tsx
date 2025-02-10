@@ -40,7 +40,7 @@ export default function Home() {
   const [hasSetUsername, setHasSetUsername] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const isResizingRef = useRef(false);
-  const initialHeightRef = useRef(500);
+  const initialHeightRef = useRef(700);
   const { username } = useUsername();
 
   // Check if username has been set
@@ -216,7 +216,7 @@ export default function Home() {
     } finally {
       setIsProcessing(false);
     }
-  }, [command, isProcessing, username]);
+  }, [command, isProcessing, username, hasSetUsername]);
 
   // Load history from localStorage on mount
   useEffect(() => {
@@ -446,7 +446,7 @@ export default function Home() {
         </header>
       </div>
 
-      <div className="flex flex-col flex-1 mx-auto px-8 w-full max-w-7xl overflow-hidden terminal-container">
+      <div className="flex flex-col mx-auto px-8 w-full max-w-7xl h-[calc(100vh-100px)] terminal-container">
         <FullscreenTerminal
           isOpen={isFullscreen}
           onClose={() => {
@@ -475,8 +475,8 @@ export default function Home() {
         <div 
           ref={terminalRef}
           style={{ height: initialHeightRef.current }}
-          className={cn(
-            "flex-shrink-0 transition-all duration-300 ease-in-out",
+          className={cn( 
+            "transition-all duration-300 ease-in-out min-h-[200px]",
             isMainVisible ? "opacity-100" : "opacity-0 pointer-events-none"
           )}>
           <Terminal
@@ -502,9 +502,9 @@ export default function Home() {
 
         <div
           ref={resizeRef}
-          className="my-2 bg-border/10 hover:bg-border/20 rounded-full h-1 transition-colors cursor-row-resize"
+          className="my-2 bg-border/10 hover:bg-border/20 rounded-full h-1 transition-colors cursor-row-resize flex-shrink-0"
         />
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="overflow-y-auto flex-1">
           <HelpPanel />
         </div>
       </div>

@@ -1,7 +1,13 @@
 import { api } from '@/lib/api/client';
 import { icons } from '@/lib/utils';
 
-export const liveCommands = {
+import { CommandFunction } from './index';
+
+interface LiveCommands {
+  [key: string]: CommandFunction;
+}
+
+export const liveCommands: LiveCommands = {
   '/live': async () => {
     const data = await api.getLiveTimings();
     if (!data || data.length === 0) {
@@ -41,8 +47,8 @@ export const liveCommands = {
   '/weather': async () => {
     try {
       const data = await api.getTrackWeather();
-      if (!data || !data.status) {
-        return '❌ Error: Weather information is only available during race weekends (Practice, Qualifying, or Race). Please try again during a session.';
+      if (!data) {
+        return '🌤️ Weather information is only available during active F1 sessions (Practice, Qualifying, or Race).\n\nTip: Try during a race weekend when cars are on track!';
       }
       
       const statusMap: Record<string, string> = {
@@ -69,8 +75,11 @@ export const liveCommands = {
       return conditions;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('Weather data error:', errorMessage);
-      return 'Error: Unable to fetch weather data. The service might be unavailable during non-race periods.';
+      if (errorMessage.includes('No live session data available')) {
+        return '🌤️ No active F1 session right now.\n\nWeather data is only available during:\n• Practice Sessions\n• Qualifying\n• Sprint\n• Race\n\nTry again when cars are on track!';
+      }
+      console.error('Weather service error:', errorMessage);
+      return '❌ Error: Unable to fetch weather data. Please try again later.';
     }
   },
 

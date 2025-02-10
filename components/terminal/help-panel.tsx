@@ -5,13 +5,13 @@ import { commands } from '@/lib/commands';
 
 export function HelpPanel() {
   return (
-    <div className="my-2 glass-panel p-2">
+    <div className="glass-panel p-2 h-full flex flex-col">
       <div className="flex items-center gap-2 mb-2 border-b border-border/10 pb-1">
         <HelpCircle className="text-primary h-4 w-4" />
         <h2 className="text-sm font-medium text-primary">Quick Reference</h2>
       </div>
       
-      <div className="grid grid-cols-[200px_1fr] gap-4">
+      <div className="grid grid-cols-[200px_1fr] gap-4 flex-1 overflow-y-auto">
         {/* Left Column - Shortcuts */}
         <div className="space-y-3">
           <div className="text-xs font-medium text-primary/80 mb-1">Keyboard Shortcuts</div>
@@ -66,7 +66,7 @@ export function HelpPanel() {
       </div>
 
       {/* Bottom Tips */}
-      <div className="mt-3 pt-2 border-t border-border/10 text-[10px] text-muted-foreground/70 flex items-center justify-between">
+      <div className="mt-3 pt-2 border-t border-border/10 text-[10px] text-muted-foreground/70 flex items-center justify-between flex-shrink-0">
         <div>Type <code className="text-primary/70 px-1 py-0.5 bg-card/30 rounded">/help</code> for detailed documentation</div>
         <div className="flex items-center gap-4">
           <span>Tab to auto-complete</span>

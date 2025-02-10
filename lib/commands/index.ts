@@ -2,210 +2,204 @@ export const commands = [
   // System Commands
   {
     command: '/list (/ls)',
-    description: 'List available drivers, teams, or tracks',
+    description: 'List current F1 drivers, teams, circuits, and historical data',
     source: 'System'
   },
   {
     command: '/help (/h)',
-    description: 'Show help and available commands',
+    description: 'Show detailed help and command reference by category',
     source: 'System'
   },
   {
     command: '/user <name|reset> (/u)',
-    description: 'Change your terminal display name or reset to default',
+    description: 'Set your terminal username or reset to default',
     source: 'System'
   },
   {
     command: '/clear',
-    description: 'Clear the terminal history (alias: Ctrl+L)',
+    description: 'Clear terminal history and output (Ctrl+L)',
     source: 'System'
   },
   
   // Driver & Team Commands
   { 
     command: '/driver <name> (/d)', 
-    description: 'Get detailed driver information and stats',
+    description: 'View F1 driver details, stats, and career info',
     source: 'Ergast F1 API'
   },
   {
     command: '/team <name>',
-    description: 'Get constructor/team information and history',
+    description: 'View F1 team history, achievements, and details',
     source: 'Ergast F1 API'
   },
   {
     command: '/compare <type> <name1> <name2> (/m)',
-    description: 'Compare career stats between drivers or teams',
+    description: 'Compare career statistics between F1 drivers or teams',
     source: 'Ergast F1 API'
   },
   
   // Race Information
   { 
     command: '/standings (/s)', 
-    description: 'View current drivers championship standings',
+    description: 'View current Formula 1 Drivers Championship standings',
     source: 'Ergast F1 API'
   },
   {
-    command: '/teams (/c)',
-    description: 'View current constructor championship standings',
+    command: '/teams (/cs)',
+    description: 'View current Formula 1 Constructors Championship standings',
     source: 'Ergast F1 API'
   },
   { 
     command: '/schedule (/sc)', 
-    description: 'View upcoming race schedule and dates',
+    description: 'View 2024 Formula 1 race calendar and schedule',
     source: 'Ergast F1 API'
   },
   {
     command: '/next (/n)',
-    description: 'Get details and countdown for the next race',
+    description: 'View details and countdown for the next Formula 1 race',
     source: 'Ergast F1 API'
   },
   {
     command: '/last',
-    description: 'Get results from the most recent race',
+    description: 'View results from the most recent Formula 1 race',
     source: 'Ergast F1 API'
   },
   { 
     command: '/track <name> (/t)', 
-    description: 'Get detailed circuit information and facts',
+    description: 'View Formula 1 circuit details, layout, and records',
     source: 'Ergast F1 API'
   },
   {
     command: '/car <name|year> (/c)',
-    description: 'Get detailed F1 car specifications and stats',
+    description: 'View Formula 1 car specifications and performance data',
     source: 'System'
   },
   
   // Live Session Data
   { 
     command: '/live (/l)', 
-    description: 'Get real-time timing data during sessions',
+    description: 'View real-time Formula 1 timing and positions',
     source: 'OpenF1 API'
   },
   {
     command: '/telemetry <number>',
-    description: 'Get real-time car telemetry data by driver number',
+    description: 'View live Formula 1 car telemetry by driver number',
     source: 'OpenF1 API'
   },
   {
     command: '/status',
-    description: 'Get current track status and race control info',
+    description: 'View current Formula 1 track status and flags',
     source: 'OpenF1 API'
   },
   {
     command: '/weather (/w)',
-    description: 'Get current weather conditions at the circuit',
+    description: 'View current weather conditions at Formula 1 circuit',
     source: 'OpenF1 API'
   },
   {
     command: '/tires <number>',
-    description: 'Get tire compound and wear data by driver number',
+    description: 'View Formula 1 tire compound and wear by driver number',
     source: 'OpenF1 API'
   },
   
   // Historical Data
   { 
     command: '/race <year> [round] (/r)', 
-    description: 'Get historical race results by year and round',
+    description: 'View historical Formula 1 race results by year and round',
     source: 'F1 Racing Results API'
   },
   { 
     command: '/qualifying <year> <round> (/q)', 
-    description: 'Get qualifying session results by year and round',
+    description: 'View Formula 1 qualifying results by year and round',
     source: 'F1 Racing Results API'
   },
   { 
     command: '/laps <year> <round> [driver]', 
-    description: 'Get detailed lap times from a specific race',
+    description: 'View detailed Formula 1 lap times from a race',
     source: 'F1 Racing Results API'
   },
   { 
     command: '/pitstops <year> <round> (/p)', 
-    description: 'Get pit stop timings and strategies',
+    description: 'View Formula 1 pit stop timings and strategies',
     source: 'F1 Racing Results API'
   },
   {
     command: '/fastest <year> <round> (/f)',
-    description: 'Get fastest lap records from a specific race',
+    description: 'View fastest lap records from a Formula 1 race',
     source: 'F1 Racing Results API'
   },
   {
     command: '/sprint <year> <round>',
-    description: 'Get sprint race results and statistics',
+    description: 'View Formula 1 sprint race results and statistics',
     source: 'F1 Racing Results API'
   },
   {
     command: '/theme <team>',
-    description: 'Change terminal theme to F1 team colors',
+    description: 'Change terminal colors to F1 team theme',
     source: 'System'
   },
   {
     command: '/fontsize <size|+|-|reset>',
-    description: 'Change terminal history text size (e.g., /fontsize 14 or /fontsize +)',
+    description: 'Adjust terminal text size (e.g., /fontsize 14)',
     source: 'System'
   },
   {
     command: '/retro',
-    description: 'Toggle retro text glow effect on/off',
+    description: 'Toggle retro terminal text glow effect',
     source: 'System',
     category: 'Effects'
   },
   {
     command: '/matrix',
-    description: 'Toggle Matrix-style digital rain effect',
+    description: 'Toggle Matrix-style terminal effects',
     source: 'System',
     category: 'Effects'
   },
   {
     command: '/stats',
-    description: 'Show your terminal usage statistics',
+    description: 'View your terminal usage statistics',
     source: 'System',
     category: 'System'
   },
   {
-    command: '/speed',
-    description: 'Test your command typing speed',
-    source: 'System',
-    category: 'Games'
-  },
-  {
     command: '/sys',
-    description: 'Display system information and terminal diagnostics',
+    description: 'View system info and terminal diagnostics',
     source: 'System',
     category: 'System'
   },
   {
     command: '/hack <target>',
-    description: 'Simulate a "hacking" sequence with retro visual effects',
+    description: 'Run simulated hacking sequence with effects',
     source: 'System',
     category: 'Fun'
   },
   {
     command: '/decrypt',
-    description: 'Start an interactive code-breaking minigame',
+    description: 'Play interactive code-breaking minigame',
     source: 'System',
     category: 'Games'
   },
   {
     command: '/neofetch',
-    description: 'Display system info in a stylized format',
+    description: 'View system info in stylized terminal format',
     source: 'System',
     category: 'System'
   },
   {
     command: '/matrix rain',
-    description: 'Toggle digital rain animation in terminal background',
+    description: 'Toggle Matrix digital rain background effect',
     source: 'System',
     category: 'Effects'
   },
   {
     command: '/glitch',
-    description: 'Apply a temporary glitch effect to the terminal',
+    description: 'Apply temporary glitch visual effect',
     source: 'System',
     category: 'Effects'
   },
   {
     command: '/crt',
-    description: 'Toggle CRT monitor effects (includes scanlines and flicker)',
+    description: 'Toggle CRT monitor visual effects',
     source: 'System',
     category: 'Effects'
   }

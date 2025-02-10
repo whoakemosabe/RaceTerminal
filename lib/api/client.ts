@@ -371,12 +371,23 @@ const F1_CARS_2023 = {
 export const api = {
   async getDriverStandings(year: number = new Date().getFullYear()): Promise<DriverStanding[]> {
     try {
-      const { data } = await retryRequest(async () => {
+      // Try current year first
+      let response = await retryRequest(async () => {
         return await ergastClient.get(`/${year}/driverStandings.json`);
       });
       
-      const standings = data?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings;
+      // If no data for current year, try previous year
+      if (!response.data?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings) {
+        const previousYear = year - 1;
+        response = await retryRequest(async () => {
+          return await ergastClient.get(`/${previousYear}/driverStandings.json`);
+        });
+      }
+      
+      const standings = response.data?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings;
+      
       if (!standings || !Array.isArray(standings)) {
+        console.error('No standings data available for current or previous year');
         return [];
       }
       
@@ -404,9 +415,19 @@ export const api = {
 
   async getConstructorStandings(year: number = new Date().getFullYear()) {
     return retryRequest(async () => {
-      const { data } = await ergastClient.get(`/${year}/constructorStandings.json`);
-      const standings = data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings;
+      // Try current year first
+      let response = await ergastClient.get(`/${year}/constructorStandings.json`);
+      
+      // If no data for current year, try previous year
+      if (!response.data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings) {
+        const previousYear = year - 1;
+        response = await ergastClient.get(`/${previousYear}/constructorStandings.json`);
+      }
+      
+      const standings = response.data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings;
+      
       if (!standings) {
+        console.error('No constructor standings available for current or previous year');
         return [];
       }
       return standings.map((standing: any) => ({

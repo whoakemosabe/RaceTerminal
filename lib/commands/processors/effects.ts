@@ -1,5 +1,11 @@
-export const effectsCommands = {
-  '/retro': async (args: string[]) => {
+import { CommandFunction } from './index';
+
+interface EffectsCommands {
+  [key: string]: CommandFunction;
+}
+
+const effectsCommands: EffectsCommands = {
+  '/retro': async (args: string[], originalCommand: string) => {
     if (args.length > 0 && !['reset', 'all'].includes(args[0].toLowerCase())) {
       return '❌ Error: /retro only accepts "all" or "reset" as arguments (e.g., /retro all or /retro reset)';
     }
@@ -84,7 +90,7 @@ export const effectsCommands = {
     }
   },
 
-  '/matrix': async (args: string[]) => {
+  '/matrix': async (args: string[], originalCommand: string) => {
     if (args.length > 0) {
       return '❌ Error: /matrix is a simple toggle command and does not accept any arguments';
     }
@@ -102,7 +108,60 @@ export const effectsCommands = {
     }
   },
 
-  '/scanlines': async (args: string[]) => {
+  '/matrix rain': async (args: string[], originalCommand: string) => {
+    if (args.length > 0) {
+      return '❌ Error: /matrix rain is a simple toggle command and does not accept any arguments';
+    }
+
+    const currentState = document.documentElement.classList.contains('matrix-rain-enabled');
+    try {
+      document.documentElement.classList.toggle('matrix-rain-enabled');
+      localStorage.setItem('matrix_rain_enabled', (!currentState).toString());
+      return !currentState
+        ? '🟢 Matrix rain effect enabled! Digital droplets falling...'
+        : '🟢 Matrix rain effect disabled. Droplets stopped!';
+    } catch (error) {
+      console.error('Failed to toggle matrix rain effect:', error);
+      return '❌ Error: Failed to toggle matrix rain effect. Please try again.';
+    }
+  },
+
+  '/glitch': async (args: string[], originalCommand: string) => {
+    if (args.length > 0) {
+      return '❌ Error: /glitch is a simple toggle command and does not accept any arguments';
+    }
+
+    const currentState = document.documentElement.classList.contains('glitch-active');
+    try {
+      document.documentElement.classList.toggle('glitch-active');
+      return !currentState
+        ? '�itch Glitch effect enabled! Reality is breaking...'
+        : '🌊 Glitch effect disabled. Reality stabilized.';
+    } catch (error) {
+      console.error('Failed to toggle glitch effect:', error);
+      return '❌ Error: Failed to toggle glitch effect. Please try again.';
+    }
+  },
+
+  '/crt': async (args: string[], originalCommand: string) => {
+    if (args.length > 0) {
+      return '❌ Error: /crt is a simple toggle command and does not accept any arguments';
+    }
+
+    const currentState = document.documentElement.classList.contains('crt-enabled');
+    try {
+      document.documentElement.classList.toggle('crt-enabled');
+      localStorage.setItem('crt_enabled', (!currentState).toString());
+      return !currentState
+        ? '📺 CRT effects enabled! Welcome to the retro era!'
+        : '📺 CRT effects disabled. Back to modern display!';
+    } catch (error) {
+      console.error('Failed to toggle CRT effect:', error);
+      return '❌ Error: Failed to toggle CRT effect. Please try again.';
+    }
+  },
+
+  '/scanlines': async (args: string[], originalCommand: string) => {
     if (args.length > 0) {
       return '❌ Error: /scanlines is a simple toggle command and does not accept any arguments';
     }
@@ -120,3 +179,5 @@ export const effectsCommands = {
     }
   }
 };
+
+export { effectsCommands };

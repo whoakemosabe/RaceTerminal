@@ -3,7 +3,13 @@ import { teamThemes, teamNicknames, icons, findTeamId, countryToCode } from '@/l
 import { commands } from '@/lib/commands';
 import { APP_VERSION } from '@/lib/constants';
 
-export const systemCommands = {
+import { CommandFunction } from './index';
+
+interface SystemCommands {
+  [key: string]: CommandFunction;
+}
+
+export const systemCommands: SystemCommands = {
   '/user': async (args: string[], originalCommand: string) => {
     if (!args[0]) {
       const cmd = originalCommand === '/u' ? '/u' : '/user';
@@ -100,9 +106,349 @@ export const systemCommands = {
     }
   },
 
-  '/help': async () => {
-    // Help command implementation
-    // (Moved to separate file for brevity)
+  '/help': async (args: string[]) => {
+    // Command-specific help documentation
+    const commandHelp: Record<string, string> = {
+      'telemetry': [
+        '📊 TELEMETRY COMMAND REFERENCE',
+        '═'.repeat(50),
+        '',
+        'Get real-time car telemetry data during active sessions.',
+        '',
+        'Usage: /telemetry <driver_number>',
+        'Example: /telemetry 44',
+        '',
+        'Available Data:',
+        '• Speed (km/h)',
+        '• RPM',
+        '• Throttle position (%)',
+        '• Brake position (%)',
+        '• Gear',
+        '• Engine temperature',
+        '',
+        'Notes:',
+        '• Only available during active sessions',
+        '• Updates in real-time',
+        '• Use driver numbers (e.g., 1, 44, 16)',
+        '',
+        'Related Commands:',
+        '• /live - Live timing data',
+        '• /tires - Tire compound data',
+        '• /weather - Track conditions'
+      ].join('\n'),
+
+      'live': [
+        '📊 LIVE TIMING COMMAND REFERENCE',
+        '═'.repeat(50),
+        '',
+        'Get real-time timing data during active sessions.',
+        '',
+        'Usage: /live',
+        '',
+        'Available Data:',
+        '• Position',
+        '• Last lap time',
+        '• Sector times (S1, S2, S3)',
+        '• Speed trap',
+        '',
+        'Notes:',
+        '• Only available during active sessions',
+        '• Updates automatically',
+        '• Shows top 10 drivers by default',
+        '',
+        'Related Commands:',
+        '• /telemetry - Car telemetry',
+        '• /status - Track status',
+        '• /weather - Track conditions'
+      ].join('\n'),
+
+      'weather': [
+        '🌤️ WEATHER COMMAND REFERENCE',
+        '═'.repeat(50),
+        '',
+        'Get current weather conditions at the circuit.',
+        '',
+        'Usage: /weather',
+        'Shortcuts: /w, /wx',
+        '',
+        'Available Data:',
+        '• Track status',
+        '• Air temperature',
+        '• Track temperature',
+        '• Humidity',
+        '• Pressure',
+        '• Wind speed & direction',
+        '• Rainfall',
+        '',
+        'Notes:',
+        '• Only available during race weekends',
+        '• Updates in real-time',
+        '• Includes track status indicators',
+        '',
+        'Related Commands:',
+        '• /status - Track status',
+        '• /live - Live timing',
+        '• /telemetry - Car telemetry'
+      ].join('\n'),
+
+      'compare': [
+        '🏆 COMPARISON COMMAND REFERENCE',
+        '═'.repeat(50),
+        '',
+        'Compare career statistics between drivers or teams.',
+        '',
+        'Usage:',
+        '1. Compare Drivers:',
+        '   /compare driver <driver1> <driver2>',
+        '   Shortcut: /md <driver1> <driver2>',
+        '',
+        '2. Compare Teams:',
+        '   /compare team <team1> <team2>',
+        '   Shortcut: /mt <team1> <team2>',
+        '',
+        'Examples:',
+        '• /compare driver verstappen hamilton',
+        '• /md verstappen hamilton',
+        '• /compare team redbull mercedes',
+        '• /mt redbull mercedes',
+        '',
+        'Available Statistics:',
+        '• Championships',
+        '• Race wins',
+        '• Podiums',
+        '• Pole positions',
+        '• Fastest laps',
+        '• Points',
+        '• Win rate',
+        '• Podium rate',
+        '',
+        'Notes:',
+        '• Use driver names, codes, or numbers',
+        '• Team names and abbreviations supported',
+        '• Historical data included',
+        '',
+        'Related Commands:',
+        '• /driver - Driver information',
+        '• /team - Team information',
+        '• /standings - Championship standings'
+      ].join('\n'),
+
+      'effects': [
+        '✨ VISUAL EFFECTS COMMAND REFERENCE',
+        '═'.repeat(50),
+        '',
+        'Available Effects Commands:',
+        '',
+        '1. /retro',
+        '   • Toggle retro text glow effect',
+        '   • Usage: /retro [all|reset]',
+        '',
+        '2. /matrix',
+        '   • Toggle Matrix-style digital rain',
+        '   • Usage: /matrix',
+        '',
+        '3. /crt',
+        '   • Toggle CRT monitor effects',
+        '   • Usage: /crt',
+        '',
+        '4. /scanlines',
+        '   • Toggle scanline overlay',
+        '   • Usage: /scanlines',
+        '',
+        '5. /glitch',
+        '   • Apply temporary glitch effect',
+        '   • Usage: /glitch',
+        '',
+        'Notes:',
+        '• Effects can be combined',
+        '• Use /retro all to enable all effects',
+        '• Use /retro reset to disable all effects',
+        '• Effects persist between sessions',
+        '',
+        'Related Commands:',
+        '• /theme - Change color theme',
+        '• /fontsize - Adjust text size'
+      ].join('\n'),
+
+      'list': [
+        '📋 LIST COMMAND REFERENCE',
+        '═'.repeat(50),
+        '',
+        'List available F1 data and information.',
+        '',
+        'Usage: /list <type>',
+        'Shortcut: /ls <type>',
+        '',
+        'Available Types:',
+        '• drivers - Current drivers, champions, and legends',
+        '• teams - Current F1 teams and details',
+        '• tracks - F1 circuits and information',
+        '• cars - F1 cars and specifications',
+        '',
+        'Examples:',
+        '• /list drivers',
+        '• /list teams',
+        '• /ls tracks',
+        '• /ls cars',
+        '',
+        'Notes:',
+        '• Includes historical data',
+        '• Shows detailed information',
+        '• Supports team colors',
+        '• Displays country flags',
+        '',
+        'Related Commands:',
+        '• /driver - Driver details',
+        '• /team - Team information',
+        '• /track - Circuit details',
+        '• /car - Car specifications'
+      ].join('\n')
+    };
+
+    const categories = {
+      'Lists & Data': commands.filter(c => 
+        ['list', 'ls'].some(term => 
+          c.command.toLowerCase().includes(term)
+        )
+      ),
+      'Race Information': commands.filter(c => 
+        ['standings', 'schedule', 'next', 'last', 'track', 'teams', 'car'].some(term => 
+          c.command.toLowerCase().includes(term)
+        )
+      ),
+      'Live Data': commands.filter(c => 
+        ['live', 'telemetry', 'status', 'weather', 'tires'].some(term => 
+          c.command.toLowerCase().includes(term)
+        )
+      ),
+      'Historical Data': commands.filter(c => 
+        ['race', 'qualifying', 'sprint', 'pitstops', 'fastest', 'laps'].some(term => 
+          c.command.toLowerCase().includes(term)
+        )
+      ),
+      'Driver & Team': commands.filter(c => 
+        ['driver', 'team', 'compare', '/md', '/mt'].some(term => 
+          c.command.toLowerCase().includes(term)
+        )
+      ),
+      'System': commands.filter(c => 
+        ['user', 'clear', 'help', 'theme', 'sys', 'neofetch', 'hack', 'fontsize', 'stats', 'speed', 'decrypt'].some(term => 
+          c.command.toLowerCase().includes(term)
+        )
+      ),
+      'Effects': commands.filter(c => 
+        ['retro', 'matrix', 'crt', 'glitch', 'scanlines', 'rain'].some(term => 
+          c.command.toLowerCase().includes(term)
+        )
+      )
+    };
+
+    // If a specific command is provided
+    if (args[0]) {
+      const searchTerm = args[0].toLowerCase().replace('/', '');
+      
+      // Check for direct command help
+      if (commandHelp[searchTerm]) {
+        return commandHelp[searchTerm];
+      }
+
+      // Check for category help
+      const category = Object.entries(categories).find(([name]) => 
+        name.toLowerCase().includes(searchTerm)
+      );
+
+      if (category) {
+        return [
+          `📚 ${category[0].toUpperCase()} COMMANDS`,
+          '═'.repeat(50),
+          '',
+          ...category[1].map(formatCommand)
+        ].join('\n');
+      }
+
+      return [
+        '❌ Help topic not found. Try one of these:',
+        '',
+        'Categories:',
+        ...Object.keys(categories).map(cat => `• ${cat}`),
+        '',
+        'Popular Commands:',
+        '• telemetry - Car telemetry data',
+        '• live - Live timing information',
+        '• weather - Track conditions',
+        '• compare - Compare drivers/teams',
+        '• effects - Visual effects',
+        '• list - Available data'
+      ].join('\n');
+    }
+    const header = [
+      '📚 RACETERMINAL PRO COMMAND REFERENCE',
+      '═'.repeat(50),
+      '',
+      'Type /help <category> for detailed information about a specific category.',
+      'For example: /help live or /help driver',
+      ''
+    ];
+
+    const formatCommand = (cmd: typeof commands[0]) => {
+      const [baseCmd, ...params] = cmd.command.split(' ');
+      const aliases = baseCmd.match(/\((.*?)\)/)?.[1] || '';
+      const cleanCmd = baseCmd.replace(/\s*\(.*?\)/, '');
+      
+      return [
+        `${cleanCmd}${params.length ? ' ' + params.join(' ') : ''}`,
+        aliases ? `Aliases: ${aliases}` : '',
+        `Description: ${cmd.description}`,
+        `Source: ${cmd.source}`,
+        ''
+      ].filter(Boolean).join('\n');
+    };
+
+    // If a specific category is provided
+    if (args[0]) {
+      const category = Object.entries(categories).find(([name]) => 
+        name.toLowerCase().includes(args[0].toLowerCase())
+      );
+
+      if (!category) {
+        return [
+          '❌ Category not found. Available categories:',
+          ...Object.keys(categories).map(cat => `• ${cat} (/help ${cat.toLowerCase().split(' ')[0]})`)
+        ].join('\n');
+      }
+
+      return [
+        `📚 ${category[0].toUpperCase()} COMMANDS`,
+        '═'.repeat(50),
+        '',
+        ...category[1].map(formatCommand)
+      ].join('\n');
+    }
+
+    // Show all categories with their commands
+    const content = Object.entries(categories).map(([category, cmds]) => [
+      `${category} (${cmds.length} commands):`,
+      '─'.repeat(25),
+      ...cmds.map(cmd => {
+        const [baseCmd] = cmd.command.split(' ');
+        const cleanCmd = baseCmd.replace(/\s*\(.*?\)/, '');
+        const aliases = baseCmd.match(/\((.*?)\)/)?.[1];
+        return `${cleanCmd}${aliases ? ` (${aliases})` : ''} - ${cmd.description}`;
+      }),
+      ''
+    ]).flat();
+
+    return [
+      ...header,
+      ...content,
+      'Tips:',
+      '• Use /list <type> to see available data (drivers, teams, tracks, cars)',
+      '• Use Tab for command completion',
+      '• Commands are case-insensitive',
+      '• Most commands have shortcuts (shown in parentheses)',
+      '• Press Alt+Enter to toggle fullscreen mode',
+      '• Press Ctrl+L to clear the terminal'
+    ].join('\n');
   },
 
   '/clear': async () => {
@@ -201,18 +547,19 @@ export const systemCommands = {
     const resolution = `${window.innerWidth}x${window.innerHeight}`;
     const theme = localStorage.getItem('terminal_theme') || 'Default';
 
-    const logo = [
-      '    ____              __________              _            __',
-      '   / __ \\____ _____  / ____/ __/___ ___     (_)___  ____/ /',
-      '  / /_/ / __ `/ __ \\/ /   / /_/ __ `__ \\   / / __ \\/ __  /',
-      ' / _, _/ /_/ / /_/ / /___/ __/ / / / / /  / / / / / /_/ /',
-      '/_/ |_|\\__,_/ .___/\\____/_/ /_/ /_/ /_/  /_/_/ /_/\\__,_/',
-      '           /_/'
-    ].join('\n');
+
+    const logo = `
+<span style="color: hsl(var(--primary))">🏎️  RACE</span><span style="color: hsl(var(--secondary))">TERMINAL</span> <span style="color: hsl(var(--accent))">PRO</span>
+
+<span style="color: hsl(var(--primary))">╔═══════════════════════╗</span>
+<span style="color: hsl(var(--primary))">║</span> <span style="color: hsl(var(--secondary))">🏁 High Performance</span>   <span style="color: hsl(var(--primary))">║</span>
+<span style="color: hsl(var(--primary))">║</span> <span style="color: hsl(var(--accent))">⚡ Maximum Speed</span>      <span style="color: hsl(var(--primary))">║</span>
+<span style="color: hsl(var(--primary))">║</span> <span style="color: hsl(var(--secondary))">🔧 Full Control</span>       <span style="color: hsl(var(--primary))">║</span>
+<span style="color: hsl(var(--primary))">╚═══════════════════════╝</span>`;
 
     return [
       logo,
-      '─'.repeat(50),
+      '',
       `OS: ${os}`,
       `Kernel: ${kernel}`,
       `Uptime: ${Math.floor(uptime / 60)}m ${uptime % 60}s`,

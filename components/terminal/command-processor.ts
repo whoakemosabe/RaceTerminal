@@ -5,7 +5,7 @@ export const commandAliases: Record<string, string> = {
   '/d': '/driver',
   '/t': '/track',
   '/c': '/car',
-  '/s': '/standings',
+  '/s': '/standings',     // Driver standings
   '/cl': '/clear',
   '/q': '/qualifying',
   '/r': '/race',
@@ -21,14 +21,12 @@ export const commandAliases: Record<string, string> = {
   // Multi-letter shortcuts
   '/md': '/compare driver',
   '/mt': '/compare team',
-  '/st': '/standings',
-  '/cs': '/teams',          // Constructor standings
+  '/ds': '/standings',    // Driver standings
+  '/cs': '/teams',        // Constructor standings
   '/ps': '/pitstops',
   '/fl': '/fastest',
   '/ql': '/qualifying',
   '/nx': '/next',
-  '/la': '/last',
-  '/cl': '/clear',
   '/rs': '/reset',
   '/sc': '/schedule',
   '/sp': '/sprint',

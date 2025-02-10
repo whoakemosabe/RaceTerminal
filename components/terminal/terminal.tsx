@@ -46,6 +46,8 @@ export function Terminal({
   const [fontSize, setFontSize] = useState(14);
   const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleTimeString());
   const [hasSetUsername, setHasSetUsername] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout>();
 
   // Scroll to top when new command is added
   useEffect(() => {
@@ -57,6 +59,11 @@ export function Terminal({
   useEffect(() => {
     setMounted(true);
     
+    // Clear any existing intervals
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
     // Focus input on mount
     inputRef.current?.focus();
 
@@ -103,10 +110,15 @@ export function Terminal({
 
     
     // Set up interval for updates
-    const interval = setInterval(updateTime, 1000);
+    intervalRef.current = setInterval(updateTime, 1000);
     
     return () => {
-      clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, []);
 
@@ -164,6 +176,7 @@ export function Terminal({
             <CommandSuggestions
               command={command}
               isVisible={showSuggestions && command.startsWith('/')}
+              onShowSuggestionsChange={onShowSuggestionsChange}
               onClose={() => onShowSuggestionsChange(false)}
               onNavigationStateChange={onNavigationStateChange}
               isNavigatingSuggestions={isNavigatingSuggestions}
@@ -182,10 +195,16 @@ export function Terminal({
               value={command}
               onChange={(e) => {
                 onCommandChange(e.target.value);
-                onShowSuggestionsChange(true);
+                if (e.target.value.startsWith('/')) {
+                  onShowSuggestionsChange(true);
+                }
                 onNavigationStateChange(false);
               }}
-              onFocus={() => onShowSuggestionsChange(true)}
+              onFocus={() => {
+                if (command.startsWith('/')) {
+                  onShowSuggestionsChange(true);
+                }
+              }}
               onBlur={() => setTimeout(() => onShowSuggestionsChange(false), 200)}
               onKeyDown={(e) => {
                 if (!isNavigatingSuggestions) {
@@ -298,6 +317,15 @@ export function Terminal({
           <div className="scanlines-layer absolute inset-0 pointer-events-none" />
           <div className="flex flex-col space-y-2">
             {[...history].reverse().map((entry, index) => {
+              const isError = entry.output && (
+                typeof entry.output === 'string' && (
+                  entry.output.startsWith('❌') || 
+                  entry.output.startsWith('Error:') || 
+                  entry.output.includes('not found') || 
+                  entry.output.includes('No ')
+                )
+              );
+              
               return (
                 <div key={index} className="space-y-2">
                   <div className="flex items-center gap-2 terminal-prompt" style={{ fontSize: `${fontSize}px` }}>
@@ -312,9 +340,7 @@ export function Terminal({
                     className={cn(
                       "pl-4 whitespace-pre-wrap break-words",
                       entry.output === 'Processing command' && "processing-dots",
-                      entry.output.startsWith('❌') || entry.output.startsWith('Error:') || entry.output.includes('not found') || entry.output.includes('No ') 
-                        ? 'text-red-500' 
-                        : 'text-white'
+                      isError ? 'text-red-500' : 'text-white'
                     )}
                     style={{ 
                       lineHeight: '1.5',
@@ -323,10 +349,10 @@ export function Terminal({
                       whiteSpace: 'pre-wrap',
                       wordBreak: 'break-word'
                     }}
-                    dangerouslySetInnerHTML={{ __html: entry.output }}
+                    dangerouslySetInnerHTML={{ __html: entry.output || '' }}
                   />
                 </div>
-              )
+              );
             })}
           </div>
         </div>

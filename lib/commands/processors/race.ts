@@ -1,7 +1,13 @@
 import { api } from '@/lib/api/client';
-import { formatDriver, formatTime, formatDate, calculateCountdown, icons, findTeamId, getFlagUrl, findDriverId, formatDriverComparison, formatTeamComparison } from '@/lib/utils';
+import { formatDriver, formatTime, formatDate, calculateCountdown, icons, findTeamId, getFlagUrl, findDriverId, formatDriverComparison, formatTeamComparison, getTeamColor } from '@/lib/utils';
 
-export const raceCommands = {
+import { CommandFunction } from './index';
+
+interface RaceCommands {
+  [key: string]: CommandFunction;
+}
+
+export const raceCommands: RaceCommands = {
   '/compare': async (args: string[], originalCommand: string) => {
     if (!args[0] || !args[1] || !args[2]) {
       const cmd = originalCommand === '/m' ? '/m' : '/compare';
@@ -157,5 +163,85 @@ export const raceCommands = {
     ].join('\n'));
 
     return `🏁 ${data.raceName} Results:\n\n${results.join('\n\n')}`;
-  }
+  },
+
+  '/standings': async (args: string[]) => {
+    try {
+      const currentYear = new Date().getFullYear();
+      // Always try previous year first since current season hasn't started
+      const year = currentYear - 1;
+      const data = await api.getDriverStandings(year);
+      
+      if (!data || data.length === 0) {
+        return '❌ Error: Could not fetch driver standings';
+      }
+
+      const header = `🏆 ${year} FORMULA 1 DRIVERS CHAMPIONSHIP`;
+      const separator = '═'.repeat(60);
+      
+      const standings = data.map(standing => {
+        const flagUrl = getFlagUrl(standing.Driver.nationality);
+        const flag = flagUrl ? 
+          `<img src="${flagUrl}" alt="${standing.Driver.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
+          '';
+        const teamColor = getTeamColor(standing.Constructor.name);
+        
+        return [
+          `P${standing.position}. ${standing.Driver.givenName} ${standing.Driver.familyName} ${flag}`,
+          `Points: ${standing.points}`,
+          `Team: <span style="color: ${teamColor}">${standing.Constructor.name}</span>`,
+          ''
+        ].join(' | ');
+      });
+
+      return [
+        header,
+        separator,
+        ...standings
+      ].join('\n');
+    } catch (error) {
+      console.error('Error fetching driver standings:', error);
+      return '❌ Error: Could not fetch driver standings. Please try again later.';
+    }
+  },
+
+  '/teams': async (args: string[]) => {
+    try {
+      const currentYear = new Date().getFullYear();
+      // Always try previous year first since current season hasn't started
+      const year = currentYear - 1;
+      const data = await api.getConstructorStandings(year);
+      
+      if (!data || data.length === 0) {
+        return '❌ Error: Could not fetch constructor standings';
+      }
+
+      const header = `🏎️ ${year} FORMULA 1 CONSTRUCTORS CHAMPIONSHIP`;
+      const separator = '═'.repeat(60);
+      
+      const standings = data.map(standing => {
+        const team = standing.Constructor;
+        const flagUrl = getFlagUrl(team.nationality);
+        const flag = flagUrl ? 
+          `<img src="${flagUrl}" alt="${team.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
+          '';
+        const teamColor = getTeamColor(team.name);
+        
+        return [
+          `P${standing.position}. <span style="color: ${teamColor}">${team.name}</span> ${flag}`,
+          `Points: ${standing.points}`,
+          `Wins: ${standing.wins}`
+        ].join(' | ');
+      });
+
+      return [
+        header,
+        separator,
+        ...standings
+      ].join('\n');
+    } catch (error) {
+      console.error('Error fetching constructor standings:', error);
+      return '❌ Error: Could not fetch constructor standings. Please try again later.';
+    }
+  },
 };

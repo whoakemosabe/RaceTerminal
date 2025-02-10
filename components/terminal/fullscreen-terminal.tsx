@@ -18,7 +18,8 @@ interface FullscreenTerminalProps {
   onCommandChange: (value: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onExecute: () => void;
-  hasSetUsername: boolean;
+  showWelcome?: boolean;
+  onCloseWelcome?: () => void;
 }
 
 export function FullscreenTerminal({

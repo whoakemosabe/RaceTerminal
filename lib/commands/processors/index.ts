@@ -7,34 +7,40 @@ import { listCommands } from './list';
 import { carCommands } from './cars';
 import { commandAliases } from '@/components/terminal/command-processor';
 
-// Command processor registry
-const processors: Record<string, (args: string[], originalCommand: string) => Promise<string>> = {
-  ...systemCommands,
-  ...driverCommands,
-  ...raceCommands,
-  ...liveCommands,
-  ...effectsCommands,
-  ...listCommands,
-  ...carCommands,
-  '/standings': raceCommands['/standings'],
-  '/teams': raceCommands['/teams'],
-  '/schedule': raceCommands['/schedule'],
-  '/next': raceCommands['/next'],
-  '/last': raceCommands['/last'],
-  '/track': raceCommands['/track'],
-  '/qualifying': raceCommands['/qualifying'],
-  '/sprint': raceCommands['/sprint'],
-  '/pitstops': raceCommands['/pitstops'],
-  '/fastest': raceCommands['/fastest'],
-  '/compare': raceCommands['/compare'],
-  '/matrix rain': effectsCommands['/matrix rain'],
-  '/scanlines': effectsCommands['/scanlines'],
-  '/glitch': effectsCommands['/glitch'],
-  '/crt': effectsCommands['/crt'],
-  '/neofetch': systemCommands['/neofetch'],
-  '/hack': systemCommands['/hack'],
-  '/sys': systemCommands['/sys']
-};
+// Define the CommandFunction type
+export type CommandFunction = (args: string[], originalCommand: string) => Promise<string>;
+
+// Create the processors object with type definition
+const processors: Record<string, CommandFunction> = {};
+
+// Add command processors
+Object.assign(processors, systemCommands);
+Object.assign(processors, driverCommands);
+Object.assign(processors, raceCommands);
+Object.assign(processors, liveCommands);
+Object.assign(processors, effectsCommands);
+Object.assign(processors, listCommands);
+Object.assign(processors, carCommands);
+
+// Add individual command mappings
+processors['/standings'] = raceCommands['/standings'];
+processors['/teams'] = raceCommands['/teams'];
+processors['/schedule'] = raceCommands['/schedule'];
+processors['/next'] = raceCommands['/next'];
+processors['/last'] = raceCommands['/last'];
+processors['/track'] = raceCommands['/track'];
+processors['/qualifying'] = raceCommands['/qualifying'];
+processors['/sprint'] = raceCommands['/sprint'];
+processors['/pitstops'] = raceCommands['/pitstops'];
+processors['/fastest'] = raceCommands['/fastest'];
+processors['/compare'] = raceCommands['/compare'];
+processors['/matrix rain'] = effectsCommands['/matrix rain'];
+processors['/scanlines'] = effectsCommands['/scanlines'];
+processors['/glitch'] = effectsCommands['/glitch'];
+processors['/crt'] = effectsCommands['/crt'];
+processors['/neofetch'] = systemCommands['/neofetch'];
+processors['/hack'] = systemCommands['/hack'];
+processors['/sys'] = systemCommands['/sys'];
 
 export async function processCommand(cmd: string) {
   const parts = cmd.split(' ');

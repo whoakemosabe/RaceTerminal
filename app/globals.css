@@ -59,29 +59,61 @@
 }
 
 .execute-button {
-  @apply bg-card;
+  @apply bg-card/30;
   border: 1px solid hsl(var(--border)/0.2);
   box-shadow: 0 0 15px hsl(var(--primary)/0.05),
               inset 0 0 10px hsl(var(--primary)/0.05);
   color: hsl(var(--muted-foreground));
   font-size: 0.9rem;
   letter-spacing: 0.02em;
-  transition: all 0.15s ease-out;
+  transition: all 0.2s ease-out;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .execute-button:hover {
-  background: hsl(var(--card));
+  background: linear-gradient(
+    to bottom right,
+    hsl(var(--card)/0.4),
+    hsl(var(--card)/0.2)
+  );
   border-color: hsl(var(--border)/0.4);
   box-shadow: 0 0 20px hsl(var(--primary)/0.1),
               inset 0 0 15px hsl(var(--primary)/0.1);
   color: hsl(var(--primary));
+  transform: translateY(-1px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .execute-button:active {
   transform: scale(0.96);
   box-shadow: 0 0 10px hsl(var(--primary)/0.05),
               inset 0 0 5px hsl(var(--primary)/0.05);
-  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
+  transition: all 0.08s ease-out;
+  background: linear-gradient(
+    to bottom right,
+    hsl(var(--card)/0.5),
+    hsl(var(--card)/0.3)
+  );
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.execute-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(
+    to bottom right,
+    hsl(var(--card)/0.2),
+    hsl(var(--card)/0.1)
+  );
+  border-color: hsl(var(--border)/0.1);
+  box-shadow: none;
+  color: hsl(var(--muted-foreground)/0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .gradient-bg {
@@ -257,7 +289,7 @@ body.resizing * {
     0 0 15px hsl(var(--primary)/0.05),
     inset 0 0 10px hsl(var(--primary)/0.05);
 }
-  outline: none;
+
 input.terminal-input {
   @apply bg-transparent border-none outline-none ring-0 focus:ring-0 focus:outline-none;
   box-shadow: none;
@@ -466,6 +498,7 @@ html {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(100%); }
 }
+
 @keyframes matrix-scan {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(100%); }
@@ -538,7 +571,6 @@ html {
   animation: fadeIn 0.15s ease-in-out;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(16px);
-  /* background: hsl(var(--card)/0.01); */
 }
 
 .terminal-window .absolute > div > div {
