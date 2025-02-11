@@ -332,23 +332,23 @@ function formatGapAnalysis(analysis: GapAnalysis[]): string[] {
 
     const consistencyRating = driver.gapConsistency !== null
       ? driver.gapConsistency < 0.5 
-        ? `<span style="color: hsl(var(--success))">🟢 High</span>`
+        ? '<span style="color: hsl(var(--success))">💫 Outstanding</span>'
         : driver.gapConsistency < 1.0
-          ? `<span style="color: hsl(var(--warning))">🟡 Medium</span>`
-          : driver.gapConsistency < 2.0
-            ? `<span style="color: hsl(var(--info))">🟠 Variable</span>`
-            : `<span style="color: hsl(var(--error))">🔴 Low</span>`
-      : 'N/A';
+        ? '<span style="color: hsl(var(--success))">🟢 Strong</span>'
+        : driver.gapConsistency < 2.0
+        ? '<span style="color: hsl(var(--warning))">🟡 Variable</span>'
+        : '<span style="color: hsl(var(--error))">🔴 Poor</span>'
+        : 'N/A';
 
     // Format the main driver line according to the requested format
     const driverLine = `P${driver.position}. ${driver.driver.givenName} ${driver.driver.familyName} | ${driver.driver.nationality} ${flag} | <span style="color: ${teamColor}">${driver.constructor.name}</span>`;
 
     return [
       driverLine,
-      `Gap to P${parseInt(driver.position) - 1}: ${gapToAheadStr}`,
-      `Gap to Leader: ${gapToLeader}`,
-      `Consistency: ${consistencyRating} (±${consistency ? parseFloat(consistency).toFixed(3) : 'N/A'}s)`,
-      `Closest Battle: ${rivalInfo}`,
+      `Gap to P${parseInt(driver.position) - 1}: <span style="color: hsl(var(--muted-foreground))">${gapToAheadStr}</span>`,
+      `Gap to Leader: <span style="color: hsl(var(--muted-foreground))">${gapToLeader}</span>`,
+      `Consistency: ${consistencyRating} <span style="color: hsl(var(--muted-foreground))">(±${consistency ? parseFloat(consistency).toFixed(3) : 'N/A'}s)</span>`,
+      `Closest Battle: <span style="color: hsl(var(--muted-foreground))">${rivalInfo}</span>`,
       ''
     ].join('\n');
   });

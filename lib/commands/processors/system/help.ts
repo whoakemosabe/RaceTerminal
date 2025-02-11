@@ -1,6 +1,7 @@
 import { commands } from '@/lib/commands';
 import { CommandFunction } from '../index';
 import { commandAliases } from '@/components/terminal/command-processor';
+import { quickReferenceCategories } from '@/lib/data/quick-reference';
 import { commandInfo } from '@/lib/data/command-info';
 
 // Helper functions
@@ -73,10 +74,12 @@ const commandExamples: Record<string, string[]> = {
     '/driver schumi - View Michael Schumacher\'s profile'
   ],
   '/theme': [
-    '/theme ferrari - Apply Ferrari team colors',
-    '/theme dracula - Use Dracula editor theme',
-    '/theme calc amber - Enable calculator mode with amber display',
-    '/theme default - Reset to default colors'
+    '• /theme ferrari - Apply Ferrari team colors',
+    '• /theme dracula - Use Dracula editor theme',
+    '• /theme calc amber - Enable calculator mode with amber display',
+    '• /theme default - Reset to default colors',
+    '• /theme nord - Apply Nord editor theme',
+    '• /theme monokai - Apply Monokai editor theme'
   ],
   '/pace': [
     '/pace 2023 1 - Analyze race pace from 2023 Bahrain GP',
@@ -134,11 +137,28 @@ const commandNotes: Record<string, string[]> = {
     '• Case-insensitive search'
   ],
   '/theme': [
-    '• Supports F1 team themes (e.g., ferrari, mercedes)',
-    '• Editor themes (e.g., dracula, monokai, nord)',
-    '• Calculator themes (use /theme calc <scheme>)',
+    'F1 Team Themes:',
+    '• All current F1 teams supported (e.g., ferrari, mercedes, redbull)',
+    '• Team colors match official branding',
+    '• Includes primary and accent colors',
+    '',
+    'Editor Themes:',
+    '• Popular editor themes (dracula, monokai, nord, etc.)',
+    '• Full terminal color scheme customization',
+    '• Optimized for readability',
+    '',
+    'Calculator Themes:',
+    '• Classic green LCD display',
+    '• Blue, amber, red, and white variants',
+    '• Retro calculator aesthetics',
+    '',
+    'Additional Features:',
     '• Themes persist between sessions',
-    '• Use /theme default to reset colors'
+    '• Real-time color updates',
+    '• Compatible with all terminal effects',
+    '• Use /theme default to reset colors',
+    '',
+    'Tip: Use /list themes to see all available themes with previews'
   ],
   '/pace': [
     '• Analyzes race pace and consistency',
@@ -193,10 +213,12 @@ const relatedCommands: Record<string, string[]> = {
     '• /telemetry - Live car data'
   ],
   '/theme': [
-    '• /retro - Retro text effects',
-    '• /matrix - Matrix effects',
-    '• /crt - CRT monitor effects',
-    '• /calc - Calculator mode'
+    '• /list themes - Show all available themes',
+    '• /retro - Toggle retro text effects',
+    '• /matrix - Toggle Matrix effects',
+    '• /crt - Toggle CRT monitor effects',
+    '• /calc - Toggle calculator mode',
+    '• /scanlines - Toggle scanline effect'
   ],
   '/pace': [
     '• /gap - Race gap analysis',

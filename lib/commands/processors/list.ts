@@ -1,4 +1,6 @@
-import { driverNicknames, teamNicknames, trackNicknames, getFlagUrl, getTeamColor, getTrackDetails, findDriverId, countryToCode, driverNumbers, icons } from '@/lib/utils';
+import { driverNicknames, teamNicknames, trackNicknames, getFlagUrl, getTeamColor, getTrackDetails, findDriverId, countryToCode, driverNumbers, icons, teamThemes } from '@/lib/utils';
+import { colorThemes } from '@/lib/themes/colors';
+import { calculatorThemes } from '@/lib/themes/calculator';
 import { api } from '@/lib/api/client';
 
 export const listCommands = {
@@ -214,9 +216,59 @@ export const listCommands = {
           ...tracks
         ].join('\n');
       }
+      
+      case 'themes': {
+        const separator = '═'.repeat(60);
+        
+        // Team Themes Section
+        const teamSection = [
+          '🏎️  F1 TEAM THEMES',
+          separator,
+          ...Object.entries(teamNicknames).map(([id, names]) => {
+            const teamName = names[0];
+            const teamColor = getTeamColor(teamName);
+            const theme = teamThemes[id];
+            return `<div style="display: inline-block; margin: 2px 0; padding: 4px 8px; background: linear-gradient(to right, hsl(${theme.primary}), hsl(${theme.secondary})); border: 1px solid hsl(${theme.border}); border-radius: 4px; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${teamName}</div>`;
+          })
+        ];
+
+        // Editor Themes Section
+        const editorSection = [
+          '',
+          '🎨 EDITOR THEMES',
+          separator,
+          ...Object.entries(colorThemes).map(([name, theme]) => {
+            return `<div style="display: inline-block; margin: 2px 0; padding: 4px 8px; background: linear-gradient(to right, hsl(${theme.primary}), hsl(${theme.secondary})); border: 1px solid hsl(${theme.border}); border-radius: 4px; color: hsl(${theme.foreground}); text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${name}</div> - ${theme.description || 'Custom color scheme'}`;
+          })
+        ];
+
+        // Calculator Themes Section
+        const calcSection = [
+          '',
+          '🖩 CALCULATOR THEMES',
+          separator,
+          ...Object.entries(calculatorThemes).map(([name, theme]) => {
+            const bgColor = theme.bg || '#c8d1c0';
+            const textColor = theme.text || '#0d1f0c';
+            return `<div style="display: inline-block; margin: 2px 0; padding: 4px 8px; background: ${bgColor}; border: 1px solid ${textColor}; border-radius: 4px; color: ${textColor};">${name}</div> - ${theme.description || 'Calculator theme'}`;
+          })
+        ];
+
+        return [
+          ...teamSection,
+          ...editorSection,
+          ...calcSection,
+          '',
+          'Usage:',
+          '• /theme <team-name> - Apply F1 team colors',
+          '• /theme <editor-theme> - Apply editor theme',
+          '• /theme calc <calc-theme> - Apply calculator theme',
+          '• /theme default - Reset to default colors'
+        ].join('\n');
+      }
 
       default:
-        return `❌ Error: Invalid list type "${type}"\nAvailable types: drivers, teams, tracks`;
+        return `❌ Error: Invalid list type "${type}"\nAvailable types: drivers, teams, tracks, themes`;
     }
   }
 };

@@ -192,21 +192,21 @@ function formatPaceAnalysis(analysis: DriverPaceAnalysis[]): string[] {
     );
 
     const tireRating = 
-      tireScore >= 9.2 ? `<span style="color: hsl(var(--success))">💫 Outstanding</span>` :
-      tireScore >= 8.2 ? `<span style="color: hsl(var(--success))">🟢 Excellent</span>` :
-      tireScore >= 7.0 ? `<span style="color: hsl(var(--success))">🟢 Good</span>` :
-      tireScore >= 5.8 ? `<span style="color: hsl(var(--warning))">🟡 Fair</span>` :
-      tireScore >= 4.5 ? `<span style="color: hsl(var(--info))">🟠 Moderate</span>` :
-      `<span style="color: hsl(var(--error))">🔴 Poor</span>`;
+      tireScore >= 9.2 ? '<span style="color: hsl(var(--success))">💫 Outstanding</span>' :
+      tireScore >= 8.2 ? '<span style="color: hsl(var(--success))">🟢 Excellent</span>' :
+      tireScore >= 7.0 ? '<span style="color: hsl(var(--success))">🟢 Good</span>' :
+      tireScore >= 5.8 ? '<span style="color: hsl(var(--warning))">🟡 Fair</span>' :
+      tireScore >= 4.5 ? '<span style="color: hsl(var(--info))">🟠 Moderate</span>' :
+      '<span style="color: hsl(var(--error))">🔴 Poor</span>';
 
     const relativePerf = ((driver.avgTime / analysis[0].avgTime) - 1) * 100;
     const perfRating = 
-      relativePerf <= 0.3 ? `<span style="color: hsl(var(--success))">💫 Outstanding</span>` :
-      relativePerf <= 0.6 ? `<span style="color: hsl(var(--success))">🟢 Strong</span>` :
-      relativePerf <= 1.0 ? `<span style="color: hsl(var(--success))">🟢 Competitive</span>` :
-      relativePerf <= 1.5 ? `<span style="color: hsl(var(--warning))">🟡 Midfield</span>` :
-      relativePerf <= 2.0 ? `<span style="color: hsl(var(--info))">🟠 Developing</span>` :
-      `<span style="color: hsl(var(--error))">🔴 Poor</span>`;
+      relativePerf <= 0.3 ? '<span style="color: hsl(var(--success))">💫 Outstanding</span>' :
+      relativePerf <= 0.6 ? '<span style="color: hsl(var(--success))">🟢 Strong</span>' :
+      relativePerf <= 1.0 ? '<span style="color: hsl(var(--success))">🟢 Competitive</span>' :
+      relativePerf <= 1.5 ? '<span style="color: hsl(var(--warning))">🟡 Midfield</span>' :
+      relativePerf <= 2.0 ? '<span style="color: hsl(var(--info))">🟠 Developing</span>' :
+      '<span style="color: hsl(var(--error))">🔴 Poor</span>';
 
     const trend = calculateTrend(driver.timesInSeconds);
     const trendIndicator = getTrendIndicator(trend, finishPos, startPos);
@@ -249,13 +249,13 @@ function formatDriverOutput(
   const driverLine = `P${driverResult.position}. ${driverResult.Driver.givenName} ${driverResult.Driver.familyName} | ${driverResult.Driver.nationality} ${flag} | <span style="color: ${teamColor}">${driverResult.Constructor.name}</span>`;
 
   const lapTimeStats = [
-    `Average: ${formatLapTime(driver.avgTime)}`,
-    `Median: ${formatLapTime(driver.median)}`,
-    `Best: ${formatLapTime(driver.bestTime)}`
+    `Average: <span style="color: hsl(var(--muted-foreground))">${formatLapTime(driver.avgTime)}</span>`,
+    `Median: <span style="color: hsl(var(--muted-foreground))">${formatLapTime(driver.median)}</span>`,
+    `Best: <span style="color: hsl(var(--muted-foreground))">${formatLapTime(driver.bestTime)}</span>`
   ].join(' │ ');
 
   const perfMetrics = [
-    `Race Pace: ${perfRating} (${relativePerf.toFixed(3)}% off lead)`,
+    `Race Pace: ${perfRating} <span style="color: hsl(var(--muted-foreground))">(${relativePerf.toFixed(3)}% off lead)</span>`,
     `Tire Management: ${tireRating}`,
     `Pace Trend: ${trendIndicator}`
   ].join(' │ ');
@@ -271,7 +271,7 @@ function formatDriverOutput(
     'Stint Analysis:',
     stintAnalysis,
     '',
-    `Best Stint: ${driver.bestStint ? `#${driver.bestStint.number} (Laps ${driver.bestStint.startLap}-${driver.bestStint.endLap}, ${driver.bestStint.laps} laps)` : 'N/A'}`,
+    `Best Stint: <span style="color: hsl(var(--muted-foreground))">${driver.bestStint ? `#${driver.bestStint.number} (Laps ${driver.bestStint.startLap}-${driver.bestStint.endLap}, ${driver.bestStint.laps} laps)` : 'N/A'}</span>`,
     ''
   ].join('\n');
 }

@@ -57,8 +57,20 @@ function formatHeader(raceData: any): string {
 
 function analyzeSectors(qualifyingData: any[]): any[] {
   return qualifyingData.map(driver => {
-    // Get best lap time from Q3, Q2, or Q1 (in that order)
-    const bestLap = driver.q3 || driver.q2 || driver.q1;
+    // Get best valid lap time from Q3, Q2, or Q1
+    let bestLap = 'N/A';
+    let bestTime = Infinity;
+    
+    // Check each session for valid times
+    [driver.q3, driver.q2, driver.q1].forEach(time => {
+      if (time && time !== 'N/A') {
+        const lapTime = timeToMs(time, 0);
+        if (lapTime < bestTime) {
+          bestTime = lapTime;
+          bestLap = time;
+        }
+      }
+    });
     
     // Calculate sector times based on typical proportions
     const sectors = {
@@ -79,8 +91,13 @@ function analyzeSectors(qualifyingData: any[]): any[] {
 
 function timeToMs(lapTime: string, sector: number): number {
   if (!lapTime || lapTime === 'N/A') return Infinity;
+  
   const [minutes, seconds] = lapTime.split(':');
+  // Only return Infinity if we have no valid time components
+  if ((!minutes || isNaN(parseInt(minutes))) && (!seconds || isNaN(parseFloat(seconds)))) return Infinity;
+  
   const totalSeconds = (parseInt(minutes || '0') * 60 + parseFloat(seconds));
+  if (isNaN(totalSeconds) || totalSeconds <= 0) return Infinity;
   
   // Approximate sector times based on typical F1 sector proportions
   switch(sector) {
@@ -94,26 +111,32 @@ function timeToMs(lapTime: string, sector: number): number {
 function calculateImprovement(driver: any): number {
   if (!driver.q1 || driver.q1 === 'N/A') return 0;
   
+  // Convert times to milliseconds, handling invalid times
   const q1Time = timeToMs(driver.q1, 0);
   const q2Time = timeToMs(driver.q2, 0);
   const q3Time = timeToMs(driver.q3, 0);
   
+  // Find best valid time, excluding Infinity values
   const bestTime = Math.min(
     q3Time !== Infinity ? q3Time : Infinity,
     q2Time !== Infinity ? q2Time : Infinity,
     q1Time !== Infinity ? q1Time : Infinity
   );
   
-  return q1Time !== Infinity && bestTime !== Infinity ? 
-    ((q1Time - bestTime) / q1Time) * 100 : 0;
+  // Calculate improvement percentage if we have valid times
+  if (q1Time === Infinity || bestTime === Infinity || bestTime >= q1Time || isNaN(bestTime)) {
+    return 0;
+  }
+  
+  return ((q1Time - bestTime) / q1Time) * 100;
 }
 
 function formatSectorAnalysis(analysis: any[], raceData: any): string[] {
   // Find best sectors across all drivers
   const bestSectors = {
-    s1: Math.min(...analysis.map(d => d.sectors.s1)),
-    s2: Math.min(...analysis.map(d => d.sectors.s2)),
-    s3: Math.min(...analysis.map(d => d.sectors.s3))
+    s1: Math.min(...analysis.map(d => d.sectors.s1).filter(t => t !== Infinity)),
+    s2: Math.min(...analysis.map(d => d.sectors.s2).filter(t => t !== Infinity)),
+    s3: Math.min(...analysis.map(d => d.sectors.s3).filter(t => t !== Infinity))
   };
 
   // Calculate theoretical best lap
@@ -143,18 +166,18 @@ function formatSectorAnalysis(analysis: any[], raceData: any): string[] {
       '';
     const teamColor = getTeamColor(driverInfo.Constructor.name);
 
-    // Calculate sector performance indicators
-    const sectorIndicators = {
-      s1: driver.sectors.s1 === bestSectors.s1 ? '🟣' : // Purple (fastest)
-          driver.sectors.s1 <= bestSectors.s1 * 1.01 ? '🟢' : // Green (within 1%)
-          driver.sectors.s1 <= bestSectors.s1 * 1.02 ? '🟡' : // Yellow (within 2%)
-          '⚪', // White (over 2%)
-      s2: driver.sectors.s2 === bestSectors.s2 ? '🟣' :
-          driver.sectors.s2 <= bestSectors.s2 * 1.01 ? '🟢' :
-          driver.sectors.s2 <= bestSectors.s2 * 1.02 ? '🟡' : '⚪',
-      s3: driver.sectors.s3 === bestSectors.s3 ? '🟣' :
-          driver.sectors.s3 <= bestSectors.s3 * 1.01 ? '🟢' :
-          driver.sectors.s3 <= bestSectors.s3 * 1.02 ? '🟡' : '⚪'
+    // Format sector times with colors
+    const formatSectorTime = (time: number, bestTime: number) => {
+      if (time === Infinity || isNaN(time)) return '<span style="color: hsl(var(--muted-foreground))">N/A</span>';
+      if (time === bestTime) {
+        return `<span style="color: rgb(147, 51, 234)">${formatTime(time)}</span>`;
+      } else if (time <= bestTime * 1.01) {
+        return `<span style="color: hsl(var(--success))">${formatTime(time)}</span>`;
+      } else if (time <= bestTime * 1.02) {
+        return `<span style="color: hsl(var(--warning))">${formatTime(time)}</span>`;
+      } else {
+        return `<span style="color: hsl(var(--error))">${formatTime(time)}</span>`;
+      }
     };
 
     // Calculate time lost to theoretical best
@@ -162,11 +185,30 @@ function formatSectorAnalysis(analysis: any[], raceData: any): string[] {
     const timeLost = actualLapTime - theoreticalBest;
     const improvement = driver.improvement;
 
+    // Performance rating based on time lost
+    const performanceRating = timeLost <= 0.3 ?
+      '<span style="color: hsl(var(--success))">💫 Outstanding</span>' :
+      timeLost <= 0.5 ?
+      '<span style="color: hsl(var(--success))">🟢 Strong</span>' :
+      timeLost <= 0.8 ?
+      '<span style="color: hsl(var(--warning))">🟡 Competitive</span>' :
+      timeLost <= 1.2 ?
+      '<span style="color: hsl(var(--info))">🟠 Developing</span>' :
+      '<span style="color: hsl(var(--error))">🔴 Poor</span>';
+
+    // Improvement rating
+    const improvementRating = 
+      improvement >= 1.0 ? '<span style="color: hsl(var(--success))">💫 Outstanding</span>' :
+      improvement >= 0.5 ? '<span style="color: hsl(var(--success))">🟢 Strong</span>' :
+      improvement >= 0.2 ? '<span style="color: hsl(var(--warning))">🟡 Good</span>' :
+      improvement > 0 ? '<span style="color: hsl(var(--info))">🟠 Slight</span>' :
+      '<span style="color: hsl(var(--error))">🔴 None</span>';
     return [
       `P${driver.position}. ${driver.driver} ${flag} | <span style="color: ${teamColor}">${driverInfo.Constructor.name}</span>`,
-      `Sectors: ${sectorIndicators.s1} ${formatTime(driver.sectors.s1)} | ${sectorIndicators.s2} ${formatTime(driver.sectors.s2)} | ${sectorIndicators.s3} ${formatTime(driver.sectors.s3)}`,
-      `Best Lap: ${driver.bestLap} | Time Lost: +${formatTime(timeLost)}`,
-      improvement > 0 ? `Improvement: ${improvement.toFixed(3)}%` : '',
+      `Sectors: S1 ${formatSectorTime(driver.sectors.s1, bestSectors.s1)} | S2 ${formatSectorTime(driver.sectors.s2, bestSectors.s2)} | S3 ${formatSectorTime(driver.sectors.s3, bestSectors.s3)}`,
+      `Performance: ${performanceRating} | <span style="color: hsl(var(--muted-foreground))">Time Lost: +${formatTime(timeLost)}</span>`,
+      `Improvement: ${improvementRating} | <span style="color: hsl(var(--muted-foreground))">${improvement > 0 ? `+${improvement.toFixed(3)}%` : 'No improvement'}</span>`,
+      `Best Lap: <span style="color: hsl(var(--muted-foreground))">${driver.bestLap}</span>`,
       ''
     ].filter(Boolean).join('\n');
   });
@@ -175,7 +217,7 @@ function formatSectorAnalysis(analysis: any[], raceData: any): string[] {
 }
 
 function formatTime(seconds: number): string {
-  if (!isFinite(seconds)) return 'N/A';
+  if (!isFinite(seconds) || isNaN(seconds)) return 'N/A';
   const ms = Math.floor((seconds % 1) * 1000);
   const wholeSecs = Math.floor(seconds);
   return `${wholeSecs}.${ms.toString().padStart(3, '0')}`;

@@ -136,18 +136,33 @@ export const systemCommands: SystemCommands = {
     }
 
     if (args[0].toLowerCase() === 'default') {
-      document.documentElement.style.setProperty('--primary', '186 100% 50%');
-      document.documentElement.style.setProperty('--secondary', '288 100% 73%');
-      document.documentElement.style.setProperty('--accent', '288 100% 73%');
-      document.documentElement.style.setProperty('--border', '186 100% 50%');
-      document.documentElement.style.setProperty('--background', '0 0% 0%');
+      document.documentElement.style.setProperty('--background', '220 13% 7%');
       document.documentElement.style.setProperty('--foreground', '210 40% 98%');
-      document.documentElement.style.setProperty('--card', '0 0% 4%');
+      document.documentElement.style.setProperty('--card', '220 13% 10%');
       document.documentElement.style.setProperty('--card-foreground', '210 40% 98%');
-      document.documentElement.style.setProperty('--popover', '0 0% 4%');
+      document.documentElement.style.setProperty('--popover', '220 13% 10%');
       document.documentElement.style.setProperty('--popover-foreground', '210 40% 98%');
-      document.documentElement.style.setProperty('--muted', '217.2 32.6% 17.5%');
+      document.documentElement.style.setProperty('--primary', '212 100% 67%');
+      document.documentElement.style.setProperty('--primary-foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--secondary', '215 13% 58%');
+      document.documentElement.style.setProperty('--secondary-foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--muted', '216 13% 15%');
       document.documentElement.style.setProperty('--muted-foreground', '215 20.2% 65.1%');
+      document.documentElement.style.setProperty('--accent', '270 100% 83%');
+      document.documentElement.style.setProperty('--accent-foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--border', '134 55% 73%');
+      document.documentElement.style.setProperty('--input', '134 55% 73%');
+      document.documentElement.style.setProperty('--ring', '134 55% 73%');
+      
+      // Update history colors
+      document.documentElement.style.setProperty('--history-bg', '220 13% 7%');
+      document.documentElement.style.setProperty('--history-fg', '210 40% 98%');
+      document.documentElement.style.setProperty('--history-primary', '212 100% 67%');
+      document.documentElement.style.setProperty('--history-secondary', '215 13% 58%');
+      document.documentElement.style.setProperty('--history-accent', '270 100% 83%');
+      document.documentElement.style.setProperty('--history-muted', '216 13% 15%');
+      document.documentElement.style.setProperty('--history-border', '134 55% 73%');
+      
       localStorage.removeItem('terminal_theme');
       return '🎨 Terminal theme reset to default colors!';
     }
@@ -203,32 +218,36 @@ export const systemCommands: SystemCommands = {
 
     try {
       // Reset to default background colors first
-      document.documentElement.style.setProperty('--background', '0 0% 0%');
-      document.documentElement.style.setProperty('--card', '0 0% 4%');
-      document.documentElement.style.setProperty('--popover', '0 0% 4%');
+      document.documentElement.style.setProperty('--background', '220 13% 7%');
+      document.documentElement.style.setProperty('--card', '220 13% 10%');
+      document.documentElement.style.setProperty('--popover', '220 13% 10%');
       
       // Set theme colors
       document.documentElement.style.setProperty('--primary', theme.primary);
       document.documentElement.style.setProperty('--secondary', theme.secondary);
+      document.documentElement.style.setProperty('--accent', theme.accent);
+      document.documentElement.style.setProperty('--border', theme.border);
+      
+      // Set foreground colors consistently
       document.documentElement.style.setProperty('--primary-foreground', '210 40% 98%');
       document.documentElement.style.setProperty('--secondary-foreground', '210 40% 98%');
       document.documentElement.style.setProperty('--accent-foreground', '210 40% 98%');
-      document.documentElement.style.setProperty('--accent', theme.accent);
-      document.documentElement.style.setProperty('--border', theme.border);
       document.documentElement.style.setProperty('--foreground', '210 40% 98%');
       document.documentElement.style.setProperty('--card-foreground', '210 40% 98%');
       document.documentElement.style.setProperty('--popover-foreground', '210 40% 98%');
+      
+      // Set muted colors
       document.documentElement.style.setProperty('--muted', '217.2 32.6% 17.5%');
       document.documentElement.style.setProperty('--muted-foreground', '215 20.2% 65.1%');
 
       // Update history colors
-      document.documentElement.style.setProperty('--history-bg', '0 0% 0%');
+      document.documentElement.style.setProperty('--history-bg', '220 13% 7%');
       document.documentElement.style.setProperty('--history-fg', '210 40% 98%');
-      document.documentElement.style.setProperty('--history-primary', `hsl(${theme.primary})`);
-      document.documentElement.style.setProperty('--history-secondary', `hsl(${theme.secondary})`);
-      document.documentElement.style.setProperty('--history-accent', `hsl(${theme.accent})`);
-      document.documentElement.style.setProperty('--history-muted', 'hsl(217.2 32.6% 17.5%)');
-      document.documentElement.style.setProperty('--history-border', `hsl(${theme.border})`);
+      document.documentElement.style.setProperty('--history-primary', theme.primary);
+      document.documentElement.style.setProperty('--history-secondary', theme.secondary);
+      document.documentElement.style.setProperty('--history-accent', theme.accent);
+      document.documentElement.style.setProperty('--history-muted', '217.2 32.6% 17.5%');
+      document.documentElement.style.setProperty('--history-border', theme.border);
       
       localStorage.setItem('terminal_theme', teamId);
       
