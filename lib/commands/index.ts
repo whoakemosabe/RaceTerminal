@@ -229,8 +229,14 @@ export const commands = [
     category: 'Effects'
   },
   {
+    command: '/colors calc [scheme]',
+    description: 'Enable calculator mode with custom color schemes (classic, blue, amber, red, white)',
+    source: 'System',
+    category: 'Effects'
+  },
+  {
     command: '/calc',
-    description: 'Toggle calculator LCD screen effect',
+    description: 'Toggle retro calculator LCD display effect with classic green theme',
     source: 'System',
     category: 'Effects'
   }

@@ -9,6 +9,9 @@ interface SystemCommands {
   [key: string]: CommandFunction;
 }
 
+import { colorThemes } from '@/lib/themes/colors';
+import { calculatorThemes } from '@/lib/themes/calculator';
+
 export const systemCommands: SystemCommands = {
   '/user': async (args: string[], originalCommand: string) => {
     if (!args[0]) {
@@ -114,29 +117,70 @@ export const systemCommands: SystemCommands = {
   '/help': async (args: string[]) => {
     // Command-specific help documentation
     const commandHelp: Record<string, string> = {
+      'colors': [
+        '🎨 CALCULATOR COLOR SCHEMES REFERENCE',
+        '═'.repeat(50),
+        '',
+        'Change calculator display color scheme.',
+        '',
+        'Usage: /colors calc [scheme]',
+        'Example: /colors calc amber',
+        '',
+        'Available Schemes:',
+        '• classic - Classic green LCD display',
+        '• blue   - Cool blue LCD screen',
+        '• amber  - Warm amber display',
+        '• red    - Red LED display',
+        '• white  - Modern LCD look',
+        '',
+        'Features:',
+        '• Multiple color themes',
+        '• Authentic LCD styling',
+        '• Customizable text colors',
+        '• Scan line effects',
+        '',
+        'Notes:',
+        '• Each scheme has unique colors for:',
+        '  - Background',
+        '  - Text output',
+        '  - Commands',
+        '  - Timestamps',
+        '  - Prompts',
+        '',
+        'Related Commands:',
+        '• /calc - Toggle calculator mode',
+        '• /theme - Change terminal theme',
+        '• /retro - Retro text effects'
+      ].join('\n'),
+
       'calculator': [
         '🖩 CALCULATOR MODE REFERENCE',
         '═'.repeat(50),
         '',
-        'Toggle calculator LCD screen effect.',
+        'Enable retro calculator LCD display mode.',
         '',
-        'Usage: /calc',
+        'Usage:',
+        '1. Basic toggle: /calc',
+        '2. With colors: /colors calc [scheme]',
         '',
         'Features:',
         '• Retro LCD display effect',
-        '• Green-tinted screen',
+        '• Multiple color schemes',
         '• Subtle scan lines',
         '• Vintage calculator aesthetics',
+        '• Authentic LCD styling',
         '',
-        'Notes:',
-        '• Toggle on/off with same command',
-        '• Persists between sessions',
-        '• Combines with other effects',
+        'Color Schemes:',
+        '• classic - Traditional green LCD',
+        '• blue    - Cool blue display',
+        '• amber   - Warm amber screen',
+        '• red     - Red LED display',
+        '• white   - Modern LCD look',
         '',
         'Related Commands:',
+        '• /colors calc - Change calculator colors',
         '• /retro - Retro text effects',
-        '• /crt - CRT monitor effects',
-        '• /theme - Color themes'
+        '• /theme - Terminal themes'
       ].join('\n'),
 
       'stats': [
@@ -466,6 +510,7 @@ export const systemCommands: SystemCommands = {
         '• list - Available data'
       ].join('\n');
     }
+
     const header = [
       '📚 RACETERMINAL PRO COMMAND REFERENCE',
       '═'.repeat(50),
@@ -697,5 +742,107 @@ export const systemCommands: SystemCommands = {
       `CPU: WebContainer v8`,
       `Memory: ${Math.round(performance.memory?.usedJSHeapSize / 1024 / 1024)}MB / ${Math.round(performance.memory?.jsHeapSizeLimit / 1024 / 1024)}MB`
     ].join('\n');
+  },
+
+  '/colors': async (args: string[], originalCommand: string) => {
+    const firstArg = args[0]?.toLowerCase();
+
+    if (!firstArg) {
+      const colorSchemes = Object.keys(colorThemes).map(name => `• ${name}`).join('\n');
+      return [
+        '❌ Error: Please specify theme type and scheme',
+        'Usage:',
+        '1. Terminal History Themes: /colors <scheme>',
+        '   Example: /colors dracula (changes only terminal output colors)',
+        '',
+        '2. Calculator Mode: /colors calc <scheme>',
+        '   Example: /colors calc amber',
+        '',
+        'Available Terminal History Themes:',
+        colorSchemes,
+        '',
+        'For calculator themes, use /help colors'
+      ].join('\n');
+    }
+
+    // Handle calculator mode
+    if (firstArg === 'calc') {
+      const scheme = args[1]?.toLowerCase();
+      const validCalcSchemes = Object.keys(calculatorThemes);
+
+      if (!scheme || !validCalcSchemes.includes(scheme)) {
+        const calcSchemes = validCalcSchemes.map(name => `• ${name}`).join('\n');
+        return [
+          '❌ Error: Invalid calculator scheme',
+          'Usage: /colors calc <scheme>',
+          '',
+          'Available Calculator Schemes:',
+          calcSchemes
+        ].join('\n');
+      }
+
+      try {
+        // Enable calculator mode
+        document.documentElement.classList.add('calculator-enabled');
+
+        // Apply calculator theme
+        const theme = calculatorThemes[scheme];
+        Object.entries(theme).forEach(([key, value]) => {
+          document.documentElement.style.setProperty(`--calc-${key}`, value);
+        });
+
+        localStorage.setItem('calculator_color_scheme', scheme);
+        return `🖩 Calculator mode enabled with ${scheme} LCD theme!`;
+      } catch (error) {
+        console.error('Failed to apply calculator theme:', error);
+        return '❌ Error: Failed to apply calculator theme';
+      }
+    }
+
+    // Handle VSCode themes
+    const theme = colorThemes[firstArg];
+    if (!theme) {
+      return `❌ Error: Invalid theme "${firstArg}"\nUse /colors without arguments to see available themes`;
+    }
+
+    try {
+      // Apply theme colors only to terminal history
+      // Convert HSL values to actual colors
+      document.documentElement.style.setProperty('--history-bg', `hsl(${theme.background})`);
+      document.documentElement.style.setProperty('--history-fg', `hsl(${theme.foreground})`);
+      document.documentElement.style.setProperty('--history-primary', `hsl(${theme.primary})`);
+      document.documentElement.style.setProperty('--history-secondary', `hsl(${theme.secondary})`);
+      document.documentElement.style.setProperty('--history-accent', `hsl(${theme.accent})`);
+      document.documentElement.style.setProperty('--history-muted', `hsl(${theme.muted})`);
+      document.documentElement.style.setProperty('--history-border', `hsl(${theme.border})`);
+
+      localStorage.setItem('terminal_theme', firstArg);
+      return `🎨 Terminal history theme changed to ${firstArg}!`;
+    } catch (error) {
+      console.error('Failed to apply theme:', error);
+      return '❌ Error: Failed to apply theme';
+    }
+  },
+
+  '/calc': async () => {
+    const isEnabled = document.documentElement.classList.toggle('calculator-enabled');
+    const currentScheme = localStorage.getItem('calculator_color_scheme') || 'classic';
+
+    if (isEnabled) {
+      // Apply the saved theme colors
+      const theme = calculatorThemes[currentScheme];
+      Object.entries(theme).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(`--calc-${key}`, value);
+      });
+
+      return `🖩 Calculator mode enabled with ${currentScheme} color scheme!\nTip: Use /colors calc <scheme> to change colors`;
+    } else {
+      // Remove all calculator-related CSS variables
+      ['bg', 'text', 'accent', 'timestamp', 'prompt', 'command', 'output'].forEach(key => {
+        document.documentElement.style.removeProperty(`--calc-${key}`);
+      });
+
+      return '🖩 Calculator mode disabled';
+    }
   }
 };

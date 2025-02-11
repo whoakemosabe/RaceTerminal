@@ -186,8 +186,8 @@ export function Terminal({
 
       {/* Command Input */}
       <div className="px-4 py-1.5 border-b border-border/10 terminal-input-wrapper">
-        <div className="flex items-center gap-2">
-          <TerminalIcon className="w-4 h-4 text-primary" aria-hidden="true" />
+        <div className="flex items-center gap-4">
+          <TerminalIcon className="w-4 h-4 text-primary/80" aria-hidden="true" />
           <div className="relative flex flex-1 gap-2" onClick={() => onCloseWelcome?.()}>
             <CommandSuggestions
               command={command}
@@ -206,6 +206,7 @@ export function Terminal({
               }}
             />
             <Input
+              className="h-8 font-mono text-sm cursor-blink placeholder-primary/50 terminal-input"
               ref={inputRef}
               type="text"
               value={command}
@@ -236,13 +237,12 @@ export function Terminal({
                 }
               }}
               placeholder={hasSetUsername ? "Enter command (e.g., /driver hamilton)" : "Please enter a username to unlock more commands (e.g., /user max)"}
-              className="flex-1 h-7 font-mono text-sm cursor-blink placeholder-primary/50 terminal-input"
             />
             <Button
               onClick={onExecute}
               size="sm"
               onMouseDown={() => onCloseWelcome?.()}
-              className="px-3 h-6 text-sm execute-button"
+              className="px-4 h-8 text-sm execute-button"
               disabled={isProcessing}>
               {isProcessing ? 'Processing...' : 'Execute'}
             </Button>

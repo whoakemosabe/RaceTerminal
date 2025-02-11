@@ -256,6 +256,22 @@ export function CommandSuggestions({
       const baseCommand = commandAliases[firstPart] || firstPart;
       
       switch (baseCommand) {
+        case '/colors':
+          if (parts.length === 1) {
+            // Show 'calc' as the only suggestion
+            suggestions.push('calc (Enable calculator mode)');
+          } else if (parts.length === 2 && parts[1] === 'calc') {
+            // Show color scheme suggestions
+            suggestions.push(
+              'classic (Green LCD screen)',
+              'blue (Blue LCD screen)',
+              'amber (Amber LCD screen)',
+              'red (Red LCD screen)',
+              'white (White LCD screen)'
+            );
+          }
+          break;
+
         case '/car':
         case '/c':
           matches = [
