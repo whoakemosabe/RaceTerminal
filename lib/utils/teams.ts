@@ -15,57 +15,57 @@ export const teamNicknames: Record<string, string[]> = {
 // Team themes with their corresponding colors
 export const teamThemes: Record<string, { primary: string; secondary: string; accent: string; border: string }> = {
   'red_bull': {
-    primary: '217 100% 50%',
+    primary: '240 100% 47%',
     secondary: '240 100% 47%',
-    accent: '217 100% 50%',
+    accent: '217 100% 50%', 
     border: '240 100% 47%'
   },
   'mercedes': {
-    primary: '174 100% 41%',
+    primary: '180 2% 91%',
     secondary: '174 100% 41%',
-    accent: '174 100% 41%',
+    accent: '174 100% 41%', 
     border: '174 100% 41%'
   },
   'ferrari': {
-    primary: '0 100% 43%',
+    primary: '0 0% 100%',
     secondary: '48 100% 50%',
-    accent: '0 100% 43%',
+    accent: '0 100% 43%', 
     border: '0 100% 43%'
   },
   'mclaren': {
-    primary: '32 100% 50%',
+    primary: '0 0% 100%',
     secondary: '199 100% 40%',
-    accent: '32 100% 50%',
+    accent: '32 100% 50%', 
     border: '32 100% 50%'
   },
   'aston_martin': {
-    primary: '170 100% 22%',
+    primary: '0 0% 100%',
     secondary: '170 100% 35%',
-    accent: '170 100% 22%',
+    accent: '170 100% 22%', 
     border: '170 100% 22%'
   },
   'alpine': {
-    primary: '203 100% 50%',
+    primary: '0 0% 100%',
     secondary: '339 85% 55%',
-    accent: '203 100% 50%',
+    accent: '203 100% 50%', 
     border: '203 100% 50%'
   },
   'williams': {
-    primary: '217 100% 50%',
+    primary: '0 0% 100%',
     secondary: '217 100% 65%',
-    accent: '217 100% 50%',
+    accent: '217 100% 50%', 
     border: '217 100% 50%'
   },
   'alphatauri': {
-    primary: '212 39% 27%',
+    primary: '0 0% 100%',
     secondary: '212 39% 40%',
-    accent: '212 39% 27%',
+    accent: '212 39% 27%', 
     border: '212 39% 27%'
   },
   'alfa': {
-    primary: '0 100% 28%',
+    primary: '0 0% 100%',
     secondary: '0 100% 40%',
-    accent: '0 100% 28%',
+    accent: '0 100% 28%', 
     border: '0 100% 28%'
   },
   'haas': {
