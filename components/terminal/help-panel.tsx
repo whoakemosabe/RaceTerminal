@@ -1,6 +1,6 @@
 'use client'
 
-import { HelpCircle, Terminal } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { commands } from '@/lib/commands';
 import { commandAliases } from '@/components/terminal/command-processor';
 
@@ -34,6 +34,10 @@ function getShortDescription(cmd: string): string {
     case '/pace': return 'Race pace & stint analysis';
     case '/gap': return 'Intervals & battle analysis';
     case '/compare': return 'Compare drivers/teams';
+    case '/sector': return 'Qualifying sector analysis';
+    case '/overtake': return 'Race overtaking analysis';
+    case '/sector': return 'Qualifying sector analysis';
+    case '/overtake': return 'Race overtaking analysis';
     
     // Effects
     case '/retro': return 'Retro text glow effect';
@@ -141,15 +145,15 @@ export function HelpPanel() {
             },
             {
               title: 'ANALYSIS',
-              filter: ['pace', 'gap', 'compare']
+              filter: ['pace', 'gap', 'sector', 'overtake', 'compare', 'sa', 'oa', 'ov']
             },
             {
               title: 'EFFECTS',
-              filter: ['retro', 'matrix', 'crt', 'glitch', 'scanlines', 'calc']
+              filter: ['retro', 'matrix', 'crt', 'glitch', 'scanlines', 'calc', 'calculator']
             },
             {
               title: 'SYSTEM',
-              filter: ['user', 'clear', 'help', 'theme', 'sys', 'neofetch', 'hack', 'fontsize', 'stats', 'speed', 'decrypt']
+              filter: ['user', 'clear', 'help', 'theme', 'sys', 'neofetch', 'hack', 'fontsize', 'stats', 'decrypt', 'reset']
             }
           ].map((category, index) => (
             <div key={category.title}>
@@ -161,7 +165,15 @@ export function HelpPanel() {
               <div className="grid grid-cols-2 gap-x-6 gap-y-1 mt-2">
                 {commands
                   .filter(c => category.filter.some(term => 
-                    c.command.toLowerCase().includes(term)
+                    c.command.toLowerCase().includes(term) ||
+                    (c.category?.toLowerCase() === category.title.toLowerCase()) ||
+                    (term === 'sa' && c.command.includes('/sector')) ||
+                    (term === 'oa' && c.command.includes('/overtake')) ||
+                    c.command.toLowerCase().includes(term) ||
+                    (c.category?.toLowerCase() === category.title.toLowerCase()) ||
+                    (term === 'sa' && c.command.includes('/sector')) ||
+                    (term === 'oa' && c.command.includes('/overtake')) ||
+                    (term === 'ov' && c.command.includes('/overtake'))
                   ))
                   .map(formatCommand)}
               </div>

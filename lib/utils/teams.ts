@@ -104,15 +104,29 @@ export function getTeamColor(team: string): string {
 export function findTeamId(search: string): string | null {
   search = search.toLowerCase().trim();
   
+  // Handle common variations
+  if (search.includes('red bull') || search === 'redbull' || search === 'rb') {
+    return 'red_bull';
+  }
+  if (search.includes('ferrari') || search.includes('scuderia')) {
+    return 'ferrari';
+  }
+  if (search.includes('alphatauri') || search.includes('alpha tauri')) {
+    return 'alphatauri';
+  }
+  
   // Direct match with team ID
   if (teamNicknames[search]) {
     return search;
   }
   
   // Search through nicknames
-  for (const [teamId, nicknames] of Object.entries(teamNicknames)) {
-    if (nicknames.some(nick => nick.toLowerCase() === search) || 
-        teamId.replace('_', '').toLowerCase() === search) {
+  for (const [teamId, names] of Object.entries(teamNicknames)) {
+    // Check all variations
+    if (names.some(name => 
+      name.toLowerCase().includes(search) || 
+      name.toLowerCase().replace(/\s+/g, '').includes(search)
+    )) {
       return teamId;
     }
   }

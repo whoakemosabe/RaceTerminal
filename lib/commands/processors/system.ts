@@ -69,15 +69,71 @@ export const systemCommands: SystemCommands = {
 
   '/theme': async (args: string[]) => {
     if (!args[0]) {
+      // Show both team themes and color themes
       const teamList = Object.entries(teamNicknames)
         .map(([id, names]) => {
           const teamName = names[0];
           const teamColor = getTeamColor(teamName);
           return `• <span style="color: ${teamColor}">${teamName}</span>`;
-        })
-        .join('\n');
+        });
       
-      return `❌ Error: Please provide a team name\nUsage: /theme <team> (e.g., /theme ferrari)\n\nAvailable themes:\n${teamList}\n\nOr use "/theme default" to reset to original theme`;
+      const colorList = Object.keys(colorThemes)
+        .map(name => `• ${name}`);
+      
+      return [
+        '❌ Error: Please provide a theme name',
+        'Usage: /theme <name> (e.g., /theme ferrari or /theme dracula)',
+        '',
+        'F1 Team Themes:',
+        '═'.repeat(20),
+        teamList.join('\n'),
+        '',
+        'Color Themes:',
+        '═'.repeat(20),
+        colorList.join('\n'),
+        '',
+        'Calculator Mode:',
+        '═'.repeat(20),
+        '• Use /theme calc <scheme> for calculator themes',
+        '  Available schemes: classic, blue, amber, red, white',
+        '',
+        'Reset to Default:',
+        '• /theme default'
+      ].join('\n');
+    }
+
+    // Handle calculator mode
+    if (args[0].toLowerCase() === 'calc') {
+      const scheme = args[1]?.toLowerCase();
+      const validCalcSchemes = Object.keys(calculatorThemes);
+
+      if (!scheme || !validCalcSchemes.includes(scheme)) {
+        const calcSchemes = validCalcSchemes.map(name => `• ${name}`).join('\n');
+        return [
+          '❌ Error: Invalid calculator scheme',
+          'Usage: /theme calc <scheme>',
+          '',
+          'Available Calculator Schemes:',
+          calcSchemes
+        ].join('\n');
+      }
+
+      try {
+        // Enable calculator mode
+        document.documentElement.classList.add('calculator-enabled');
+
+        // Apply calculator theme
+        const theme = calculatorThemes[scheme];
+        Object.entries(theme).forEach(([key, value]) => {
+          document.documentElement.style.setProperty(`--calc-${key}`, value);
+        });
+
+        localStorage.setItem('calculator_color_scheme', scheme);
+        return `🖩 Calculator mode enabled with ${scheme} LCD theme!`;
+      } catch (error) {
+        console.error('Failed to apply calculator theme:', error);
+        return '❌ Error: Failed to apply calculator theme';
+      }
     }
 
     if (args[0].toLowerCase() === 'default') {
@@ -85,13 +141,60 @@ export const systemCommands: SystemCommands = {
       document.documentElement.style.setProperty('--secondary', '288 100% 73%');
       document.documentElement.style.setProperty('--accent', '288 100% 73%');
       document.documentElement.style.setProperty('--border', '186 100% 50%');
+      document.documentElement.style.setProperty('--background', '0 0% 0%');
+      document.documentElement.style.setProperty('--foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--card', '0 0% 4%');
+      document.documentElement.style.setProperty('--card-foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--popover', '0 0% 4%');
+      document.documentElement.style.setProperty('--popover-foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--muted', '217.2 32.6% 17.5%');
+      document.documentElement.style.setProperty('--muted-foreground', '215 20.2% 65.1%');
       localStorage.removeItem('terminal_theme');
       return '🎨 Terminal theme reset to default colors!';
     }
 
+    // Check for VSCode theme
+    const colorTheme = colorThemes[args[0].toLowerCase()];
+    if (colorTheme) {
+      try {
+        // Apply VSCode theme colors
+        document.documentElement.style.setProperty('--background', `${colorTheme.background}`);
+        document.documentElement.style.setProperty('--card', `${colorTheme.background}`);
+        document.documentElement.style.setProperty('--popover', `${colorTheme.background}`);
+        document.documentElement.style.setProperty('--foreground', colorTheme.foreground);
+        document.documentElement.style.setProperty('--primary-foreground', colorTheme.foreground);
+        document.documentElement.style.setProperty('--secondary-foreground', colorTheme.foreground);
+        document.documentElement.style.setProperty('--accent-foreground', colorTheme.foreground);
+        document.documentElement.style.setProperty('--card-foreground', colorTheme.foreground);
+        document.documentElement.style.setProperty('--popover-foreground', colorTheme.foreground);
+        document.documentElement.style.setProperty('--primary', colorTheme.primary);
+        document.documentElement.style.setProperty('--secondary', colorTheme.secondary);
+        document.documentElement.style.setProperty('--accent', colorTheme.accent);
+        document.documentElement.style.setProperty('--muted', colorTheme.muted);
+        document.documentElement.style.setProperty('--muted-foreground', colorTheme.foreground);
+        document.documentElement.style.setProperty('--border', colorTheme.border);
+
+        // Update history colors
+        document.documentElement.style.setProperty('--history-bg', `hsl(${colorTheme.background})`);
+        document.documentElement.style.setProperty('--history-fg', `hsl(${colorTheme.foreground})`);
+        document.documentElement.style.setProperty('--history-primary', `hsl(${colorTheme.primary})`);
+        document.documentElement.style.setProperty('--history-secondary', `hsl(${colorTheme.secondary})`);
+        document.documentElement.style.setProperty('--history-accent', `hsl(${colorTheme.accent})`);
+        document.documentElement.style.setProperty('--history-muted', `hsl(${colorTheme.muted})`);
+        document.documentElement.style.setProperty('--history-border', `hsl(${colorTheme.border})`);
+        
+        localStorage.setItem('terminal_theme', args[0].toLowerCase());
+        return `🎨 Terminal theme changed to ${args[0]} colors!`;
+      } catch (error) {
+        console.error('Failed to apply theme:', error);
+        return '❌ Error: Failed to apply theme';
+      }
+    }
+
+    // Check for team theme
     const teamId = findTeamId(args[0]);
     if (!teamId) {
-      return `❌ Error: Team "${args[0]}" not found. Try using the team name (e.g., ferrari, mercedes)`;
+      return `❌ Error: Theme "${args[0]}" not found. Try using:\n• Team name (e.g., ferrari)\n• Color theme (e.g., dracula)\n• Calculator theme (e.g., theme calc amber)`;
     }
 
     const theme = teamThemes[teamId];
@@ -100,10 +203,33 @@ export const systemCommands: SystemCommands = {
     }
 
     try {
+      // Reset to default background colors first
+      document.documentElement.style.setProperty('--background', '0 0% 0%');
+      document.documentElement.style.setProperty('--card', '0 0% 4%');
+      document.documentElement.style.setProperty('--popover', '0 0% 4%');
+      
+      // Set theme colors
       document.documentElement.style.setProperty('--primary', theme.primary);
       document.documentElement.style.setProperty('--secondary', theme.secondary);
+      document.documentElement.style.setProperty('--primary-foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--secondary-foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--accent-foreground', '210 40% 98%');
       document.documentElement.style.setProperty('--accent', theme.accent);
       document.documentElement.style.setProperty('--border', theme.border);
+      document.documentElement.style.setProperty('--foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--card-foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--popover-foreground', '210 40% 98%');
+      document.documentElement.style.setProperty('--muted', '217.2 32.6% 17.5%');
+      document.documentElement.style.setProperty('--muted-foreground', '215 20.2% 65.1%');
+
+      // Update history colors
+      document.documentElement.style.setProperty('--history-bg', '0 0% 0%');
+      document.documentElement.style.setProperty('--history-fg', '210 40% 98%');
+      document.documentElement.style.setProperty('--history-primary', `hsl(${theme.primary})`);
+      document.documentElement.style.setProperty('--history-secondary', `hsl(${theme.secondary})`);
+      document.documentElement.style.setProperty('--history-accent', `hsl(${theme.accent})`);
+      document.documentElement.style.setProperty('--history-muted', 'hsl(217.2 32.6% 17.5%)');
+      document.documentElement.style.setProperty('--history-border', `hsl(${theme.border})`);
       
       localStorage.setItem('terminal_theme', teamId);
       
@@ -660,7 +786,7 @@ export const systemCommands: SystemCommands = {
       return `📊 Font size changed to ${newSize}px`;
     } catch (error) {
       console.error('Failed to change font size:', error);
-      return '❌ Error: Failed to change font size. Please try again.';
+      return '❌ Error: Failed to change font size';
     }
   },
 
@@ -742,107 +868,5 @@ export const systemCommands: SystemCommands = {
       `CPU: WebContainer v8`,
       `Memory: ${Math.round(performance.memory?.usedJSHeapSize / 1024 / 1024)}MB / ${Math.round(performance.memory?.jsHeapSizeLimit / 1024 / 1024)}MB`
     ].join('\n');
-  },
-
-  '/colors': async (args: string[], originalCommand: string) => {
-    const firstArg = args[0]?.toLowerCase();
-
-    if (!firstArg) {
-      const colorSchemes = Object.keys(colorThemes).map(name => `• ${name}`).join('\n');
-      return [
-        '❌ Error: Please specify theme type and scheme',
-        'Usage:',
-        '1. Terminal History Themes: /colors <scheme>',
-        '   Example: /colors dracula (changes only terminal output colors)',
-        '',
-        '2. Calculator Mode: /colors calc <scheme>',
-        '   Example: /colors calc amber',
-        '',
-        'Available Terminal History Themes:',
-        colorSchemes,
-        '',
-        'For calculator themes, use /help colors'
-      ].join('\n');
-    }
-
-    // Handle calculator mode
-    if (firstArg === 'calc') {
-      const scheme = args[1]?.toLowerCase();
-      const validCalcSchemes = Object.keys(calculatorThemes);
-
-      if (!scheme || !validCalcSchemes.includes(scheme)) {
-        const calcSchemes = validCalcSchemes.map(name => `• ${name}`).join('\n');
-        return [
-          '❌ Error: Invalid calculator scheme',
-          'Usage: /colors calc <scheme>',
-          '',
-          'Available Calculator Schemes:',
-          calcSchemes
-        ].join('\n');
-      }
-
-      try {
-        // Enable calculator mode
-        document.documentElement.classList.add('calculator-enabled');
-
-        // Apply calculator theme
-        const theme = calculatorThemes[scheme];
-        Object.entries(theme).forEach(([key, value]) => {
-          document.documentElement.style.setProperty(`--calc-${key}`, value);
-        });
-
-        localStorage.setItem('calculator_color_scheme', scheme);
-        return `🖩 Calculator mode enabled with ${scheme} LCD theme!`;
-      } catch (error) {
-        console.error('Failed to apply calculator theme:', error);
-        return '❌ Error: Failed to apply calculator theme';
-      }
-    }
-
-    // Handle VSCode themes
-    const theme = colorThemes[firstArg];
-    if (!theme) {
-      return `❌ Error: Invalid theme "${firstArg}"\nUse /colors without arguments to see available themes`;
-    }
-
-    try {
-      // Apply theme colors only to terminal history
-      // Convert HSL values to actual colors
-      document.documentElement.style.setProperty('--history-bg', `hsl(${theme.background})`);
-      document.documentElement.style.setProperty('--history-fg', `hsl(${theme.foreground})`);
-      document.documentElement.style.setProperty('--history-primary', `hsl(${theme.primary})`);
-      document.documentElement.style.setProperty('--history-secondary', `hsl(${theme.secondary})`);
-      document.documentElement.style.setProperty('--history-accent', `hsl(${theme.accent})`);
-      document.documentElement.style.setProperty('--history-muted', `hsl(${theme.muted})`);
-      document.documentElement.style.setProperty('--history-border', `hsl(${theme.border})`);
-
-      localStorage.setItem('terminal_theme', firstArg);
-      return `🎨 Terminal history theme changed to ${firstArg}!`;
-    } catch (error) {
-      console.error('Failed to apply theme:', error);
-      return '❌ Error: Failed to apply theme';
-    }
-  },
-
-  '/calc': async () => {
-    const isEnabled = document.documentElement.classList.toggle('calculator-enabled');
-    const currentScheme = localStorage.getItem('calculator_color_scheme') || 'classic';
-
-    if (isEnabled) {
-      // Apply the saved theme colors
-      const theme = calculatorThemes[currentScheme];
-      Object.entries(theme).forEach(([key, value]) => {
-        document.documentElement.style.setProperty(`--calc-${key}`, value);
-      });
-
-      return `🖩 Calculator mode enabled with ${currentScheme} color scheme!\nTip: Use /colors calc <scheme> to change colors`;
-    } else {
-      // Remove all calculator-related CSS variables
-      ['bg', 'text', 'accent', 'timestamp', 'prompt', 'command', 'output'].forEach(key => {
-        document.documentElement.style.removeProperty(`--calc-${key}`);
-      });
-
-      return '🖩 Calculator mode disabled';
-    }
   }
 };

@@ -5,7 +5,7 @@ import { liveCommands } from './live';
 import { effectsCommands } from './effects';
 import { listCommands } from './list';
 import { carCommands } from './cars';
-import { analysisCommands } from './analysis';
+import { analysisCommands } from './analysis/index';
 import { commandAliases } from '@/components/terminal/command-processor';
 
 // Define the CommandFunction type
@@ -24,9 +24,8 @@ Object.assign(processors, listCommands);
 Object.assign(processors, carCommands);
 Object.assign(processors, analysisCommands);
 
-// Add individual command mappings
+// Add individual command mappings for race commands
 processors['/track'] = raceCommands['/track'];
-// Add individual command mappings
 processors['/standings'] = raceCommands['/standings'];
 processors['/teams'] = raceCommands['/teams'];
 processors['/schedule'] = raceCommands['/schedule'];
@@ -37,16 +36,13 @@ processors['/sprint'] = raceCommands['/sprint'];
 processors['/pitstops'] = raceCommands['/pitstops'];
 processors['/fastest'] = raceCommands['/fastest'];
 processors['/compare'] = raceCommands['/compare'];
-processors['/matrix rain'] = effectsCommands['/matrix rain'];
-processors['/scanlines'] = effectsCommands['/scanlines'];
-processors['/glitch'] = effectsCommands['/glitch'];
-processors['/crt'] = effectsCommands['/crt'];
-processors['/neofetch'] = systemCommands['/neofetch'];
-processors['/hack'] = systemCommands['/hack'];
-processors['/sys'] = systemCommands['/sys'];
+
+// Add analysis commands directly from analysisCommands
 processors['/pace'] = analysisCommands['/pace'];
 processors['/gap'] = analysisCommands['/gap'];
-processors['/calc'] = effectsCommands['/calc'];
+processors['/sector'] = analysisCommands['/sector'];
+processors['/overtake'] = analysisCommands['/overtake'];
+processors['/plot'] = analysisCommands['/plot'];
 
 export async function processCommand(cmd: string) {
   const parts = cmd.split(' ');

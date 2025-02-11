@@ -4,6 +4,7 @@ import { DriverSuggestionProvider } from './driver';
 import { TeamSuggestionProvider } from './team';
 import { TrackSuggestionProvider } from './track';
 import { CarSuggestionProvider } from './car';
+import { ThemeSuggestionProvider } from './theme';
 
 export class SuggestionManager {
   private commandProvider = new CommandSuggestionProvider();
@@ -11,6 +12,7 @@ export class SuggestionManager {
   private teamProvider = new TeamSuggestionProvider();
   private trackProvider = new TrackSuggestionProvider();
   private carProvider = new CarSuggestionProvider();
+  private themeProvider = new ThemeSuggestionProvider();
 
   getSuggestions(command: string): Suggestion[] {
     if (!command.startsWith('/')) return [];
@@ -44,6 +46,18 @@ export class SuggestionManager {
       case '/c':
         const carSuggestions = this.carProvider.getCompletions(lastPart);
         return carSuggestions;
+
+      case '/theme':
+        return this.themeProvider.getCompletions(lastPart);
+
+      case '/colors':
+        if (parts.length === 2 && parts[1] === 'calc') {
+          return this.themeProvider.getCompletions('calc');
+        }
+        break;
+
+      case '/theme':
+        return this.themeProvider.getCompletions(lastPart);
 
       case '/compare':
       case '/m':

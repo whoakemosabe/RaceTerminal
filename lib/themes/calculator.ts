@@ -2,6 +2,7 @@
 export const calculatorThemes = {
   // Classic LCD themes
   'classic': {
+    description: 'Classic green LCD display',
     bg: '#c8d1c0',
     text: '#0d1f0c',
     accent: '#1f3d1a',
@@ -11,6 +12,7 @@ export const calculatorThemes = {
     output: '#0d1f0c'
   },
   'blue': {
+    description: 'Cool blue LCD screen',
     bg: '#c0d1e8',
     text: '#0d1a2e',
     accent: '#0d1f3d',
@@ -20,6 +22,7 @@ export const calculatorThemes = {
     output: '#0d1a2e'
   },
   'amber': {
+    description: 'Warm amber calculator display',
     bg: '#ffd6a5',
     text: '#662600',
     accent: '#993d00',
@@ -29,6 +32,7 @@ export const calculatorThemes = {
     output: '#662600'
   },
   'red': {
+    description: 'Red LED calculator display',
     bg: '#ffccd5',
     text: '#660019',
     accent: '#990026',
@@ -38,6 +42,7 @@ export const calculatorThemes = {
     output: '#660019'
   },
   'white': {
+    description: 'Modern white LCD display',
     bg: '#f5f5f5',
     text: '#0d0d0d',
     accent: '#262626',

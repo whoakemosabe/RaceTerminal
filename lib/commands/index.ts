@@ -1,4 +1,13 @@
-export const commands = [
+// Define command interface
+export interface Command {
+  command: string;
+  description: string;
+  source: string;
+  category?: string;
+}
+
+// Define commands array
+export const commands: Command[] = [
   // System Commands
   {
     command: '/list (/ls)',
@@ -147,9 +156,15 @@ export const commands = [
     category: 'Analysis'
   },
   {
-    command: '/sector <year> <round>',
+    command: '/sector <year> <round> (/sa)',
     description: 'Analyze qualifying sector time comparisons',
-    source: 'Ergast F1 API',
+    source: 'F1 Racing Results API',
+    category: 'Analysis'
+  },
+  {
+    command: '/overtake <year> <round> (/oa, /ov)',
+    description: 'Analyze race overtaking statistics',
+    source: 'F1 Racing Results API',
     category: 'Analysis'
   },
   {

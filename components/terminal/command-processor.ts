@@ -30,6 +30,10 @@ export const commandAliases: Record<string, string> = {
   '/nx': '/next',
   '/rs': '/reset',
   '/sc': '/schedule',
+  '/oa': '/overtake',     // Overtake analysis shortcut
+  '/ov': '/overtake',     // Alternative overtake shortcut 
+  '/sa': '/sector',       // Sector analysis shortcut
+  '/oa': '/overtake',     // Overtake analysis shortcut
   '/sp': '/sprint',
   '/wx': '/weather'
 };
