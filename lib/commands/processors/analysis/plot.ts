@@ -26,15 +26,15 @@ export const plotCommand: CommandFunction = async (args: string[], originalComma
   try {
     const [raceData, lapTimes] = await Promise.all([
       api.getRaceResults(year, round),
-      api.getLapTimes(year, round, driverId)
+      api.getLapTimes(year, round, driverId).catch(() => null)
     ]);
 
-    if (!raceData || !raceData.Results) {
-      return `❌ Error: No race data found for ${year} round ${round}`;
+    if (!raceData || !raceData.Results || !raceData.Results.length) {
+      return `❌ Error: No race data found for ${year} round ${round}. Please check the year and round number.`;
     }
 
-    if (!lapTimes || lapTimes.length === 0) {
-      return `❌ Error: No lap time data available for ${driverId} in ${year} round ${round}`;
+    if (!lapTimes || !Array.isArray(lapTimes) || lapTimes.length === 0) {
+      return `❌ Error: No lap time data available for ${driverId} in ${year} round ${round}. This could be due to:\n• Driver did not participate\n• Driver did not complete any laps\n• Race data not yet available`;
     }
 
     const header = formatHeader(raceData, driverId);
@@ -45,7 +45,8 @@ export const plotCommand: CommandFunction = async (args: string[], originalComma
 
   } catch (error) {
     console.error('Error generating lap time plot:', error);
-    return '❌ Error: Could not generate lap time plot. Please try again later.';
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return `❌ Error: Could not generate lap time plot: ${errorMessage}\n\nPlease ensure:\n• Valid year and round numbers\n• Driver participated in the race\n• Race has been completed`;
   }
 };
 
@@ -54,7 +55,9 @@ function formatHeader(raceData: any, driverId: string): string {
     r.Driver.driverId.toLowerCase() === driverId.toLowerCase()
   );
 
-  if (!driverResult) return '';
+  if (!driverResult) {
+    return '❌ Driver not found in race results';
+  }
 
   return [
     `📈 LAP TIME PROGRESSION - ${driverResult.Driver.givenName} ${driverResult.Driver.familyName}`,
@@ -69,14 +72,14 @@ function generatePlot(lapTimes: any[]): string {
   const HEIGHT = 20;
   const WIDTH = 60;
   
-  // Convert lap times to seconds and filter invalid ones
+  // Convert lap times to seconds and filter invalid ones with better validation
   const times = lapTimes.map(lt => ({
     lap: parseInt(lt.lap),
-    time: timeToSeconds(lt.time)
-  })).filter(lt => !isNaN(lt.time) && lt.time > 0);
+    time: lt.time ? timeToSeconds(lt.time) : null
+  })).filter(lt => lt.time !== null && !isNaN(lt.time) && lt.time > 0);
 
   if (times.length === 0) {
-    return '❌ No valid lap times available for plotting';
+    return '❌ No valid lap times available for plotting. This could be due to:\n• Driver retired early\n• Timing data unavailable\n• Race not completed';
   }
 
   const minTime = Math.min(...times.map(t => t.time));
@@ -188,9 +191,11 @@ function generateStats(lapTimes: any[]): string {
 }
 
 function timeToSeconds(time: string): number {
-  if (!time || !time.includes(':')) return NaN;
+  if (!time || typeof time !== 'string' || !time.includes(':')) return NaN;
   const [minutes, seconds] = time.split(':');
-  return parseInt(minutes) * 60 + parseFloat(seconds);
+  const mins = parseInt(minutes);
+  const secs = parseFloat(seconds);
+  return !isNaN(mins) && !isNaN(secs) ? mins * 60 + secs : NaN;
 }
 
 function formatTime(seconds: number): string {

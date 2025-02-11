@@ -38,6 +38,7 @@ const commandHelp: Record<string, string> = {
     '',
     '3. Calculator Themes',
     '   Usage: /theme calc <scheme>',
+    '   Available schemes:',
     '   • classic - Traditional green LCD',
     '   • blue - Cool blue display',
     '   • amber - Warm amber screen',
@@ -62,42 +63,6 @@ const commandHelp: Record<string, string> = {
     '• /calc - Calculator mode'
   ].join('\n'),
 
-  'colors': [
-    '🎨 CALCULATOR COLOR SCHEMES REFERENCE',
-    '═'.repeat(50),
-    '',
-    'Change calculator display color scheme.',
-    '',
-    'Usage: /colors calc [scheme]',
-    'Example: /colors calc amber',
-    '',
-    'Available Schemes:',
-    '• classic - Classic green LCD display',
-    '• blue   - Cool blue LCD screen',
-    '• amber  - Warm amber display',
-    '• red    - Red LED display',
-    '• white  - Modern LCD look',
-    '',
-    'Features:',
-    '• Multiple color themes',
-    '• Authentic LCD styling',
-    '• Customizable text colors',
-    '• Scan line effects',
-    '',
-    'Notes:',
-    '• Each scheme has unique colors for:',
-    '  - Background',
-    '  - Text output',
-    '  - Commands',
-    '  - Timestamps',
-    '  - Prompts',
-    '',
-    'Related Commands:',
-    '• /calc - Toggle calculator mode',
-    '• /theme - Change terminal theme',
-    '• /retro - Retro text effects'
-  ].join('\n'),
-
   'calculator': [
     '🖩 CALCULATOR MODE REFERENCE',
     '═'.repeat(50),
@@ -106,7 +71,7 @@ const commandHelp: Record<string, string> = {
     '',
     'Usage:',
     '1. Basic toggle: /calc',
-    '2. With colors: /colors calc [scheme]',
+    '2. With colors: /theme calc <scheme>',
     '',
     'Features:',
     '• Retro LCD display effect',
@@ -123,7 +88,7 @@ const commandHelp: Record<string, string> = {
     '• white   - Modern LCD look',
     '',
     'Related Commands:',
-    '• /colors calc - Change calculator colors',
+    '• /theme calc - Change calculator colors',
     '• /retro - Retro text effects',
     '• /theme - Terminal themes'
   ].join('\n'),
@@ -374,7 +339,6 @@ const commandHelp: Record<string, string> = {
     '🏆 COMPARISON COMMAND REFERENCE',
     '═'.repeat(50),
     '',
-    '',
     'Compare career statistics between drivers or teams.',
     '',
     'Usage:',
@@ -414,79 +378,6 @@ const commandHelp: Record<string, string> = {
   ].join('\n'),
 
   'sector': [
-    '📊 QUALIFYING SECTOR ANALYSIS REFERENCE',
-    '═'.repeat(50),
-    '',
-    'Analyze qualifying sector time comparisons.',
-    '',
-    'Usage: /sector <year> <round>',
-    'Example: /sector 2023 1',
-    'Shortcut: /sa',
-    '',
-    'Available Data:',
-    '• Sector time comparisons',
-    '• Theoretical best lap',
-    '• Purple/green/yellow sectors',
-    '• Time lost to ideal lap',
-    '• Session improvements',
-    '',
-    'Features:',
-    '• Detailed sector breakdowns',
-    '• Performance indicators',
-    '• Improvement tracking',
-    '• Visual sector markers',
-    '',
-    'Notes:',
-    '• Purple: Fastest sector',
-    '• Green: Within 1% of fastest',
-    '• Yellow: Within 2% of fastest',
-    '• White: Over 2% off fastest',
-    '',
-    'Related Commands:',
-    '• /qualifying - Full Q1/Q2/Q3 results',
-    '• /gap - Race gap analysis',
-    '• /pace - Race pace analysis'
-  ].join('\n'),
-
-  'overtake': [
-    '🏎️ OVERTAKING ANALYSIS REFERENCE',
-    '═'.repeat(50),
-    '',
-    'Analyze race overtaking statistics.',
-    '',
-    'Usage: /overtake <year> <round>',
-    'Example: /overtake 2023 1',
-    'Shortcuts: /oa, /ov',
-    '',
-    'Available Data:',
-    '• Position changes',
-    '• DRS vs non-DRS moves',
-    '• Defensive statistics',
-    '• Key overtaking moments',
-    '',
-    'Features:',
-    '• Detailed move tracking',
-    '• DRS effectiveness',
-    '• Defense ratings',
-    '• Lap-by-lap analysis',
-    '',
-    'Performance Ratings:',
-    '• 🟣 Exceptional (5+ overtakes)',
-    '• 🟢 Strong (3-4 overtakes)',
-    '• 🟡 Active (1-2 overtakes)',
-    '• ⚪ Limited (0 overtakes)',
-    '',
-    'Defense Ratings:',
-    '• 🟢 Clean Race (no positions lost)',
-    '• 🟢 Solid (1-2 positions lost)',
-    '• 🟡 Under Pressure (3-4 positions lost)',
-    '• 🔴 Defensive (5+ positions lost)',
-    '',
-    'Related Commands:',
-    '• /race - Full race results',
-    '• /gap - Race gap analysis',
-    '• /pace - Race pace analysis'
-  ].join('\n'),
     '📊 QUALIFYING SECTOR ANALYSIS REFERENCE',
     '═'.repeat(50),
     '',
@@ -654,42 +545,102 @@ const categories = {
       c.command.toLowerCase().includes(term)
     )
   ),
+  'Analysis': commands.filter(c => 
+    c.category?.toLowerCase() === 'analysis' ||
+    ['pace', 'gap', 'sector', 'overtake', 'plot', 'compare'].some(term => 
+      c.command.toLowerCase().includes(term)
+    )
+  ),
   'Driver & Team': commands.filter(c => 
     ['driver', 'team', 'compare', '/md', '/mt'].some(term => 
       c.command.toLowerCase().includes(term)
     )
   ),
+  'System': commands.filter(c => 
     ['user', 'clear', 'help', 'theme', 'sys', 'neofetch', 'hack', 'fontsize', 'stats', 'decrypt', 'reset'].some(term => 
-      c.command.toLowerCase().includes(term) ||
-      (c.category?.toLowerCase() === 'system')
-    )
+      c.command.toLowerCase().includes(term)
+    ) || c.category?.toLowerCase() === 'system'
   ),
-  'Effects': commands.filter(c => 
-    ['retro', 'matrix', 'crt', 'glitch', 'scanlines', 'rain'].some(term => 
-      c.command.toLowerCase().includes(term) ||
-      (c.category?.toLowerCase() === 'effects')
-    )
-  ).concat(commands.filter(c => 
-    ['calc', 'calculator'].some(term => 
-      c.command.toLowerCase().includes(term) ||
-      (c.category?.toLowerCase() === 'effects')
-    )
-  ))
+  'Effects': commands.filter(c =>
+    ['retro', 'matrix', 'crt', 'glitch', 'scanlines', 'rain', 'calc', 'calculator'].some(term =>
+      c.command.toLowerCase().includes(term)
+    ) || c.category?.toLowerCase() === 'effects'
+  )
 };
 
 const formatCommand = (cmd: typeof commands[0]) => {
   const [baseCmd, ...params] = cmd.command.split(' ');
   const aliases = baseCmd.match(/\((.*?)\)/)?.[1] || '';
   const cleanCmd = baseCmd.replace(/\s*\(.*?\)/, '');
+  const shortDesc = getShortDescription(cleanCmd);
   
   return [
     `${cleanCmd}${params.length ? ' ' + params.join(' ') : ''}`,
     aliases ? `Aliases: ${aliases}` : '',
-    `Description: ${cmd.description}`,
+    `Description: ${shortDesc || cmd.description}`,
     `Source: ${cmd.source}`,
     ''
   ].filter(Boolean).join('\n');
 };
+
+// Short descriptions for commands
+export function getShortDescription(cmd: string): string {
+  switch (cmd) {
+    // Race Information
+    case '/standings': return 'View driver championship standings';
+    case '/teams': return 'View constructor standings';
+    case '/schedule': return 'View race calendar';
+    case '/next': return 'Next race info & countdown';
+    case '/last': return 'Last race results';
+    case '/track': return 'Circuit details & records';
+    case '/car': return 'F1 car specifications';
+    
+    // Live Data
+    case '/live': return 'Real-time timing data';
+    case '/telemetry': return 'Live car telemetry';
+    case '/status': return 'Track status & flags';
+    case '/weather': return 'Circuit weather conditions';
+    case '/tires': return 'Tire compounds & wear';
+    
+    // Historical Data
+    case '/race': return 'Historical race results';
+    case '/qualifying': return 'Qualifying session results';
+    case '/sprint': return 'Sprint race results';
+    case '/pitstops': return 'Pit stop timings';
+    case '/fastest': return 'Fastest lap records';
+    case '/laps': return 'Detailed lap times';
+    
+    // Analysis
+    case '/pace': return 'Race pace & stint analysis';
+    case '/gap': return 'Intervals & battle analysis';
+    case '/compare': return 'Compare drivers/teams';
+    case '/sector': return 'Qualifying sector analysis';
+    case '/overtake': return 'Race overtaking analysis';
+    case '/plot': return 'Lap time progression chart';
+    
+    // Effects
+    case '/retro': return 'Retro text glow effect';
+    case '/matrix': return 'Matrix digital rain';
+    case '/crt': return 'CRT monitor effect';
+    case '/glitch': return 'Glitch visual effect';
+    case '/scanlines': return 'CRT scanlines overlay';
+    case '/calc': return 'Calculator LCD effect';
+    
+    // System
+    case '/user': return 'Set terminal username';
+    case '/clear': return 'Clear terminal history';
+    case '/help': return 'Command documentation';
+    case '/theme': return 'Change color theme';
+    case '/sys': return 'System diagnostics';
+    case '/neofetch': return 'System info display';
+    case '/hack': return 'Hacking simulation';
+    case '/fontsize': return 'Adjust text size';
+    case '/stats': return 'Usage statistics';
+    case '/decrypt': return 'Code-breaking game';
+    
+    default: return '';
+  }
+}
 
 export const helpCommands: HelpCommands = {
   '/help': async (args: string[]) => {
@@ -697,14 +648,25 @@ export const helpCommands: HelpCommands = {
     if (args[0]) {
       const searchTerm = args[0].toLowerCase().replace('/', '');
       
+      // Handle command aliases
+      const aliasMap = {
+        'sa': 'sector',
+        'oa': 'overtake',
+        'ov': 'overtake',
+        'md': 'compare',
+        'mt': 'compare'
+      };
+      
+      const resolvedTerm = aliasMap[searchTerm] || searchTerm;
+      
       // Check for direct command help
-      if (commandHelp[searchTerm]) {
-        return commandHelp[searchTerm];
+      if (commandHelp[resolvedTerm]) {
+        return commandHelp[resolvedTerm];
       }
 
       // Check for category help
       const category = Object.entries(categories).find(([name]) => 
-        name.toLowerCase().includes(searchTerm)
+        name.toLowerCase().includes(resolvedTerm)
       );
 
       if (category) {
@@ -716,6 +678,16 @@ export const helpCommands: HelpCommands = {
         ].join('\n');
       }
 
+      // Check for command in any category
+      for (const [catName, catCommands] of Object.entries(categories)) {
+        const command = catCommands.find(c => 
+          c.command.toLowerCase().includes(resolvedTerm) ||
+          c.command.toLowerCase().includes(`/${resolvedTerm}`)
+        );
+        if (command) {
+          return commandHelp[resolvedTerm] || formatCommand(command);
+        }
+      }
       return [
         '❌ Help topic not found. Try one of these:',
         '',
@@ -790,7 +762,7 @@ export const helpCommands: HelpCommands = {
       '/matrix - Toggle Matrix-style terminal effects',
       '/matrix rain - Toggle Matrix digital rain background effect',
       '/crt - Toggle CRT monitor visual effects',
-      '/scanlines - Toggle CRT scanlines overlay',
+      '/scanlines - Toggle scanline overlay',
       '/glitch - Apply temporary glitch visual effect',
       '/calc - Toggle retro calculator LCD display effect',
       '',

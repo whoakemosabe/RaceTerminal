@@ -1,6 +1,6 @@
 import { userCommands } from './user';
 import { themeCommands } from './theme';
-import { helpCommands } from './help';
+import { helpCommands, getShortDescription } from './help';
 import { effectsCommands } from './effects';
 import { systemInfoCommands } from './system-info';
 import { CommandFunction } from '../index';
@@ -16,4 +16,3 @@ export const systemCommands: SystemCommands = {
   ...helpCommands,
   ...effectsCommands,
   ...systemInfoCommands
-};
