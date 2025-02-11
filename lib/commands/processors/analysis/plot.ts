@@ -33,18 +33,19 @@ export const plotCommand: CommandFunction = async (args: string[], originalComma
       return `❌ Error: No race data found for ${year} round ${round}. Please check the year and round number.`;
     }
 
-    if (!Array.isArray(lapTimes) || lapTimes.length === 0) {
+    if (!lapTimes || !Array.isArray(lapTimes) || lapTimes.length === 0) {
       return `❌ Error: No lap time data available for ${driverId} in ${year} round ${round}. This could be due to:\n• Driver did not participate\n• Driver did not complete any laps\n• Race data not yet available`;
     }
 
-    // Validate lap times format
-    const validLapTimes = lapTimes.filter(lt => 
-      lt && lt.time && typeof lt.time === 'string' && 
-      lt.time.includes(':') && !isNaN(timeToMs(lt.time))
-    );
+    // Process lap times more flexibly
+    const validLapTimes = lapTimes.filter(lt => {
+      if (!lt || !lt.time) return false;
+      const time = timeToSeconds(lt.time);
+      return !isNaN(time) && time > 0 && time < 300; // Filter unreasonable times (>5 min)
+    });
 
     if (validLapTimes.length === 0) {
-      return `❌ Error: Invalid lap time data for ${driverId} in ${year} round ${round}`;
+      return `❌ Error: No valid lap time data found for ${driverId} in ${year} round ${round}. Please check:\n• Driver participated in the race\n• Race has been completed\n• Data is available for the selected year/round`;
     }
 
     const header = formatHeader(raceData, driverId);
@@ -56,7 +57,7 @@ export const plotCommand: CommandFunction = async (args: string[], originalComma
   } catch (error) {
     console.error('Error generating lap time plot:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return `❌ Error: Could not generate lap time plot. Please ensure:\n• Valid year and round numbers (e.g., /plot 2023 1 verstappen)\n• Driver participated in the race\n• Race has been completed`;
+    return `❌ Error: Could not generate lap time plot. Please ensure:\n• Valid year and round numbers (e.g., /plot 2023 1 verstappen)\n• Driver participated in the race\n• Race has been completed\n• Data is available for the selected year/round\n\nError details: ${errorMessage}`;
   }
 };
 
@@ -86,10 +87,14 @@ function generatePlot(lapTimes: any[]): string {
   const times = lapTimes.map(lt => ({
     lap: parseInt(lt.lap),
     time: lt.time ? timeToSeconds(lt.time) : null
-  })).filter(lt => lt.time !== null && !isNaN(lt.time) && lt.time > 0);
+  })).filter(lt => lt.time !== null && !isNaN(lt.time) && lt.time > 0 && lt.time < 300); // Filter out unreasonable times (>5 min)
 
   if (times.length === 0) {
     return '❌ No valid lap times available for plotting. This could be due to:\n• Driver retired early\n• Timing data unavailable\n• Race not completed';
+  }
+
+  if (times.length < 3) {
+    return '❌ Not enough valid lap times to generate plot (minimum 3 laps required)';
   }
 
   const minTime = Math.min(...times.map(t => t.time));
@@ -171,9 +176,11 @@ function generatePlot(lapTimes: any[]): string {
 function generateStats(lapTimes: any[]): string {
   const times = lapTimes
     .map(lt => timeToSeconds(lt.time))
-    .filter(t => !isNaN(t) && t > 0);
+    .filter(t => !isNaN(t) && t > 0 && t < 300); // Filter out unreasonable times
 
   if (times.length === 0) return '';
+
+  if (times.length < 3) return 'Not enough valid lap times for statistics';
 
   const minTime = Math.min(...times);
   const maxTime = Math.max(...times);
@@ -185,10 +192,10 @@ function generateStats(lapTimes: any[]): string {
   const stdDev = Math.sqrt(variance);
   
   const consistencyRating = 
-    stdDev < 0.5 ? '🟢 Excellent' :
-    stdDev < 1.0 ? '🟢 Good' :
-    stdDev < 1.5 ? '🟡 Fair' :
-    '🔴 Poor';
+    stdDev < 0.5 ? `<span style="color: hsl(var(--success))">🟢 Excellent</span>` :
+    stdDev < 1.0 ? `<span style="color: hsl(var(--success))">🟢 Good</span>` :
+    stdDev < 1.5 ? `<span style="color: hsl(var(--warning))">🟡 Fair</span>` :
+    `<span style="color: hsl(var(--error))">🔴 Poor</span>`;
 
   return [
     'Statistics:',
@@ -201,11 +208,22 @@ function generateStats(lapTimes: any[]): string {
 }
 
 function timeToSeconds(time: string): number {
-  if (!time || typeof time !== 'string' || !time.includes(':')) return NaN;
-  const [minutes, seconds] = time.split(':');
-  const mins = parseInt(minutes);
-  const secs = parseFloat(seconds);
-  return !isNaN(mins) && !isNaN(secs) ? mins * 60 + secs : NaN;
+  if (!time) return NaN;
+  
+  // Convert to string if needed
+  const timeStr = String(time).trim();
+  
+  // Handle different time formats
+  if (timeStr.includes(':')) {
+    const [minutes, seconds] = timeStr.split(':');
+    const mins = parseInt(minutes);
+    const secs = parseFloat(seconds);
+    return !isNaN(mins) && !isNaN(secs) ? mins * 60 + secs : NaN;
+  } else {
+    // Try parsing as seconds only
+    const secs = parseFloat(timeStr);
+    return !isNaN(secs) ? secs : NaN;
+  }
 }
 
 function formatTime(seconds: number): string {
@@ -216,11 +234,9 @@ function formatTime(seconds: number): string {
 
 function timeToMs(time: string): number {
   try {
-    if (!time || typeof time !== 'string' || !time.includes(':')) return NaN;
-    const [minutes, seconds] = time.split(':');
-    const mins = parseInt(minutes);
-    const secs = parseFloat(seconds);
-    return !isNaN(mins) && !isNaN(secs) ? mins * 60 + secs : NaN;
+    const seconds = timeToSeconds(time);
+    if (isNaN(seconds)) return NaN;
+    return seconds * 1000;
   } catch (error) {
     return NaN;
   }

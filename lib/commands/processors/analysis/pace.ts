@@ -192,21 +192,21 @@ function formatPaceAnalysis(analysis: DriverPaceAnalysis[]): string[] {
     );
 
     const tireRating = 
-      tireScore >= 9.2 ? '💫 Outstanding' :
-      tireScore >= 8.2 ? '🟢 Excellent' :
-      tireScore >= 7.0 ? '🟢 Good' :
-      tireScore >= 5.8 ? '🟡 Fair' :
-      tireScore >= 4.5 ? '🟠 Moderate' :
-      '🔴 Poor';
+      tireScore >= 9.2 ? `<span style="color: hsl(var(--success))">💫 Outstanding</span>` :
+      tireScore >= 8.2 ? `<span style="color: hsl(var(--success))">🟢 Excellent</span>` :
+      tireScore >= 7.0 ? `<span style="color: hsl(var(--success))">🟢 Good</span>` :
+      tireScore >= 5.8 ? `<span style="color: hsl(var(--warning))">🟡 Fair</span>` :
+      tireScore >= 4.5 ? `<span style="color: hsl(var(--info))">🟠 Moderate</span>` :
+      `<span style="color: hsl(var(--error))">🔴 Poor</span>`;
 
     const relativePerf = ((driver.avgTime / analysis[0].avgTime) - 1) * 100;
     const perfRating = 
-      relativePerf <= 0.3 ? '💫 Outstanding' :
-      relativePerf <= 0.6 ? '🟢 Strong' :
-      relativePerf <= 1.0 ? '🟢 Competitive' :
-      relativePerf <= 1.5 ? '🟡 Midfield' :
-      relativePerf <= 2.0 ? '🟠 Developing' :
-      '🔴 Poor';
+      relativePerf <= 0.3 ? `<span style="color: hsl(var(--success))">💫 Outstanding</span>` :
+      relativePerf <= 0.6 ? `<span style="color: hsl(var(--success))">🟢 Strong</span>` :
+      relativePerf <= 1.0 ? `<span style="color: hsl(var(--success))">🟢 Competitive</span>` :
+      relativePerf <= 1.5 ? `<span style="color: hsl(var(--warning))">🟡 Midfield</span>` :
+      relativePerf <= 2.0 ? `<span style="color: hsl(var(--info))">🟠 Developing</span>` :
+      `<span style="color: hsl(var(--error))">🔴 Poor</span>`;
 
     const trend = calculateTrend(driver.timesInSeconds);
     const trendIndicator = getTrendIndicator(trend, finishPos, startPos);
@@ -235,8 +235,18 @@ function formatDriverOutput(
   const flag = flagUrl ? `<img src="${flagUrl}" alt="${driverResult.Driver.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : '';
   const teamColor = getTeamColor(driverResult.Constructor.name);
 
+  // Calculate position changes
+  const startPos = parseInt(driverResult.grid) || 0;
+  const finishPos = parseInt(driverResult.position);
+  const positionChange = startPos === 0 ? 'PIT' : startPos - finishPos;
+  const positionIndicator = positionChange === 'PIT' ? '<span style="color: hsl(var(--secondary))">🔧 Pit Lane Start</span>' :
+                           positionChange > 0 ? `<span style="color: hsl(142.1 76.2% 36.3%)">↗️ Gained ${positionChange}</span>` :
+                           positionChange < 0 ? `<span style="color: hsl(0 72.2% 50.6%)">↘️ Lost ${Math.abs(positionChange)}</span>` :
+                           '<span style="color: hsl(var(--muted-foreground))">➡️ No Change</span>';
+  const positionText = `Grid: P${startPos === 0 ? 'IT' : startPos} → P${finishPos} | ${positionIndicator}`;
+
   // Format the main driver line according to the requested format
-  const driverLine = `P${position}. ${driverResult.Driver.givenName} ${driverResult.Driver.familyName} | ${driverResult.Driver.nationality} ${flag} | <span style="color: ${teamColor}">${driverResult.Constructor.name}</span>`;
+  const driverLine = `P${driverResult.position}. ${driverResult.Driver.givenName} ${driverResult.Driver.familyName} | ${driverResult.Driver.nationality} ${flag} | <span style="color: ${teamColor}">${driverResult.Constructor.name}</span>`;
 
   const lapTimeStats = [
     `Average: ${formatLapTime(driver.avgTime)}`,
@@ -254,6 +264,7 @@ function formatDriverOutput(
 
   return [
     driverLine,
+    positionText,
     `Lap Times | ${lapTimeStats}`,
     `Performance | ${perfMetrics}`,
     '',

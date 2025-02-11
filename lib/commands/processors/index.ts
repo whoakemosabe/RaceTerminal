@@ -1,4 +1,5 @@
 import { systemCommands } from './system';
+import { helpCommands } from './system/help';
 import { driverCommands } from './driver';
 import { raceCommands } from './race';
 import { liveCommands } from './live';
@@ -16,6 +17,7 @@ const processors: Record<string, CommandFunction> = {};
 
 // Add command processors
 Object.assign(processors, systemCommands);
+Object.assign(processors, helpCommands);
 Object.assign(processors, driverCommands);
 Object.assign(processors, raceCommands);
 Object.assign(processors, liveCommands);

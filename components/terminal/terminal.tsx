@@ -349,20 +349,21 @@ export function Terminal({
                         [{entry.timestamp || 'unknown'}] {entry.username}@terminal
                       </span>
                     )}
-                    <code className="text-primary" style={{ lineHeight: '1.5' }}>{entry.command}</code>
+                    <code className="text-[hsl(217_100%_80%)]" style={{ lineHeight: '1.5' }}>{entry.command}</code>
                   </div>
                   <div
                     className={cn(
                       "pl-4 whitespace-pre-wrap break-words",
                       entry.output === 'Processing command' && "processing-dots",
-                      isError ? 'text-red-500' : 'text-white'
+                      isError && "text-[hsl(var(--error))]"
                     )}
                     style={{ 
                       lineHeight: '1.5',
                       overflowWrap: 'break-word',
                       fontFamily: 'monospace',
                       whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word'
+                      wordBreak: 'break-word',
+                      color: isError ? 'hsl(var(--error))' : 'hsl(0 0% 100%)'
                     }}
                     dangerouslySetInnerHTML={{ __html: entry.output || '' }}
                   />

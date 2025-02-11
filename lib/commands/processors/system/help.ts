@@ -244,12 +244,12 @@ export const helpCommands: HelpCommands = {
       const commandKey = `/${searchTerm.replace('/', '')}`;
       
       // Check for category help first
-      const category = Object.entries(helpCategories).find(([name]) => 
+      const matchedCategory = Object.entries(helpCategories).find(([name]) => 
         name.toLowerCase().includes(searchTerm)
       );
 
-      if (category) {
-        const [categoryName, categoryInfo] = category;
+      if (matchedCategory) {
+        const [categoryName, categoryInfo] = matchedCategory;
         const categoryCommands = commands.filter(cmd => 
           categoryInfo.commands.some(term => 
             cmd.command.toLowerCase().includes(term)
@@ -303,182 +303,17 @@ export const helpCommands: HelpCommands = {
       }
 
       // Check for category help
-      const category = quickReferenceCategories.find(cat => 
+      const matchedQuickRef = quickReferenceCategories.find(cat => 
         cat.title.toLowerCase().includes(searchTerm.replace('/', ''))
       );
 
-      if (category) {
+      if (matchedQuickRef) {
         const categoryCommands = commands.filter(cmd =>
-          category.filter.some(term => cmd.command.toLowerCase().includes(term))
+          matchedQuickRef.filter.some(term => cmd.command.toLowerCase().includes(term))
         );
 
         return [
-          `📚 ${category.title} COMMANDS`,
-          '═'.repeat(60),
-          '',
-          ...categoryCommands.map(formatCommand)
-        ].join('\n');
-      }
-
-      return [
-        `❌ Help topic "${args[0]}" not found. Try one of these:`,
-        '',
-        'Categories:',
-        ...quickReferenceCategories.map(cat => `• ${cat.title}`),
-        '',
-        'Popular Commands:',
-        '• telemetry - Car telemetry data',
-        '• live - Live timing information',
-        '• weather - Track conditions',
-        '• compare - Compare drivers/teams',
-        '• effects - Visual effects',
-        '• list - Available data'
-      ].join('\n');
-    }
-
-    const header = [
-      '📚 RACETERMINAL PRO COMMAND REFERENCE',
-      '═'.repeat(60),
-      '\nWelcome to RaceTerminal Pro! This terminal provides comprehensive Formula 1 data access and analysis.',
-      'Below is a complete list of available commands organized by category.',
-      ''
-    ];
-
-    const content = Object.entries(commandInfo).map(([cmd, info]) => {
-      const command = commands.find(c => c.command.split(' ')[0] === cmd);
-      if (!command) return '';
-      
-      const shortcut = Object.entries(commandAliases)
-        .find(([alias, target]) => target === cmd)?.[0];
-      const aliases = command.command.match(/\((.*?)\)/)?.[1];
-      const aliasText = aliases || shortcut ? ` (${[aliases, shortcut].filter(Boolean).join(', ')})` : '';
-
-      return `${cmd}${aliasText}\n  ${info.description}\n`;
-    }).filter(Boolean);
-
-    return [
-      ...header,
-      '🏁 RACE INFORMATION',
-      '═'.repeat(60),
-      content.filter(cmd => cmd.includes('standings') || cmd.includes('schedule') || cmd.includes('track')).join('\n'),
-      '\n',
-      '📊 LIVE DATA',
-      '═'.repeat(60),
-      content.filter(cmd => cmd.includes('live') || cmd.includes('telemetry') || cmd.includes('weather')).join('\n'),
-      '',
-      '📈 ANALYSIS',
-      '═'.repeat(60),
-      content.filter(cmd => {
-        const info = commandInfo[cmd.split('\n')[0].split(' ')[0].trim()];
-        return info && info.category === 'ANALYSIS';
-      }).join('\n'),
-      '',
-      '✨ EFFECTS',
-      '═'.repeat(60),
-      content.filter(cmd => {
-        const info = commandInfo[cmd.split('\n')[0].split(' ')[0].trim()];
-        return info && info.category === 'EFFECTS';
-      }).join('\n'),
-      '',
-      '⚙️ SYSTEM',
-      '═'.repeat(60),
-      content.filter(cmd => {
-        const info = commandInfo[cmd.split('\n')[0].split(' ')[0].trim()];
-        return info && info.category === 'SYSTEM';
-      }).join('\n'),
-      '',
-      'Tips:',
-      '• Use /list <type> to see available data (drivers, teams, tracks, cars)',
-      '• Use Tab for command completion',
-      '• Commands are case-insensitive',
-      '• Most commands have shortcuts (shown in parentheses)',
-      '• Press Alt+Enter to toggle fullscreen mode',
-      '• Press Ctrl+L to clear the terminal',
-      '',
-      'For detailed help on any command, type: /help <command>',
-      'For example: /help pace'
-    ].join('\n');
-  }
-};
-
-export const helpCommands: HelpCommands = {
-  '/help': async (args: string[]) => {
-    // If a specific command is provided
-    if (args[0]) {
-      const searchTerm = args[0].toLowerCase();
-      const commandKey = `/${searchTerm.replace('/', '')}`;
-      
-      // Check for category help first
-      const category = Object.entries(helpCategories).find(([name]) => 
-        name.toLowerCase().includes(searchTerm)
-      );
-
-      if (category) {
-        const [categoryName, categoryInfo] = category;
-        const categoryCommands = commands.filter(cmd => 
-          categoryInfo.commands.some(term => 
-            cmd.command.toLowerCase().includes(term)
-          )
-        );
-
-        return [
-          `📚 ${categoryName} COMMANDS`,
-          '═'.repeat(60),
-          categoryInfo.description,
-          '',
-          ...categoryCommands.map(formatCommand)
-        ].join('\n');
-      }
-
-      // Check for specific command help
-      if (commandInfo[commandKey]) {
-        const info = commandInfo[commandKey];
-        const command = commands.find(cmd => 
-          cmd.command.split(' ')[0].replace(/\s*\(.*?\)/, '').toLowerCase() === commandKey
-        );
-
-        if (command) {
-          const [baseCmd, ...params] = command.command.split(' ');
-          const shortcut = Object.entries(commandAliases)
-            .find(([alias, target]) => target === baseCmd)?.[0];
-          const aliases = baseCmd.match(/\((.*?)\)/)?.[1];
-          const aliasText = aliases || shortcut ? ` (${[aliases, shortcut].filter(Boolean).join(', ')})` : '';
-
-          return [
-            `📚 ${baseCmd.toUpperCase()} COMMAND REFERENCE`,
-            '═'.repeat(60),
-            `\nDescription: ${command.description}`,
-            `Description: ${info.description}`,
-            `Category: ${info.category}`,
-            `Source: ${command.source}`,
-            '',
-            'Usage:',
-            `${baseCmd}${params.length ? ` ${params.join(' ')}` : ''}${aliasText}`,
-            '',
-            'Examples:',
-            getCommandExamples(commandKey),
-            '',
-            'Notes:',
-            getCommandNotes(commandKey),
-            '',
-            'Related Commands:',
-            getRelatedCommands(commandKey)
-          ].filter(Boolean).join('\n');
-        }
-      }
-
-      // Check for category help
-      const category = quickReferenceCategories.find(cat => 
-        cat.title.toLowerCase().includes(searchTerm.replace('/', ''))
-      );
-
-      if (category) {
-        const categoryCommands = commands.filter(cmd =>
-          category.filter.some(term => cmd.command.toLowerCase().includes(term))
-        );
-
-        return [
-          `📚 ${category.title} COMMANDS`,
+          `📚 ${matchedQuickRef.title} COMMANDS`,
           '═'.repeat(60),
           '',
           ...categoryCommands.map(formatCommand)
