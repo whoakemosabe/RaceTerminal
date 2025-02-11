@@ -1,9 +1,9 @@
+import { CommandFunction } from '../index';
 import { paceAnalysis } from './pace';
 import { gapAnalysis } from './gap';
 import { sectorAnalysis } from './sector';
 import { overtakeAnalysis } from './overtake';
 import { plotCommand } from './plot';
-import { CommandFunction } from '../index';
 
 interface AnalysisCommands {
   [key: string]: CommandFunction;

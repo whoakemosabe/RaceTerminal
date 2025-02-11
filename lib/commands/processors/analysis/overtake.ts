@@ -34,7 +34,7 @@ export const overtakeAnalysis: CommandFunction = async (args: string[], original
 
     const header = formatHeader(raceData);
     const analysis = analyzeOvertakes(raceData, lapTimes);
-    const formattedOutput = formatOvertakeAnalysis(analysis);
+    const formattedOutput = formatOvertakeAnalysis(analysis, raceData);
 
     return [header, ...formattedOutput].join('\n');
   } catch (error) {
@@ -58,88 +58,112 @@ function formatHeader(raceData: any): string {
 function analyzeOvertakes(raceData: any, lapTimes: any[]): any[] {
   const drivers = new Map();
   
-  // Initialize driver data
-  raceData.Results.forEach((result: any) => {
-    drivers.set(result.Driver.driverId.toUpperCase(), {
-      driver: result,
-      startPos: parseInt(result.grid),
-      finishPos: parseInt(result.position),
-      overtakes: [],
-      defends: [],
-      drsOvertakes: 0,
-      drsDefends: 0
-    });
-  });
-
-  // Analyze lap-by-lap position changes
-  let previousLap = new Map();
+  // Group lap times by lap number for easier access
+  const lapTimesByLap = new Map();
   lapTimes.forEach(lap => {
     const lapNum = parseInt(lap.lap);
-    const driverId = lap.driver;
-    
-    if (lapNum === 1) {
-      previousLap.set(driverId, parseInt(drivers.get(driverId).startPos));
-      return;
+    if (!lapTimesByLap.has(lapNum)) {
+      lapTimesByLap.set(lapNum, []);
     }
+    lapTimesByLap.get(lapNum).push(lap);
+  });
+  
+  raceData.Results.forEach((result: any, index: number) => {
+    const gridPosition = parseInt(result.grid);
+    const startPos = gridPosition === 0 ? 
+      raceData.Results.length + 1 : // Last place + 1 for pit lane starts
+      gridPosition;
+    const finishPos = parseInt(result.position);
+    const driverId = result.Driver.driverId.toUpperCase();
 
-    const currentPos = calculatePosition(lapTimes, lapNum, driverId);
-    const previousPos = previousLap.get(driverId);
+    // Track position changes through the race
+    let overtakes = [];
+    let drsOvertakes = 0;
+    let previousPosition = startPos;
 
-    if (previousPos && currentPos < previousPos) {
-      // Gained position(s)
-      const driverData = drivers.get(driverId);
-      driverData.overtakes.push({
-        lap: lapNum,
-        positions: previousPos - currentPos,
-        isDRS: isDRSOvertake(lapTimes, lapNum, driverId)
-      });
-      if (isDRSOvertake(lapTimes, lapNum, driverId)) {
-        driverData.drsOvertakes++;
+    // Analyze each lap
+    const maxLaps = Math.max(...Array.from(lapTimesByLap.keys()));
+    for (let lapNum = 1; lapNum <= maxLaps; lapNum++) {
+      const lapData = lapTimesByLap.get(lapNum);
+      if (!lapData) continue;
+
+      const currentPosition = calculatePosition(lapData, driverId);
+
+      if (currentPosition < previousPosition) {
+        const positionsGained = previousPosition - currentPosition;
+        const isDRS = isDRSOvertake(
+          lapTimesByLap,
+          lapNum,
+          driverId,
+          previousPosition,
+          currentPosition
+        );
+
+        overtakes.push({
+          lap: lapNum,
+          positions: positionsGained,
+          isDRS
+        });
+
+        if (isDRS) drsOvertakes++;
       }
-    } else if (previousPos && currentPos > previousPos) {
-      // Lost position(s)
-      const driverData = drivers.get(driverId);
-      driverData.defends.push({
-        lap: lapNum,
-        positions: currentPos - previousPos
-      });
+
+      previousPosition = currentPosition;
     }
 
-    previousLap.set(driverId, currentPos);
+    drivers.set(result.Driver.driverId.toUpperCase(), {
+      driver: result,
+      startPos,
+      finishPos,
+      overtakes,
+      drsOvertakes,
+      totalPositionsGained: Math.max(0, startPos - finishPos)
+    });
   });
 
   return Array.from(drivers.values());
 }
 
-function calculatePosition(lapTimes: any[], lapNum: number, driverId: string): number {
+function calculatePosition(lapTimes: any[], driverId: string): number {
   const lapDrivers = lapTimes
-    .filter(lt => parseInt(lt.lap) === lapNum)
     .sort((a, b) => timeToMs(a.time) - timeToMs(b.time));
   
-  return lapDrivers.findIndex(d => d.driver === driverId) + 1;
+  const position = lapDrivers.findIndex(d => d.driver?.toUpperCase() === driverId) + 1;
+  return position > 0 ? position : lapDrivers.length + 1;
 }
 
 function timeToMs(time: string): number {
   const [minutes, seconds] = time.split(':');
-  return (parseInt(minutes) * 60 + parseFloat(seconds)) * 1000;
+  return (parseInt(minutes || '0') * 60 + parseFloat(seconds || '0')) * 1000;
 }
 
-function isDRSOvertake(lapTimes: any[], lapNum: number, driverId: string): boolean {
-  // Approximate DRS detection based on typical delta time patterns
-  const currentLap = lapTimes.find(lt => 
-    parseInt(lt.lap) === lapNum && lt.driver === driverId
-  );
-  const previousLap = lapTimes.find(lt => 
-    parseInt(lt.lap) === lapNum - 1 && lt.driver === driverId
-  );
+function isDRSOvertake(
+  lapTimesByLap: Map<number, any[]>,
+  lapNum: number,
+  driverId: string,
+  prevPos: number,
+  currentPos: number
+): boolean {
+  const currentLapTimes = lapTimesByLap.get(lapNum) || [];
+  const previousLapTimes = lapTimesByLap.get(lapNum - 1) || [];
+
+  const currentLap = currentLapTimes.find(lt => lt.driver?.toUpperCase() === driverId);
+  const previousLap = previousLapTimes.find(lt => lt.driver?.toUpperCase() === driverId);
 
   if (!currentLap || !previousLap) return false;
 
-  const delta = timeToMs(currentLap.time) - timeToMs(previousLap.time);
-  return delta < -800; // Typical DRS overtake time gain threshold
+  // Check for significant time gain and DRS zone
+  const timeDelta = timeToMs(currentLap.time) - timeToMs(previousLap.time);
+  const positionGained = prevPos > currentPos;
+
+  // More accurate DRS detection
+  const drsThreshold = -600; // 0.6s time gain threshold for DRS
+  const isInDRSZone = timeDelta < drsThreshold;
+  
+  return isInDRSZone && positionGained;
 }
 
-function formatOvertakeAnalysis(analysis: any[]): string[] {
+function formatOvertakeAnalysis(analysis: any[], raceData: any): string[] {
   return analysis.map(data => {
     const driver = data.driver;
     const flagUrl = getFlagUrl(driver.Driver.nationality);
@@ -148,27 +172,34 @@ function formatOvertakeAnalysis(analysis: any[]): string[] {
       '';
     const teamColor = getTeamColor(driver.Constructor.name);
 
-    const positionsGained = data.startPos - data.finishPos;
+    // Calculate net position change from grid to finish
+    const gridToFinishChange = data.startPos - data.finishPos;
+    
+    // Total overtakes made by the driver
     const totalOvertakes = data.overtakes.reduce((sum: number, o: any) => sum + o.positions, 0);
-    const totalDefends = data.defends.reduce((sum: number, d: any) => sum + d.positions, 0);
-
+    
+    // Calculate positions lost (if finished behind grid position)
+    const positionsLost = Math.max(0, data.finishPos - data.startPos);
+    
     const overtakeRating = 
-      totalOvertakes >= 5 ? '🟣 Exceptional' :
-      totalOvertakes >= 3 ? '🟢 Strong' :
-      totalOvertakes >= 1 ? '🟡 Active' :
+      totalOvertakes >= 6 ? '🟣 Exceptional' :
+      totalOvertakes >= 4 ? '🟢 Strong' :
+      totalOvertakes >= 2 ? '🟡 Active' :
       '⚪ Limited';
 
+    // Calculate defensive rating based on how many times they were overtaken
     const defendRating =
-      totalDefends === 0 && positionsGained > 0 ? '🟢 Clean Race' :
-      totalDefends <= 2 ? '🟢 Solid' :
-      totalDefends <= 4 ? '🟡 Under Pressure' :
-      '🔴 Defensive';
+      positionsLost === 0 ? '🟢 Excellent' :
+      positionsLost <= 2 ? '🟢 Strong' :
+      positionsLost <= 4 ? '🟡 Moderate' :
+      positionsLost <= 6 ? '🟠 Vulnerable' :
+      '🔴 Poor';
 
     return [
       `P${data.finishPos}. ${driver.Driver.givenName} ${driver.Driver.familyName} ${flag} | <span style="color: ${teamColor}">${driver.Constructor.name}</span>`,
-      `Grid: P${data.startPos} → P${data.finishPos} (${positionsGained > 0 ? '+' : ''}${positionsGained} positions)`,
+      `Grid: P${data.startPos} → P${data.finishPos} (${gridToFinishChange > 0 ? '+' : ''}${gridToFinishChange} positions)`,
       `Overtaking: ${overtakeRating} | ${totalOvertakes} moves (${data.drsOvertakes} DRS)`,
-      `Defense: ${defendRating} | ${totalDefends} position changes`,
+      `Defense: ${defendRating} | Overtaken ${positionsLost} times`,
       data.overtakes.length > 0 ? 
         `Key Moves: ${data.overtakes.map((o: any) => `Lap ${o.lap} (${o.isDRS ? 'DRS' : 'Non-DRS'})`).join(', ')}` : '',
       ''

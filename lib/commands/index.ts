@@ -147,13 +147,11 @@ export const commands: Command[] = [
     command: '/pace <year> <round>',
     description: 'Analyze detailed race pace and consistency',
     source: 'Ergast F1 API',
-    source: 'Ergast F1 API',
     category: 'Analysis'
   },
   {
     command: '/gap <year> <round>',
     description: 'View detailed race gap analysis',
-    source: 'Ergast F1 API',
     source: 'Ergast F1 API',
     category: 'Analysis'
   },
@@ -161,13 +159,11 @@ export const commands: Command[] = [
     command: '/sector <year> <round> (/sa)',
     description: 'Analyze qualifying sector time comparisons',
     source: 'F1 Racing Results API',
-    source: 'F1 Racing Results API',
     category: 'Analysis'
   },
   {
     command: '/overtake <year> <round> (/oa, /ov)',
     description: 'Analyze race overtaking statistics',
-    source: 'F1 Racing Results API',
     source: 'F1 Racing Results API',
     category: 'Analysis'
   },
@@ -226,12 +222,6 @@ export const commands: Command[] = [
     category: 'Games'
   },
   {
-    command: '/neofetch',
-    description: 'View system info in stylized terminal format',
-    source: 'System',
-    category: 'System'
-  },
-  {
     command: '/matrix rain',
     description: 'Toggle Matrix digital rain background effect',
     source: 'System',
@@ -250,16 +240,9 @@ export const commands: Command[] = [
     category: 'Effects'
   },
   {
-    command: '/colors calc [scheme]',
-    description: 'Enable calculator mode with custom color schemes (classic, blue, amber, red, white)',
-    source: 'System',
-    category: 'Effects'
-  },
-  {
     command: '/calc',
     description: 'Toggle retro calculator LCD display effect with classic green theme',
     source: 'System',
-    source: 'Ergast F1 API',
-    category: 'Analysis'
+    category: 'Effects'
   }
 ];

@@ -24,20 +24,7 @@ Object.assign(processors, listCommands);
 Object.assign(processors, carCommands);
 Object.assign(processors, analysisCommands);
 
-// Add individual command mappings for race commands
-processors['/track'] = raceCommands['/track'];
-processors['/standings'] = raceCommands['/standings'];
-processors['/teams'] = raceCommands['/teams'];
-processors['/schedule'] = raceCommands['/schedule'];
-processors['/next'] = raceCommands['/next'];
-processors['/last'] = raceCommands['/last'];
-processors['/qualifying'] = raceCommands['/qualifying'];
-processors['/sprint'] = raceCommands['/sprint'];
-processors['/pitstops'] = raceCommands['/pitstops'];
-processors['/fastest'] = raceCommands['/fastest'];
-processors['/compare'] = raceCommands['/compare'];
-
-// Add analysis commands directly from analysisCommands
+// Add individual analysis command mappings
 processors['/pace'] = analysisCommands['/pace'];
 processors['/gap'] = analysisCommands['/gap'];
 processors['/sector'] = analysisCommands['/sector'];

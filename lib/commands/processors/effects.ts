@@ -188,14 +188,27 @@ const effectsCommands: EffectsCommands = {
     try {
       document.documentElement.classList.toggle('calculator-enabled');
       localStorage.setItem('calculator_enabled', (!currentState).toString());
+      
+      // Apply default calculator theme (classic green)
+      if (!currentState) {
+        document.documentElement.style.setProperty('--calc-bg', '#c8d1c0');
+        document.documentElement.style.setProperty('--calc-text', '#0d1f0c');
+        document.documentElement.style.setProperty('--calc-accent', '#1f3d1a');
+        document.documentElement.style.setProperty('--calc-timestamp', '#0f2f0c');
+        document.documentElement.style.setProperty('--calc-prompt', '#1f3d1a');
+        document.documentElement.style.setProperty('--calc-command', '#071505');
+        document.documentElement.style.setProperty('--calc-output', '#0d1f0c');
+      }
+      
       return !currentState
-        ? '🖩 Calculator screen effect enabled! Retro LCD vibes...'
-        : '🖩 Calculator screen effect disabled. Back to normal!';
+        ? '🖩 Calculator mode enabled with classic green theme! Use /theme calc <scheme> to change colors.'
+        : '🖩 Calculator mode disabled. Back to normal!';
     } catch (error) {
-      console.error('Failed to toggle calc effect:', error);
-      return '❌ Error: Failed to toggle calc effect. Please try again.';
+      console.error('Failed to toggle calculator mode:', error);
+      return '❌ Error: Failed to toggle calculator mode. Please try again.';
     }
   }
+
 };
 
 export { effectsCommands };

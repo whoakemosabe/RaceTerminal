@@ -26,27 +26,37 @@ export const plotCommand: CommandFunction = async (args: string[], originalComma
   try {
     const [raceData, lapTimes] = await Promise.all([
       api.getRaceResults(year, round),
-      api.getLapTimes(year, round, driverId).catch(() => null)
+      api.getLapTimes(year, round, driverId)
     ]);
 
-    if (!raceData || !raceData.Results || !raceData.Results.length) {
+    if (!raceData?.Results?.length) {
       return `❌ Error: No race data found for ${year} round ${round}. Please check the year and round number.`;
     }
 
-    if (!lapTimes || !Array.isArray(lapTimes) || lapTimes.length === 0) {
+    if (!Array.isArray(lapTimes) || lapTimes.length === 0) {
       return `❌ Error: No lap time data available for ${driverId} in ${year} round ${round}. This could be due to:\n• Driver did not participate\n• Driver did not complete any laps\n• Race data not yet available`;
     }
 
+    // Validate lap times format
+    const validLapTimes = lapTimes.filter(lt => 
+      lt && lt.time && typeof lt.time === 'string' && 
+      lt.time.includes(':') && !isNaN(timeToMs(lt.time))
+    );
+
+    if (validLapTimes.length === 0) {
+      return `❌ Error: Invalid lap time data for ${driverId} in ${year} round ${round}`;
+    }
+
     const header = formatHeader(raceData, driverId);
-    const plot = generatePlot(lapTimes);
-    const stats = generateStats(lapTimes);
+    const plot = generatePlot(validLapTimes);
+    const stats = generateStats(validLapTimes);
 
     return [header, plot, stats].join('\n\n');
 
   } catch (error) {
     console.error('Error generating lap time plot:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return `❌ Error: Could not generate lap time plot: ${errorMessage}\n\nPlease ensure:\n• Valid year and round numbers\n• Driver participated in the race\n• Race has been completed`;
+    return `❌ Error: Could not generate lap time plot. Please ensure:\n• Valid year and round numbers (e.g., /plot 2023 1 verstappen)\n• Driver participated in the race\n• Race has been completed`;
   }
 };
 
@@ -202,4 +212,16 @@ function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = (seconds % 60).toFixed(3);
   return `${mins}:${secs.padStart(6, '0')}`;
+}
+
+function timeToMs(time: string): number {
+  try {
+    if (!time || typeof time !== 'string' || !time.includes(':')) return NaN;
+    const [minutes, seconds] = time.split(':');
+    const mins = parseInt(minutes);
+    const secs = parseFloat(seconds);
+    return !isNaN(mins) && !isNaN(secs) ? mins * 60 + secs : NaN;
+  } catch (error) {
+    return NaN;
+  }
 }
