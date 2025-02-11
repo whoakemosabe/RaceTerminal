@@ -1,5 +1,5 @@
 import { api } from '@/lib/api/client';
-import { getFlagUrl, getTeamColor } from '@/lib/utils';
+import { getFlagUrl, formatWithTeamColor } from '@/lib/utils';
 import { CommandFunction } from '../index';
 import { GapAnalysis } from './types';
 
@@ -312,7 +312,6 @@ function formatGapAnalysis(analysis: GapAnalysis[]): string[] {
 
     const flagUrl = getFlagUrl(driver.driver.nationality);
     const flag = flagUrl ? `<img src="${flagUrl}" alt="${driver.driver.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : '';
-    const teamColor = getTeamColor(driver.constructor.name);
 
     const gapToLeader = driver.avgGapToLeader !== null ?
       `+${driver.avgGapToLeader.toFixed(3)}s` :
@@ -341,7 +340,7 @@ function formatGapAnalysis(analysis: GapAnalysis[]): string[] {
         : 'N/A';
 
     // Format the main driver line according to the requested format
-    const driverLine = `P${driver.position}. ${driver.driver.givenName} ${driver.driver.familyName} | ${driver.driver.nationality} ${flag} | <span style="color: ${teamColor}">${driver.constructor.name}</span>`;
+    const driverLine = `P${driver.position}. ${driver.driver.givenName} ${driver.driver.familyName} | ${driver.driver.nationality} ${flag} | ${formatWithTeamColor('', driver.constructor.name)}`;
 
     return [
       driverLine,

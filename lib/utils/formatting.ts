@@ -47,7 +47,15 @@ export function formatCircuit(name: string, country: string): string {
 
 export function formatWithTeamColor(text: string, team: string): string {
   const color = getTeamColor(team);
-  return `${text} <span style="color: ${color}">${team}</span>`;
+  return text ? `${text} <span style="color: ${color}">${team}</span>` : `<span style="color: ${color}">${team}</span>`;
+}
+
+// Helper function to calculate brightness from hex color
+function getBrightnessFromHex(hex: string): number {
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000;
 }
 
 export function getFlagUrl(nationality: string): string {

@@ -1,5 +1,5 @@
 import { api } from '@/lib/api/client';
-import { getFlagUrl, getTeamColor } from '@/lib/utils';
+import { getFlagUrl, formatWithTeamColor } from '@/lib/utils';
 import { CommandFunction } from '../index';
 
 export const sectorAnalysis: CommandFunction = async (args: string[], originalCommand: string) => {
@@ -164,7 +164,6 @@ function formatSectorAnalysis(analysis: any[], raceData: any): string[] {
     const flag = flagUrl ? 
       `<img src="${flagUrl}" alt="${driverInfo.Driver.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
       '';
-    const teamColor = getTeamColor(driverInfo.Constructor.name);
 
     // Format sector times with colors
     const formatSectorTime = (time: number, bestTime: number) => {
@@ -204,7 +203,7 @@ function formatSectorAnalysis(analysis: any[], raceData: any): string[] {
       improvement > 0 ? '<span style="color: hsl(var(--info))">🟠 Slight</span>' :
       '<span style="color: hsl(var(--error))">🔴 None</span>';
     return [
-      `P${driver.position}. ${driver.driver} ${flag} | <span style="color: ${teamColor}">${driverInfo.Constructor.name}</span>`,
+      `P${driver.position}. ${driver.driver} ${flag} | ${formatWithTeamColor('', driverInfo.Constructor.name)}`,
       `Sectors: S1 ${formatSectorTime(driver.sectors.s1, bestSectors.s1)} | S2 ${formatSectorTime(driver.sectors.s2, bestSectors.s2)} | S3 ${formatSectorTime(driver.sectors.s3, bestSectors.s3)}`,
       `Performance: ${performanceRating} | <span style="color: hsl(var(--muted-foreground))">Time Lost: +${formatTime(timeLost)}</span>`,
       `Improvement: ${improvementRating} | <span style="color: hsl(var(--muted-foreground))">${improvement > 0 ? `+${improvement.toFixed(3)}%` : 'No improvement'}</span>`,

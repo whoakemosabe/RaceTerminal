@@ -5,6 +5,7 @@ import { TeamSuggestionProvider } from './team';
 import { TrackSuggestionProvider } from './track';
 import { CarSuggestionProvider } from './car';
 import { ThemeSuggestionProvider } from './theme';
+import { ListSuggestionProvider } from './list';
 
 export class SuggestionManager {
   private commandProvider = new CommandSuggestionProvider();
@@ -13,6 +14,7 @@ export class SuggestionManager {
   private trackProvider = new TrackSuggestionProvider();
   private carProvider = new CarSuggestionProvider();
   private themeProvider = new ThemeSuggestionProvider();
+  private listProvider = new ListSuggestionProvider();
 
   getSuggestions(command: string): Suggestion[] {
     if (!command.startsWith('/')) return [];
@@ -28,6 +30,10 @@ export class SuggestionManager {
 
     // Argument suggestions based on command
     switch (firstPart) {
+      case '/list':
+      case '/ls':
+        return this.listProvider.getCompletions(lastPart);
+
       case '/driver':
       case '/d':
       case '/md':

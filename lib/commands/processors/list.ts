@@ -1,7 +1,6 @@
-import { driverNicknames, teamNicknames, trackNicknames, getFlagUrl, getTeamColor, getTrackDetails, findDriverId, countryToCode, driverNumbers, icons, teamThemes } from '@/lib/utils';
+import { driverNicknames, teamNicknames, trackNicknames, getFlagUrl, getTeamColor, getTrackDetails, findDriverId, countryToCode, driverNumbers, icons, teamThemes, formatWithTeamColor } from '@/lib/utils';
 import { colorThemes } from '@/lib/themes/colors';
 import { calculatorThemes } from '@/lib/themes/calculator';
-import { api } from '@/lib/api/client';
 
 export const listCommands = {
   '/list': async (args: string[], originalCommand: string) => {
@@ -21,23 +20,6 @@ export const listCommands = {
           'sargeant', 'stroll', 'tsunoda', 'zhou' 
         ];
 
-        // Fetch current season results
-        const currentYear = new Date().getFullYear();
-        const results = await api.getRaceResults(currentYear);
-        const wins = new Map<string, number>();
-
-        // Count wins for each driver
-        if (results && results.length > 0) {
-          results.forEach((race: any) => {
-            if (race.Results && race.Results[0] && race.Results[0].position === "1") {
-              const driverId = findDriverId(`${race.Results[0].Driver.givenName} ${race.Results[0].Driver.familyName}`);
-              if (driverId) {
-                wins.set(driverId, (wins.get(driverId) || 0) + 1);
-              }
-            }
-          });
-        }
-
         const currentDrivers = currentDriverIds
           .map(id => {
             const nicknames = driverNicknames[id];
@@ -45,7 +27,6 @@ export const listCommands = {
             const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '';
             const nationality = nicknames.find(n => countryToCode[n]) || '';
             const number = driverNumbers[id] || '';
-            const raceWins = wins.get(id) || 0;
             // Add team information
             const team = (() => {
               switch(id) {
@@ -84,7 +65,7 @@ export const listCommands = {
                   return 'Unknown Team';
               }
             })();
-            return { id, name, code, nationality, number, team, wins: raceWins };
+            return { id, name, code, nationality, number, team };
           })
           .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -124,8 +105,7 @@ export const listCommands = {
             const flag = flagUrl ? 
               `<img src="${flagUrl}" alt="${d.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
               '';
-            const teamColor = getTeamColor(d.team);
-            return `  #${d.number.padStart(2, '0')} | ${d.name} (${d.code}) ${flag} | <span style="color: ${teamColor}">${d.team}</span>${d.wins > 0 ? ` | 🏆 ${d.wins} ${d.wins === 1 ? 'win' : 'wins'}` : ''}`;
+            return `  #${d.number.padStart(2, '0')} | ${d.name} (${d.code}) ${flag} | ${formatWithTeamColor('', d.team)}`;
           })
         ];
 
@@ -173,7 +153,7 @@ export const listCommands = {
               `<img src="${flagUrl}" alt="${nationality} flag" style="display:inline-block;vertical-align:middle;margin:0 2px;height:13px;width:25px;object-fit:cover;">` : 
               '';
             
-            return `${flag} <span style="color: ${color}">${mainName}</span> (${code}) | 📍 ${hq} | 📅 ${established} | 🏆 ${championships}`;
+            return `${flag} ${formatWithTeamColor('', mainName)} (${code}) | 📍 ${hq} | 📅 ${established} | 🏆 ${championships}`;
           })
           .sort();
 

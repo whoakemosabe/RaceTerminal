@@ -1,15 +1,13 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { commands } from '@/lib/commands';
-import { commandAliases } from '@/components/terminal/command-processor';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ChevronRight } from 'lucide-react';
-import { teamNicknames, trackNicknames, getTrackDetails, getTeamColor } from '@/lib/utils';
-import { driverNicknames, driverNumbers, findDriverId, findDriverByNumber } from '@/lib/utils/drivers';
-import { countryToCode } from '@/lib/utils/countries';
 import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
+import { SuggestionManager } from '@/lib/suggestions/manager';
+import { commands } from '@/lib/commands';
+import { commandAliases } from '@/components/terminal/command-processor';
 
 interface CommandSuggestionsProps {
   command: string;
@@ -32,12 +30,13 @@ export function CommandSuggestions({
   onShowSuggestionsChange,
   inputRef 
 }: CommandSuggestionsProps) {
-  const [suggestions, setSuggestions] = useState<{value: string, description?: string, alias?: string}[]>([]);
+  const [suggestions, setSuggestions] = useState<{value: string, description?: string, alias?: string, suffix?: string}[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const [suggestionType, setSuggestionType] = useState<'command' | 'argument'>('command');
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const lastCommandRef = useRef<string>('');
+  const suggestionManager = useRef(new SuggestionManager());
   const isFirstRenderRef = useRef(true);
   const [hasSetUsername, setHasSetUsername] = useState(false);
 
@@ -79,11 +78,19 @@ export function CommandSuggestions({
   const handleSelect = (suggestion: string) => {
     // Extract the actual value without description and code/nationality
     let value = suggestion.includes('(') ? suggestion.split(' (')[0].trim() : suggestion.trim();
+    let shouldShowSuggestions = false;
     
     // Split command into parts
     const parts = command.split(' ');
     const firstPart = parts[0];
     
+    // If it's a base command (no spaces in input), add a space after
+    if (parts.length === 1 && !command.includes(' ')) {
+      onSelect(`${value} `);
+      onClose();
+      return;
+    }
+
     // Check if this is a single-argument command
     const singleArgCommands = ['/list', '/ls'];
     if (singleArgCommands.includes(firstPart)) {
@@ -128,52 +135,34 @@ export function CommandSuggestions({
     if (parts[0] === '/md' || parts[0] === '/mt') {
       // Remove the "(First Driver/Team)" or "(Second Driver/Team)" suffix
       value = value.split(' (')[0];
-      
-      if (parts.length === 1) {
-        onSelect(`${parts[0]} ${value}`);
-      } else {
-        onSelect(`${parts[0]} ${value}`);
-      }
-      
-      setTimeout(() => {
-        if (onShowSuggestionsChange) {
-          onShowSuggestionsChange(true);
-        }
-        inputRef.current?.dispatchEvent(new Event('focus'));
-      }, 0);
+      onSelect(`${parts[0]} ${value} `);
+      shouldShowSuggestions = true;
+      onClose();
       return;
     }
     
     // Special handling for compare commands
     if (['/compare', '/m'].includes(parts[0])) {
       if (parts.length === 1) {
-        onSelect(`${parts[0]} ${value}`);
-        setTimeout(() => {
-          if (onShowSuggestionsChange) {
-            onShowSuggestionsChange(true);
-          }
-          inputRef.current?.dispatchEvent(new Event('focus'));
-        }, 0);
+        onSelect(`${parts[0]} ${value} `);
+        shouldShowSuggestions = true;
       } else {
         const prefix = parts.slice(0, -1).join(' ').trimEnd();
-        onSelect(`${prefix} ${value}`);
         if (parts[1] === 'driver' || parts[1] === 'team') {
-          setTimeout(() => {
-            if (onShowSuggestionsChange) {
-              onShowSuggestionsChange(true);
-            }
-            inputRef.current?.dispatchEvent(new Event('focus'));
-          }, 0);
+          shouldShowSuggestions = true;
         }
+        onSelect(`${prefix} ${value} `);
       }
+      onClose();
     } else {
       // Standard handling for other commands
       if (parts.length > 1) {
         const prefix = parts.slice(0, -1).join(' ').trimEnd();
-        onSelect(`${prefix} ${value}`);
+        onSelect(`${prefix} ${value} `);
       } else {
-        onSelect(`${value}`);
+        onSelect(`${value} `);
       }
+      onClose();
     }
 
     // Keep focus on input but don't add space
@@ -182,12 +171,16 @@ export function CommandSuggestions({
       input.focus();
       // Set cursor position to end of input
       requestAnimationFrame(() => {
+        if (shouldShowSuggestions) {
+          onShowSuggestionsChange(true);
+        }
         const length = input.value.length;
         input.setSelectionRange(length, length);
       });
     }
   };
 
+  // Use SuggestionManager to get suggestions
   useEffect(() => {
     if (!command.startsWith('/')) {
       setSuggestions([]);
@@ -208,14 +201,6 @@ export function CommandSuggestions({
       }
     }
 
-
-    // Helper function to deduplicate suggestions
-    const deduplicate = (items: {value: string, description?: string, alias?: string}[]): {value: string, description?: string, alias?: string}[] => {
-      return Array.from(new Set(items.map(item => item.value))).map(value => 
-        items.find(item => item.value === value)!
-      );
-    };
-
     // If no username is set, only show /user command
     if (!hasSetUsername) {
       const userCommands = ['/user', '/u'];
@@ -226,134 +211,12 @@ export function CommandSuggestions({
       return;
     }
 
-    let matches: {value: string, description?: string, alias?: string}[] = [];
-
-    // Handle command completion
-    if (parts.length === 1) {
-      setSuggestionType('command');
-      const commandSuggestions = [];
-      
-      // Add base commands with their attributes
-      commands.forEach(c => {
-        const [baseCmd, ...attrs] = c.command.split(' ');
-        if (baseCmd.startsWith(firstPart)) {
-          const value = baseCmd.replace(/\s*\(.*?\)/, '').trim();
-          commandSuggestions.push({
-            value,
-            description: c.description,
-            ...(attrs.length > 0 && { description: `${attrs.join(' ')} (${c.description})` })
-          });
-        }
-      });
-      
-      // Add aliases with their mapped commands
-      Object.entries(commandAliases).forEach(([alias, target]) => {
-        if (alias.startsWith(firstPart)) {
-          const targetCmd = commands.find(c => c.command.startsWith(target.split(' ')[0]));
-          if (targetCmd) {
-            const cleanAlias = alias.replace(/\s*\(.*?\)/, '').trim();
-            commandSuggestions.push({
-              value: cleanAlias,
-              description: targetCmd.description,
-              alias: target
-            });
-          }
-        }
-      });
-      
-      matches = commandSuggestions;
-    } else {
-      setSuggestionType('argument');
-      // Handle argument completion based on command
-      const baseCommand = commandAliases[firstPart] || firstPart;
-      const lastPart = parts[parts.length - 1];
-
-      switch (baseCommand) {
-        case '/list':
-        case '/ls':
-          matches = [
-            { value: 'drivers', description: 'List all F1 drivers' },
-            { value: 'teams', description: 'List all F1 teams' },
-            { value: 'tracks', description: 'List all F1 circuits' },
-            { value: 'themes', description: 'List all available themes' }
-          ].filter(s => lastPart === '' || s.value.toLowerCase().includes(lastPart));
-          break;
-
-        case '/compare':
-        case '/m':
-          if (parts.length === 2) {
-            if (lastPart === '') {
-              matches = [
-                { value: 'driver', description: 'Compare driver statistics' },
-                { value: 'team', description: 'Compare team statistics' }
-              ];
-            } else {
-              matches = [
-                { value: 'driver', description: 'Compare driver statistics' },
-                { value: 'team', description: 'Compare team statistics' }
-              ].filter(s => s.value.startsWith(lastPart));
-            }
-          } else if (parts[1] === 'driver') {
-            matches = [
-              ...Object.values(driverNicknames)
-              .map(nicknames => {
-                const name = nicknames[0];
-                const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase());
-                return { value: name, description: code };
-              })
-              .filter(s => lastPart === '' || s.value.toLowerCase().includes(lastPart))
-            ];
-          } else if (parts[1] === 'team') {
-            matches = [
-              ...Object.values(teamNicknames)
-              .map(([name, code]) => ({ value: name, description: code }))
-              .filter(s => lastPart === '' || s.value.toLowerCase().includes(lastPart))
-            ];
-          }
-          break;
-
-        case '/driver':
-        case '/d':
-          matches = [
-            ...Object.values(driverNicknames)
-            .map(nicknames => {
-              const name = nicknames[0];
-              const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase());
-              const nationality = nicknames.find(n => countryToCode[n]);
-              return { value: name, description: `${code}, ${nationality}` };
-            })
-            .filter(s => lastPart === '' || s.value.toLowerCase().includes(lastPart))
-          ];
-          break;
-
-        case '/track':
-        case '/t':
-          matches = [
-            ...Object.entries(trackNicknames)
-            .map(([id, [name, nickname]]) => {
-              const details = getTrackDetails(id);
-              return { value: name, description: `${nickname}, ${details.length}km, ${details.turns} turns` };
-            })
-            .filter(s => lastPart === '' || s.value.toLowerCase().includes(lastPart))
-          ];
-          break;
-
-        case '/team':
-        case '/tm':
-          matches = [
-            ...Object.values(teamNicknames)
-            .map(([name, code, _, hq, established]) => ({ 
-              value: name, 
-              description: `${code}, ${hq}, Est. ${established}` 
-            }))
-            .filter(s => lastPart === '' || s.value.toLowerCase().includes(lastPart))
-          ];
-          break;
-      }
-    }
+    // Get suggestions from manager
+    const matches = suggestionManager.current.getSuggestions(command);
+    setSuggestionType(parts.length === 1 ? 'command' : 'argument');
 
     // Ensure unique suggestions and sort them
-    setSuggestions(deduplicate(matches).sort((a, b) => a.value.localeCompare(b.value)));
+    setSuggestions(matches.sort((a, b) => a.value.localeCompare(b.value)));
     setSelectedIndex(0);
   }, [hasSetUsername, command]);
 
@@ -375,16 +238,16 @@ export function CommandSuggestions({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isVisible || suggestions.length === 0) return;
-      
-      // Handle Enter key for suggestion selection
-      if (e.key === 'Enter' && suggestions[selectedIndex]) {
-        e.preventDefault();
-        handleSelect(suggestions[selectedIndex].value);
-        onNavigationStateChange(false);
-        return;
-      }
 
       switch (e.key) {
+        case 'Enter':
+          if (suggestions[selectedIndex]) {
+            e.preventDefault();
+            handleSelect(suggestions[selectedIndex].value);
+            onNavigationStateChange(false);
+            onClose();
+          }
+          break;
         case 'ArrowDown':
           e.preventDefault();
           if (!isNavigatingSuggestions) {
@@ -408,6 +271,7 @@ export function CommandSuggestions({
           if (suggestions[selectedIndex]) {
             handleSelect(suggestions[selectedIndex].value);
             onNavigationStateChange(false);
+            onClose();
           }
           break;
         case 'Escape':
@@ -417,10 +281,17 @@ export function CommandSuggestions({
           inputRef.current?.focus();
           break;
       }
+      
+      // Always stop propagation for handled keys
+      e.stopPropagation();
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Attach to the input element instead of window
+    const input = inputRef.current;
+    if (input) {
+      input.addEventListener('keydown', handleKeyDown);
+      return () => input.removeEventListener('keydown', handleKeyDown);
+    }
   }, [
     suggestions,
     selectedIndex,
@@ -502,6 +373,11 @@ export function CommandSuggestions({
                       {isAlias && (
                         <span className="ml-2 text-secondary/70 text-xs tracking-wide">
                           → {suggestion.alias}
+                        </span>
+                      )}
+                      {suggestion.suffix && (
+                        <span className="ml-2 text-accent/70 text-xs tracking-wide">
+                          {suggestion.suffix}
                         </span>
                       )}
                     </span>

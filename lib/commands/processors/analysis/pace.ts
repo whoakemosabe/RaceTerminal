@@ -1,5 +1,5 @@
 import { api } from '@/lib/api/client';
-import { formatTime, getFlagUrl, getTeamColor } from '@/lib/utils';
+import { formatTime, getFlagUrl, formatWithTeamColor } from '@/lib/utils';
 import { CommandFunction } from '../index';
 import { calculateTireScore, getTrendIndicator, formatStintAnalysis } from './utils';
 import { DriverPaceAnalysis, StintPerformance } from './types';
@@ -233,7 +233,6 @@ function formatDriverOutput(
   const driverResult = driver.result;
   const flagUrl = getFlagUrl(driverResult.Driver.nationality);
   const flag = flagUrl ? `<img src="${flagUrl}" alt="${driverResult.Driver.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : '';
-  const teamColor = getTeamColor(driverResult.Constructor.name);
 
   // Calculate position changes
   const startPos = parseInt(driverResult.grid) || 0;
@@ -246,7 +245,7 @@ function formatDriverOutput(
   const positionText = `Grid: P${startPos === 0 ? 'IT' : startPos} → P${finishPos} | ${positionIndicator}`;
 
   // Format the main driver line according to the requested format
-  const driverLine = `P${driverResult.position}. ${driverResult.Driver.givenName} ${driverResult.Driver.familyName} | ${driverResult.Driver.nationality} ${flag} | <span style="color: ${teamColor}">${driverResult.Constructor.name}</span>`;
+  const driverLine = `P${driverResult.position}. ${driverResult.Driver.givenName} ${driverResult.Driver.familyName} | ${driverResult.Driver.nationality} ${flag} | ${formatWithTeamColor('', driverResult.Constructor.name)}`;
 
   const lapTimeStats = [
     `Average: <span style="color: hsl(var(--muted-foreground))">${formatLapTime(driver.avgTime)}</span>`,

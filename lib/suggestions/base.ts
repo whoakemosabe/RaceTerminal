@@ -3,6 +3,7 @@ export interface Suggestion {
   value: string;
   description?: string;
   alias?: string;
+  suffix?: string;
 }
 
 export interface SuggestionProvider {
