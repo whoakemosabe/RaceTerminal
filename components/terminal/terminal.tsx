@@ -50,11 +50,12 @@ export function Terminal({
   const [mounted, setMounted] = useState(false);
   const [sessionStart, setSessionStart] = useState('');
   const [fontSize, setFontSize] = useState(14);
-  const [currentTime, setCurrentTime] = useState('');
+  const [liveTime, setLiveTime] = useState(new Date().toLocaleTimeString());
   const [hasSetUsername, setHasSetUsername] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const intervalRef = useRef<NodeJS.Timeout>();
   const [themeLoaded, setThemeLoaded] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState('default');
 
   // Scroll to top when new command is added
   useEffect(() => {
@@ -89,6 +90,7 @@ export function Terminal({
     // Load saved theme
     if (!themeLoaded) {
       const savedTheme = localStorage.getItem('terminal_theme');
+      setCurrentTheme(savedTheme?.replace(/_/g, ' ') || 'default');
       
       // Remove calculator mode class by default
       document.documentElement.classList.remove('calculator-enabled');
@@ -198,23 +200,15 @@ export function Terminal({
   // Separate effect for time updates
   useEffect(() => {
     const updateTime = () => {
-      setCurrentTime(new Date().toLocaleTimeString());
+      const now = new Date();
+      setLiveTime(now.toLocaleTimeString());
     };
     
-    // Update immediately
-    setCurrentTime(new Date().toLocaleTimeString());
-
-    
-    // Set up interval for updates
-    intervalRef.current = setInterval(updateTime, 1000);
+    // Update every second
+    const interval = setInterval(updateTime, 1000);
     
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      clearInterval(interval);
     };
   }, []);
 
@@ -254,7 +248,7 @@ export function Terminal({
           <div className="flex justify-end items-center gap-2">
             {mounted && <div className="flex items-center gap-2">
               <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-              <span className="font-mono text-xs text-muted-foreground">{currentTime}</span>
+              <span className="font-mono text-xs text-muted-foreground">{liveTime}</span>
             </div>}
           </div>
 
@@ -354,7 +348,7 @@ export function Terminal({
               {hasSetUsername && showWelcome && (
                 <div className="space-y-6">
                   <div className="flex justify-center items-center gap-2 text-secondary">
-                    <HelpCircle className="w-5 h-5" />
+                    <Info className="w-5 h-5" />
                     <p className="text-sm">Type <code className="bg-card/50 px-2 py-0.5 rounded">/help</code> to see all available commands</p>
                   </div>
                   
@@ -453,8 +447,7 @@ export function Terminal({
       
       {/* Bottom Status Bar */}
       <div className="relative flex items-center px-3 py-1 border-t border-border/10 select-none terminal-status-bar">
-
-      <div className="grid grid-cols-3 w-full">
+        <div className="grid grid-cols-3 w-full">
           {/* Left Section - Version */}
           <div className="flex justify-start items-center gap-2 text-muted-foreground">
             <Tooltip>
@@ -493,14 +486,30 @@ export function Terminal({
               <div>
                 Powered by <a href="http://ergast.com/mrd/" target="_blank" rel="noopener noreferrer" className="text-primary/50 hover:text-primary/80 transition-colors">Ergast</a> & <a href="https://openf1.org" target="_blank" rel="noopener noreferrer" className="text-secondary/50 hover:text-secondary/80 transition-colors">OpenF1</a>
               </div>
-              {mounted && hasSetUsername && <div className="text-[10px] opacity-70">
-                Session started at {sessionStart}
-              </div>}
+              {mounted && hasSetUsername && (
+                <div className="flex items-center gap-1 text-[10px] opacity-70">
+                  <Clock className="w-3 h-3" />
+                  <span>Session started at {sessionStart}</span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Right Section - Status */}
-          <div className="flex justify-end items-center gap-2">
+          <div className="flex justify-end items-center gap-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 cursor-help text-muted-foreground/70">
+                  <div className="w-2 h-2 rounded-full bg-primary/50" />
+                  <span className="font-mono text-[10px]">
+                    {currentTheme}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" align="end" className="tooltip-content">
+                <p>Current Theme</p>
+              </TooltipContent>
+            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2 cursor-help status-active">
