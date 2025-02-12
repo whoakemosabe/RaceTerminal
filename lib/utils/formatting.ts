@@ -47,7 +47,7 @@ export function formatCircuit(name: string, country: string): string {
 
 export function formatWithTeamColor(text: string, team: string): string {
   const color = getTeamColor(team);
-  return text ? `${text} <span style="color: ${color}">${team}</span>` : `<span style="color: ${color}">${team}</span>`;
+  return `<span style="color: ${color}">${team}</span>`;
 }
 
 // Helper function to calculate brightness from hex color

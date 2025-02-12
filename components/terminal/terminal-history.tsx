@@ -27,13 +27,11 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
   return (
     <div className="mt-4 h-[350px] font-mono overflow-y-auto transition-all duration-200">
       <div className="flex flex-col space-y-2">
-        {[...history].reverse().map((entry, index) => {
+        {mounted && [...history].reverse().map((entry, index) => {
           return (
           <div key={index} className="space-y-2">
             <div className="flex items-center gap-2">
-              {mounted && (
-                <span className="text-secondary font-mono">[{entry.timestamp}] {entry.username}:~$ </span>
-              )}
+              <span className="text-secondary font-mono">[{entry.timestamp}] {entry.username}:~$ </span>
               <code className="text-primary">{entry.command}</code>
             </div>
             <div
@@ -58,7 +56,7 @@ export function TerminalHistory({ history }: TerminalHistoryProps) {
       </div>
       <div className="bottom-0 sticky bg-card/50 backdrop-blur-lg mt-6 p-3 border-t border-border/10 text-muted-foreground/60 text-xs">
           <div className="terminal-system-info">
-            {mounted && `System: RaceTerminal v${APP_VERSION} | Session started at ${sessionStart}`}
+            {mounted ? `System: RaceTerminal v${APP_VERSION} | Session started at ${sessionStart}` : ''}
           </div>
       </div>
     </div>

@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Terminal as TerminalIcon, Info, Clock, Calendar, Cpu, RotateCw, HelpCircle } from 'lucide-react';
 import { APP_VERSION, LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
+import { teamThemes } from '@/lib/utils';
+import { colorThemes } from '@/lib/themes/colors';
+import { calculatorThemes } from '@/lib/themes/calculator';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -47,10 +50,11 @@ export function Terminal({
   const [mounted, setMounted] = useState(false);
   const [sessionStart, setSessionStart] = useState('');
   const [fontSize, setFontSize] = useState(14);
-  const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleTimeString());
+  const [currentTime, setCurrentTime] = useState('');
   const [hasSetUsername, setHasSetUsername] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const intervalRef = useRef<NodeJS.Timeout>();
+  const [themeLoaded, setThemeLoaded] = useState(false);
 
   // Scroll to top when new command is added
   useEffect(() => {
@@ -82,6 +86,82 @@ export function Terminal({
     const savedUsername = localStorage.getItem(LOCALSTORAGE_USERNAME_KEY);
     setHasSetUsername(!!savedUsername && savedUsername !== DEFAULT_USERNAME);
 
+    // Load saved theme
+    if (!themeLoaded) {
+      const savedTheme = localStorage.getItem('terminal_theme');
+      
+      // Remove calculator mode class by default
+      document.documentElement.classList.remove('calculator-enabled');
+      localStorage.removeItem('calculator_color_scheme');
+      
+      if (savedTheme) {
+        // Apply team theme
+        const teamTheme = teamThemes[savedTheme];
+        if (teamTheme) {
+          // Reset to default background colors first
+          document.documentElement.style.setProperty('--background', '0 0% 0%');
+          document.documentElement.style.setProperty('--card', '0 0% 2%');
+          document.documentElement.style.setProperty('--popover', '0 0% 2%');
+          document.documentElement.style.setProperty('--history-bg', '0 0% 2%');
+          
+          // Set theme colors
+          document.documentElement.style.setProperty('--primary', teamTheme.primary);
+          document.documentElement.style.setProperty('--secondary', teamTheme.secondary);
+          document.documentElement.style.setProperty('--primary-foreground', '210 40% 98%');
+          document.documentElement.style.setProperty('--secondary-foreground', '210 40% 98%');
+          document.documentElement.style.setProperty('--accent-foreground', '210 40% 98%');
+          document.documentElement.style.setProperty('--accent', teamTheme.accent);
+          document.documentElement.style.setProperty('--border', teamTheme.border);
+          document.documentElement.style.setProperty('--foreground', '210 40% 98%');
+          document.documentElement.style.setProperty('--card-foreground', '210 40% 98%');
+          document.documentElement.style.setProperty('--popover-foreground', '210 40% 98%');
+          document.documentElement.style.setProperty('--muted', '217.2 32.6% 17.5%');
+          document.documentElement.style.setProperty('--muted-foreground', '215 20.2% 65.1%');
+
+          // Update other history colors
+          document.documentElement.style.setProperty('--history-fg', '210 40% 98%');
+          document.documentElement.style.setProperty('--history-primary', `hsl(${teamTheme.primary})`);
+          document.documentElement.style.setProperty('--history-secondary', `hsl(${teamTheme.secondary})`);
+          document.documentElement.style.setProperty('--history-accent', `hsl(${teamTheme.accent})`);
+          document.documentElement.style.setProperty('--history-muted', 'hsl(217.2 32.6% 17.5%)');
+          document.documentElement.style.setProperty('--history-border', `hsl(${teamTheme.border})`);
+        } else {
+          // Check for editor theme
+          const colorTheme = colorThemes[savedTheme];
+          if (colorTheme) {
+            const [h, s, l] = colorTheme.background.split(' ');
+            const darkerL = Math.max(0, parseInt(l) - 4);
+            const evenDarkerL = Math.max(0, parseInt(l) - 6);
+            
+            document.documentElement.style.setProperty('--background', `${h} ${s} ${evenDarkerL}%`);
+            document.documentElement.style.setProperty('--card', `${h} ${s} ${darkerL}%`);
+            document.documentElement.style.setProperty('--popover', `${h} ${s} ${darkerL}%`);
+            document.documentElement.style.setProperty('--history-bg', `${h} ${s} ${darkerL}%`);
+            document.documentElement.style.setProperty('--foreground', colorTheme.foreground);
+            document.documentElement.style.setProperty('--primary-foreground', colorTheme.foreground);
+            document.documentElement.style.setProperty('--secondary-foreground', colorTheme.foreground);
+            document.documentElement.style.setProperty('--accent-foreground', colorTheme.foreground);
+            document.documentElement.style.setProperty('--card-foreground', colorTheme.foreground);
+            document.documentElement.style.setProperty('--popover-foreground', colorTheme.foreground);
+            document.documentElement.style.setProperty('--primary', colorTheme.primary);
+            document.documentElement.style.setProperty('--secondary', colorTheme.secondary);
+            document.documentElement.style.setProperty('--accent', colorTheme.accent);
+            document.documentElement.style.setProperty('--muted', colorTheme.muted);
+            document.documentElement.style.setProperty('--muted-foreground', colorTheme.foreground);
+            document.documentElement.style.setProperty('--border', colorTheme.border);
+            
+            document.documentElement.style.setProperty('--history-fg', colorTheme.foreground);
+            document.documentElement.style.setProperty('--history-primary', colorTheme.primary);
+            document.documentElement.style.setProperty('--history-secondary', colorTheme.secondary);
+            document.documentElement.style.setProperty('--history-accent', colorTheme.accent);
+            document.documentElement.style.setProperty('--history-muted', colorTheme.muted);
+            document.documentElement.style.setProperty('--history-border', colorTheme.border);
+          }
+        }
+      }
+      setThemeLoaded(true);
+    }
+
     // Listen for username changes
     const handleUsernameChange = (e: CustomEvent) => {
       const newUsername = e.detail;
@@ -91,7 +171,7 @@ export function Terminal({
     window.addEventListener('usernameChange', handleUsernameChange as EventListener);
     return () => window.removeEventListener('usernameChange', handleUsernameChange as EventListener);
 
-  }, []);
+  }, [themeLoaded]);
 
   // Handle font size changes
   useEffect(() => {
@@ -152,33 +232,30 @@ export function Terminal({
         <div className="grid grid-cols-3 w-full">
           
           <div className="flex justify-start gap-2 text-muted-foreground">
-            <div className="flex items-center gap-2">
+            {mounted && <div className="flex items-center gap-2">
               <Info className="w-3.5 h-3.5" aria-hidden="true" />
               <span className="font-mono text-xs">v{APP_VERSION}</span>
-            </div>
+            </div>}
           </div>
 
           <div className="flex justify-center items-center gap-2">
-            <div className="flex items-center gap-2">
+            {mounted && <div className="flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
-              <span className="font-mono text-xs">
-                {mounted ? new Date().toLocaleDateString('en-US', {
+              <span className="font-mono text-xs">{
+                new Date().toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric'
-                }) : 'Loading...'}
+                })}
               </span>
-            </div>
-
+            </div>}
           </div>
 
           <div className="flex justify-end items-center gap-2">
-            <div className="flex items-center gap-2">
+            {mounted && <div className="flex items-center gap-2">
               <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-              <span className="font-mono text-xs text-muted-foreground">
-                {mounted ? currentTime : 'Loading...'}
-              </span>
-            </div>
+              <span className="font-mono text-xs text-muted-foreground">{currentTime}</span>
+            </div>}
           </div>
 
         </div>
@@ -212,13 +289,13 @@ export function Terminal({
               value={command}
               onChange={(e) => {
                 onCommandChange(e.target.value);
-                if (e.target.value.startsWith('/')) {
+                if (e.target.value.startsWith('/') && !e.target.value.endsWith(' ')) {
                   onShowSuggestionsChange(true);
                 }
                 onNavigationStateChange(false);
               }}
               onFocus={() => {
-                if (command.startsWith('/')) {
+                if (command.startsWith('/') && !command.endsWith(' ')) {
                   onShowSuggestionsChange(true);
                 }
               }}

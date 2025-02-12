@@ -340,7 +340,7 @@ function formatGapAnalysis(analysis: GapAnalysis[]): string[] {
         : 'N/A';
 
     // Format the main driver line according to the requested format
-    const driverLine = `P${driver.position}. ${driver.driver.givenName} ${driver.driver.familyName} | ${driver.driver.nationality} ${flag} | ${formatWithTeamColor('', driver.constructor.name)}`;
+    const driverLine = `P${driver.position}. ${driver.driver.givenName} ${driver.driver.familyName} | ${driver.driver.nationality} ${flag} | ${formatWithTeamColor(driver.constructor.name)}`;
 
     return [
       driverLine,

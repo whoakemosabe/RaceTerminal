@@ -460,15 +460,37 @@ export const api = {
   async getDriverInfo(driverId: string) {
     return retryRequest(async () => {
       try {
-        const { data } = await ergastClient.get(`/drivers/${driverId}.json`);
-        if (!data?.MRData?.DriverTable?.Drivers?.[0]) {
+        // Normalize driver ID but preserve underscores
+        const normalizedId = driverId.toLowerCase();
+        const fallbackId = normalizedId.replace(/_/g, '');
+
+        // Try both normalized and fallback IDs
+        const [normalResponse, fallbackResponse] = await Promise.allSettled([
+          ergastClient.get(`/drivers/${normalizedId}.json`),
+          ergastClient.get(`/drivers/${fallbackId}.json`)
+        ]);
+
+        // Check responses in order of preference
+        let driver = null;
+
+        if (normalResponse.status === 'fulfilled' && normalResponse.value.data?.MRData?.DriverTable?.Drivers?.[0]) {
+          driver = normalResponse.value.data.MRData.DriverTable.Drivers[0];
+        } else if (fallbackResponse.status === 'fulfilled' && fallbackResponse.value.data?.MRData?.DriverTable?.Drivers?.[0]) {
+          driver = fallbackResponse.value.data.MRData.DriverTable.Drivers[0];
+        }
+
+        if (!driver) {
           throw new Error('Driver not found');
         }
-        return data.MRData.DriverTable.Drivers[0];
+
+        return driver;
       } catch (error) {
         console.error('Error fetching driver info:', error);
         if (error instanceof Error) {
-          throw new Error(`Could not fetch driver data: ${error.message}`);
+          if (error.message.includes('404') || error.message === 'Driver not found') {
+            throw new Error('Driver not found. Please check the name and try again.');
+          }
+          throw new Error('Could not fetch driver data. Please try again later.');
         }
         throw new Error('Could not fetch driver data');
       }

@@ -147,39 +147,39 @@ export const driverNumbers: Record<string, string> = {
   'alesi': '27',           // Ferrari iconic number
   'andretti': '2',         // Lotus/Ferrari
   'barrichello': '11',     // Ferrari/Brawn
-  'berger': '28',          // Ferrari/McLaren
+  'berger': '28',          // Ferrari/McLaren iconic number
   'brooks': '24',          // Vanwall/Ferrari
-  'cevert': '3',           // Tyrrell
+  'cevert': '4',           // Tyrrell iconic number
   'coulthard': '14',       // McLaren/Red Bull
-  'gurney': '36',          // Eagle/McLaren
+  'gurney': '48',          // Eagle/McLaren/Brabham
   'ickx': '26',            // Ferrari/Brabham
   'massa': '19',           // Ferrari/Williams
   'montoya': '6',          // Williams/McLaren
   'moss': '7',             // Mercedes/Maserati
   'peterson': '2',         // Lotus/March
-  'regazzoni': '4',        // Ferrari/Williams
+  'regazzoni': '11',       // Ferrari/Williams iconic number
   'reutemann': '15',       // Ferrari/Williams
   'villeneuve_g': '27',    // Ferrari legend
   'webber': '2',           // Red Bull veteran
 
   // Additional Historical Drivers
   'bandini': '18',         // Ferrari
-  'bonnier': '7',          // BRM/Cooper
-  'depailler': '16',       // Tyrrell/Ligier
-  'ginther': '14',         // Honda/Ferrari
-  'gonzalez': '10',        // Ferrari/Maserati
+  'bonnier': '6',          // BRM/Cooper/McLaren
+  'depailler': '7',        // Tyrrell/Ligier iconic number
+  'ginther': '12',         // Honda/Ferrari/BRM
+  'gonzalez': '1',         // Ferrari/Maserati champion number
   'hawthorn': '1',         // Ferrari champion
-  'ireland': '8',          // Lotus/BRM
+  'ireland': '17',         // Lotus/BRM
   'bruce_mclaren': '1',    // Cooper/McLaren founder
   'rodriguez_p': '15',     // BRM/Ferrari
-  'rodriguez_r': '9',      // Ferrari
-  'siffert': '16',         // March/BRM
+  'rodriguez_r': '8',      // Ferrari
+  'siffert': '14',         // March/BRM iconic number
   'surtees': '1',          // Ferrari champion
-  'trintignant': '4',      // BRM/Cooper
+  'trintignant': '46',     // BRM/Cooper/Bugatti
   'von_trips': '3',        // Ferrari
-  'watson': '2',           // McLaren/Brabham
+  'watson': '1',           // McLaren/Brabham/Penske
   'tambay': '27',          // Ferrari
-  'patrese': '6',          // Williams/Brabham
+  'patrese': '11',         // Williams/Brabham iconic number
   'arnoux': '28',          // Ferrari/Renault
   'jabouille': '15'        // Renault pioneer
 };
@@ -194,10 +194,11 @@ export function findDriverByNumber(number: string): string | null {
   const searchNumber = number.trim().replace(/^0+/, '') || '0';
   
   // Search through driver numbers
-  for (const [driverId, driverNumber] of Object.entries(driverNumbers)) {
-    if (driverNumber === searchNumber) {
-      return driverId;
-    }
+  const driverByNumber = Object.entries(driverNumbers)
+    .find(([_, driverNumber]) => driverNumber === searchNumber);
+  
+  if (driverByNumber) {
+    return driverByNumber[0];
   }
   
   return null;
@@ -218,20 +219,39 @@ export function findDriverId(search: string): string | null {
 
   // Check driver number
   if (/^\d+$/.test(search)) {
+    // Normalize search number by removing leading zeros and spaces
+    const searchNumber = search.trim().replace(/^0+/, '') || '0';
+    
+    // Search through driver numbers
     const driverByNumber = Object.entries(driverNumbers)
-      .find(([_, number]) => number === search);
-    if (driverByNumber) return driverByNumber[0];
+      .find(([_, number]) => number === searchNumber);
+    
+    if (driverByNumber) {
+      return driverByNumber[0];
+    }
+  }
+
+  // Handle special cases
+  if (search === 'hill') {
+    return 'hill_d'; // Default to Damon Hill
+  } else if (search === 'schumacher' || search === 'schumi') {
+    return 'michael_schumacher';
   }
 
   // Process search terms
   const searchParts = search.split(' ').filter(Boolean);
   const searchTerm = searchParts.join(' ');
 
+  // Normalize search term
+  const normalizedSearch = search.replace(/[_\s-]+/g, '').toLowerCase();
+
   // Search through all drivers
   for (const [driverId, properties] of Object.entries(driverNicknames)) {
     const [fullName, code, ...rest] = properties;
     const nameParts = fullName.toLowerCase().split(' ');
     const [firstName, lastName] = nameParts;
+    const normalizedId = driverId.replace(/[_\s-]+/g, '').toLowerCase();
+    const normalizedLastName = lastName.replace(/[_\s-]+/g, '').toLowerCase();
 
     // 2. Exact full name match
     if (fullName.toLowerCase() === searchTerm) return driverId;
@@ -242,7 +262,7 @@ export function findDriverId(search: string): string | null {
     }
 
     // 4. Last name match
-    if (lastName === search) return driverId;
+    if (normalizedLastName === normalizedSearch) return driverId;
 
     // 5. Nickname match (excluding special entries)
     const nicknames = rest.filter(p => 
@@ -251,7 +271,12 @@ export function findDriverId(search: string): string | null {
       p !== driverId && // Not ID
       p.length !== 3 // Not driver code
     );
-    if (nicknames.some(nick => nick.toLowerCase() === search)) return driverId;
+    if (nicknames.some(nick => 
+      nick.toLowerCase().replace(/[_\s-]+/g, '') === normalizedSearch
+    )) return driverId;
+
+    // 6. ID match
+    if (normalizedId === normalizedSearch) return driverId;
 
     // 6. First name match (if unique)
     if (firstName === search) {

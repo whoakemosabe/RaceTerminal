@@ -1,4 +1,6 @@
-import { teamThemes, teamNicknames, findTeamId } from '@/lib/utils';
+'use client'
+
+import { teamThemes, teamNicknames } from '@/lib/utils';
 import { colorThemes } from '@/lib/themes/colors';
 import { calculatorThemes } from '@/lib/themes/calculator';
 import { CommandFunction } from '../index';
@@ -8,76 +10,18 @@ interface ThemeCommands {
 }
 
 export const themeCommands: ThemeCommands = {
-  '/theme': async (args: string[]) => {
+  '/theme': async (args: string[], originalCommand: string) => {
     if (!args[0]) {
-      // Get all available themes
-      const allThemes = [
-        // Team themes
-        ...Object.entries(teamNicknames).map(([id, names]) => ({
-          value: names[0].toLowerCase(),
-          type: 'team',
-          name: names[0],
-          color: getTeamColor(names[0]),
-          established: names[4]
-        })),
-        // VSCode themes
-        ...Object.entries(colorThemes).map(([id, theme]) => ({
-          value: id,
-          type: 'editor',
-          name: id,
-          description: theme.description
-        })),
-        // Calculator themes
-        ...Object.entries(calculatorThemes).map(([id, theme]) => ({
-          value: `calc ${id}`,
-          type: 'calculator',
-          name: id,
-          description: theme.description
-        }))
-      ];
+      return `❌ Error: Please specify a theme name
+Usage: /theme <name>
 
-      // Format themes by category
-      const teamList = Object.entries(teamNicknames)
-        .sort((a, b) => a[1][0].localeCompare(b[1][0]))
-        .map(([id, names], index) => {
-          const teamName = names[0];
-          const teamColor = getTeamColor(teamName);
-          const established = names[4];
-          return `• <span style="color: ${teamColor}">${teamName}</span> (Est. ${established})`;
-        });
-      
-      const colorList = Object.keys(colorThemes)
-        .sort()
-        .map(name => {
-          const theme = colorThemes[name];
-          return `• ${name} (${theme.description || 'Custom color scheme'})`;
-        });
+Available options:
+• Team name (e.g., ferrari, mercedes)
+• Editor theme (e.g., dracula, monokai)
+• Calculator mode (e.g., theme calc amber)
+• Reset colors (theme default)
 
-      const calcList = Object.keys(calculatorThemes)
-        .sort()
-        .map(name => `• ${name} (${calculatorThemes[name].description || 'LCD theme'})`);
-      
-      return [
-        '❌ Error: Please provide a theme name',
-        'Usage: /theme <name> (e.g., /theme ferrari or /theme dracula)',
-        '',
-        '🏎️  F1 Team Themes',
-        '═'.repeat(50),
-        teamList.join('\n'),
-        '',
-        '🎨 Editor Themes',
-        '═'.repeat(50),
-        colorList.join('\n'),
-        '',
-        '🖩 Calculator Themes',
-        '═'.repeat(50),
-        'Usage: /theme calc <scheme>',
-        calcList.join('\n'),
-        '',
-        '🔄 Reset Theme',
-        '═'.repeat(50),
-        '• /theme default - Restore default terminal colors'
-      ].join('\n');
+Tip: Use /list themes to see all available themes with previews`;
     }
 
     // Handle calculator mode
@@ -86,12 +30,18 @@ export const themeCommands: ThemeCommands = {
     }
 
     if (args[0].toLowerCase() === 'default') {
+      // Remove calculator mode when resetting to default
+      document.documentElement.classList.remove('calculator-enabled');
+      localStorage.removeItem('calculator_color_scheme');
       return handleDefaultTheme();
     }
 
     // Check for VSCode theme
     const colorTheme = colorThemes[args[0].toLowerCase()];
     if (colorTheme) {
+      // Remove calculator mode when switching to color theme
+      document.documentElement.classList.remove('calculator-enabled');
+      localStorage.removeItem('calculator_color_scheme');
       return handleColorTheme(colorTheme, args[0]);
     }
 
@@ -101,9 +51,45 @@ export const themeCommands: ThemeCommands = {
       return `❌ Error: Theme "${args[0]}" not found. Try using:\n• Team name (e.g., ferrari)\n• Color theme (e.g., dracula)\n• Calculator theme (e.g., theme calc amber)`;
     }
 
+    // Remove calculator mode when switching to team theme
+    document.documentElement.classList.remove('calculator-enabled');
+    localStorage.removeItem('calculator_color_scheme');
     return handleTeamTheme(teamId);
   }
 };
+
+function findTeamId(search: string): string | null {
+  search = search.toLowerCase().trim();
+  
+  // Handle common variations
+  if (search.includes('red bull') || search === 'redbull' || search === 'rb') {
+    return 'red_bull';
+  }
+  if (search.includes('ferrari') || search.includes('scuderia')) {
+    return 'ferrari';
+  }
+  if (search.includes('alphatauri') || search.includes('alpha tauri')) {
+    return 'alphatauri';
+  }
+  
+  // Direct match with team ID
+  if (teamNicknames[search]) {
+    return search;
+  }
+  
+  // Search through nicknames
+  for (const [teamId, names] of Object.entries(teamNicknames)) {
+    // Check all variations
+    if (names.some(name => 
+      name.toLowerCase().includes(search) || 
+      name.toLowerCase().replace(/\s+/g, '').includes(search)
+    )) {
+      return teamId;
+    }
+  }
+  
+  return null;
+}
 
 function handleCalculatorTheme(scheme?: string): string {
   const validCalcSchemes = Object.keys(calculatorThemes);
@@ -122,6 +108,11 @@ function handleCalculatorTheme(scheme?: string): string {
   try {
     // Enable calculator mode
     document.documentElement.classList.add('calculator-enabled');
+    document.documentElement.classList.remove('retro-text-enabled');
+    document.documentElement.classList.remove('matrix-enabled');
+    document.documentElement.classList.remove('matrix-rain-enabled');
+    document.documentElement.classList.remove('scanlines-enabled');
+    document.documentElement.classList.remove('crt-enabled');
 
     // Apply calculator theme
     const theme = calculatorThemes[scheme];
@@ -130,6 +121,7 @@ function handleCalculatorTheme(scheme?: string): string {
     });
 
     localStorage.setItem('calculator_color_scheme', scheme);
+    localStorage.setItem('terminal_theme', 'calculator');
     return `🖩 Calculator mode enabled with ${scheme} LCD theme!`;
   } catch (error) {
     console.error('Failed to apply calculator theme:', error);

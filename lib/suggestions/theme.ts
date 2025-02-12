@@ -1,12 +1,41 @@
 import { Suggestion, SuggestionProvider, deduplicate } from './base';
 import { teamNicknames, getTeamColor } from '@/lib/utils';
 import { colorThemes } from '@/lib/themes/colors';
+import { calculatorThemes } from '@/lib/themes/calculator';
 import { commands } from '@/lib/commands';
 
 export class ThemeSuggestionProvider implements SuggestionProvider {
   getCompletions(input: string): Suggestion[] {
     const searchTerm = input.toLowerCase();
     const suggestions: Suggestion[] = [];
+
+    // Handle calculator theme suggestions
+    if (searchTerm.startsWith('calc')) {
+      // If just 'calc' or 'calc ', show all calculator themes
+      const calcSearch = searchTerm.replace('calc', '').trim();
+      if (!calcSearch) {
+        Object.entries(calculatorThemes).forEach(([name, theme]) => {
+          suggestions.push({
+            value: name,
+            description: theme.description || 'Calculator theme',
+            suffix: 'LCD Theme'
+          });
+        });
+        return suggestions;
+      }
+      
+      // If typing after 'calc ', filter calculator themes
+      Object.entries(calculatorThemes).forEach(([name, theme]) => {
+        if (name.toLowerCase().includes(calcSearch)) {
+          suggestions.push({
+            value: name,
+            description: theme.description || 'Calculator theme',
+            suffix: 'LCD Theme'
+          });
+        }
+      });
+      return suggestions;
+    }
     
     // Get theme commands from main commands array
     const themeCommands = commands.filter(cmd => 

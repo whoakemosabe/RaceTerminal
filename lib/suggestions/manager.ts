@@ -19,7 +19,7 @@ export class SuggestionManager {
   getSuggestions(command: string): Suggestion[] {
     if (!command.startsWith('/')) return [];
 
-    const parts = command.toLowerCase().split(' ');
+    const parts = command.toLowerCase().trim().split(/\s+/);
     const firstPart = parts[0];
     const lastPart = parts[parts.length - 1];
 
@@ -32,26 +32,40 @@ export class SuggestionManager {
     switch (firstPart) {
       case '/list':
       case '/ls':
-        return this.listProvider.getCompletions(lastPart);
+        if (parts.length === 1 || (parts.length === 2 && !command.endsWith(' '))) {
+          return this.listProvider.getCompletions(lastPart);
+        }
+        break;
 
       case '/driver':
       case '/d':
       case '/md':
-        return this.driverProvider.getCompletions(lastPart, parts);
+        if (parts.length === 1 || (parts.length === 2 && !command.endsWith(' '))) {
+          return this.driverProvider.getCompletions(lastPart, parts);
+        }
+        break;
 
       case '/team':
       case '/tm':
       case '/mt':
-        return this.teamProvider.getCompletions(lastPart, parts);
+        if (parts.length === 1 || (parts.length === 2 && !command.endsWith(' '))) {
+          return this.teamProvider.getCompletions(lastPart, parts);
+        }
+        break;
 
       case '/track':
       case '/t':
-        return this.trackProvider.getCompletions(lastPart);
+        if (parts.length === 1 || (parts.length === 2 && !command.endsWith(' '))) {
+          return this.trackProvider.getCompletions(lastPart);
+        }
+        break;
 
       case '/car':
       case '/c':
-        const carSuggestions = this.carProvider.getCompletions(lastPart);
-        return carSuggestions;
+        if (parts.length === 1 || (parts.length === 2 && !command.endsWith(' '))) {
+          return this.carProvider.getCompletions(lastPart);
+        }
+        break;
 
       case '/theme':
         return this.themeProvider.getCompletions(lastPart);
@@ -63,20 +77,34 @@ export class SuggestionManager {
         break;
 
       case '/theme':
-        return this.themeProvider.getCompletions(lastPart);
+        if (parts.length === 1 || parts[1] === 'calc' || (parts.length === 2 && !command.endsWith(' '))) {
+          return this.themeProvider.getCompletions(parts.slice(1).join(' '));
+        }
+        break;
 
       case '/compare':
       case '/m':
         if (parts.length === 2) {
+          // Show type suggestions after first space
           return [
             { value: 'driver', description: 'Compare driver statistics' },
             { value: 'team', description: 'Compare constructor statistics' }
           ].filter(s => s.value.startsWith(lastPart));
         }
-        if (parts[1] === 'driver') {
+        if (parts[1] === 'driver' && (parts.length === 3 || !command.endsWith(' '))) {
+          // Show first driver suggestions
           return this.driverProvider.getCompletions(lastPart, parts);
         }
-        if (parts[1] === 'team') {
+        if (parts[1] === 'team' && (parts.length === 3 || !command.endsWith(' '))) {
+          // Show first team suggestions
+          return this.teamProvider.getCompletions(lastPart, parts);
+        }
+        if (parts[1] === 'driver' && parts.length === 4) {
+          // Show second driver suggestions
+          return this.driverProvider.getCompletions(lastPart, parts);
+        }
+        if (parts[1] === 'team' && parts.length === 4) {
+          // Show second team suggestions
           return this.teamProvider.getCompletions(lastPart, parts);
         }
         break;

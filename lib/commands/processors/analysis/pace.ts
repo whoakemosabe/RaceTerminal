@@ -245,7 +245,7 @@ function formatDriverOutput(
   const positionText = `Grid: P${startPos === 0 ? 'IT' : startPos} → P${finishPos} | ${positionIndicator}`;
 
   // Format the main driver line according to the requested format
-  const driverLine = `P${driverResult.position}. ${driverResult.Driver.givenName} ${driverResult.Driver.familyName} | ${driverResult.Driver.nationality} ${flag} | ${formatWithTeamColor('', driverResult.Constructor.name)}`;
+  const driverLine = `P${driverResult.position}. ${driverResult.Driver.givenName} ${driverResult.Driver.familyName} | ${driverResult.Driver.nationality} ${flag} | ${formatWithTeamColor(driverResult.Constructor.name)}`;
 
   const lapTimeStats = [
     `Average: <span style="color: hsl(var(--muted-foreground))">${formatLapTime(driver.avgTime)}</span>`,

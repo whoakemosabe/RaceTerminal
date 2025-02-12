@@ -12,22 +12,19 @@ export const listCommands = {
 
     switch (type) {
       case 'drivers': {
-        // Get current drivers
-        const currentDriverIds = [
-          'albon', 'alonso', 'bearman', 'bottas', 'gasly', 'hamilton', 
-          'hulkenberg', 'leclerc', 'magnussen', 'max_verstappen', 'norris', 
-          'ocon', 'perez', 'piastri', 'ricciardo', 'russell', 'sainz', 
-          'sargeant', 'stroll', 'tsunoda', 'zhou' 
-        ];
-
-        const currentDrivers = currentDriverIds
-          .map(id => {
-            const nicknames = driverNicknames[id];
+        // Get current drivers with their teams
+        const currentDrivers = Object.entries(driverNicknames)
+          .filter(([id, nicknames]) => [
+            'albon', 'alonso', 'bearman', 'bottas', 'gasly', 'hamilton', 
+            'hulkenberg', 'leclerc', 'magnussen', 'max_verstappen', 'norris', 
+            'ocon', 'perez', 'piastri', 'ricciardo', 'russell', 'sainz', 
+            'sargeant', 'stroll', 'tsunoda', 'zhou'
+          ].includes(id) && !nicknames.some(nick => nick.includes(',') && /\d{4}/.test(nick)))
+          .map(([id, nicknames]) => {
             const name = nicknames[0];
             const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '';
             const nationality = nicknames.find(n => countryToCode[n]) || '';
             const number = driverNumbers[id] || '';
-            // Add team information
             const team = (() => {
               switch(id) {
                 case 'max_verstappen':
@@ -69,31 +66,47 @@ export const listCommands = {
           })
           .sort((a, b) => a.name.localeCompare(b.name));
 
-        // Get retired world champions
+        // Get retired champions sorted by championships
         const retiredChampions = Object.entries(driverNicknames)
-          .filter(([id, nicknames]) => nicknames.length >= 5 && nicknames[4]?.includes(','))
-          .map(([id, nicknames]) => ({
-            id,
-            name: nicknames[0],
-            code: nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '',
-            nationality: nicknames.find(n => countryToCode[n]) || '',
-            championships: nicknames[4]
-          }))
-          .sort((a, b) => a.name.localeCompare(b.name));
+          .filter(([id, nicknames]) => {
+            // Include both historical champions and those with championship years
+            return (
+              nicknames.some(nick => nick.includes(',') && /\d{4}/.test(nick)) ||
+              ['hawthorn', 'surtees'].includes(id)
+            );
+          })
+          .map(([id, nicknames]) => {
+            const number = driverNumbers[id] || '';
+            const championshipYears = nicknames.find(nick => nick.includes(',') && /\d{4}/.test(nick)) || '';
+            return {
+              id,
+              name: nicknames[0],
+              code: nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '',
+              nationality: nicknames.find(n => countryToCode[n]) || '',
+              championships: championshipYears,
+              championshipCount: (championshipYears.match(/\d{4}/g) || []).length,
+              number
+            };
+          })
+          .sort((a, b) => b.championshipCount - a.championshipCount);
 
         // Get notable non-champion drivers
         const notableDrivers = Object.entries(driverNicknames)
           .filter(([id, nicknames]) => {
-            // Not a current driver and not a champion
-            return !currentDrivers.some(d => d.id === id) && 
-                   !retiredChampions.some(d => d.id === id);
+            // Exclude current drivers and champions
+            return !currentDrivers.some(d => d.id === id) &&
+                  !nicknames.some(nick => nick.includes(',') && /\d{4}/.test(nick));
           })
-          .map(([id, nicknames]) => ({
-            id,
-            name: nicknames[0],
-            code: nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '',
-            nationality: nicknames.find(n => countryToCode[n]) || ''
-          }))
+          .map(([id, nicknames]) => {
+            const number = driverNumbers[id] || '';
+            return {
+              id,
+              name: nicknames[0],
+              code: nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '',
+              nationality: nicknames.find(n => countryToCode[n]) || '',
+              number
+            };
+          })
           .sort((a, b) => a.name.localeCompare(b.name));
 
         // Format sections
@@ -105,7 +118,8 @@ export const listCommands = {
             const flag = flagUrl ? 
               `<img src="${flagUrl}" alt="${d.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
               '';
-            return `  #${d.number.padStart(2, '0')} | ${d.name} (${d.code}) ${flag} | ${formatWithTeamColor('', d.team)}`;
+            const numberDisplay = d.number ? `#${d.number.padStart(2, '0')}` : '   ';
+            return `${numberDisplay} | ${d.name} (${d.code}) ${flag} | ${formatWithTeamColor(d.team)}`;
           })
         ];
 
@@ -118,7 +132,8 @@ export const listCommands = {
             const flag = flagUrl ? 
               `<img src="${flagUrl}" alt="${d.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
               '';
-            return `  ${d.name} (${d.code}) ${flag} | 🏆 ${d.championships}`;
+            const numberDisplay = d.number ? `#${d.number.padStart(2, '0')}` : '   ';
+            return `${numberDisplay} | ${d.name} (${d.code}) ${flag} | 🏆 ${d.championshipCount} (${d.championships})`;
           })
         ];
 
@@ -131,7 +146,8 @@ export const listCommands = {
             const flag = flagUrl ? 
               `<img src="${flagUrl}" alt="${d.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
               '';
-            return `  ${d.name} (${d.code}) ${flag}`;
+            const numberDisplay = d.number ? `#${d.number.padStart(2, '0')}` : '   ';
+            return `${numberDisplay} | ${d.name} (${d.code}) ${flag}`;
           })
         ];
 
@@ -139,26 +155,31 @@ export const listCommands = {
       }
 
       case 'teams': {
-        const teams = Object.entries(teamNicknames)
-          .map(([id, names]) => {
-            const mainName = names[0];
-            const code = names.find(n => n.length === 3 && n === n.toUpperCase()) || '';
-            const hq = names[3];
-            const established = names[4];
-            const championships = names[5];
-            const nationality = names[6];
-            const color = getTeamColor(mainName);
-            const flagUrl = getFlagUrl(nationality);
-            const flag = flagUrl ? 
-              `<img src="${flagUrl}" alt="${nationality} flag" style="display:inline-block;vertical-align:middle;margin:0 2px;height:13px;width:25px;object-fit:cover;">` : 
-              '';
-            
-            return `${flag} ${formatWithTeamColor('', mainName)} (${code}) | 📍 ${hq} | 📅 ${established} | 🏆 ${championships}`;
-          })
-          .sort();
+        // Sort teams by championships
+        const sortedTeams = Object.entries(teamNicknames)
+          .map(([id, names]) => ({
+            id,
+            name: names[0],
+            code: names[1],
+            hq: names[3],
+            established: names[4],
+            championships: parseInt(names[5]),
+            nationality: names[6]
+          }))
+          .sort((a, b) => b.championships - a.championships);
+
+        const teams = sortedTeams.map((team, index) => {
+          const flagUrl = getFlagUrl(team.nationality);
+          const flag = flagUrl ? 
+            `<img src="${flagUrl}" alt="${team.nationality} flag" style="display:inline-block;vertical-align:middle;margin:0 2px;height:13px;width:25px;object-fit:cover;">` : 
+            '';
+          
+          return `${(index + 1).toString().padStart(2, ' ')}. ${flag} ${formatWithTeamColor(team.name)} (${team.code}) | 🏆 ${team.championships} Championships | 📍 ${team.hq} | 📅 ${team.established}`;
+        });
 
         return [
-          '🏎️ Current F1 Teams:',
+          '🏎️ F1 TEAMS BY CHAMPIONSHIPS',
+          '═'.repeat(60),
           ...teams
         ].join('\n');
       }

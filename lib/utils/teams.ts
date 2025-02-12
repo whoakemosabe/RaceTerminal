@@ -1,3 +1,5 @@
+import { teamColors } from '@/lib/data/team-colors';
+
 // Team nickname mappings
 export const teamNicknames: Record<string, string[]> = {
   'red_bull': ['Red Bull Racing', 'RBR', 'redbull', 'Milton Keynes, UK', '2005', '6', 'British'],
@@ -74,32 +76,6 @@ export const teamThemes: Record<string, { primary: string; secondary: string; ac
     accent: '0 0% 100%',
     border: '0 0% 100%'
   }
-};
-
-const teamColors: Record<string, string> = {
-  'Mercedes': '#00D2BE',
-  'Red Bull': '#0600EF',
-  'Red Bull Racing': '#0600EF',
-  'Oracle Red Bull Racing': '#0600EF',
-  'Ferrari': '#DC0000',
-  'Scuderia Ferrari': '#DC0000',
-  'McLaren': '#FF8700',
-  'McLaren F1 Team': '#FF8700',
-  'Aston Martin': '#006F62',
-  'Aston Martin F1 Team': '#006F62',
-  'Alpine': '#0090FF',
-  'Alpine F1 Team': '#0090FF',
-  'AlphaTauri': '#2B4562',
-  'Scuderia AlphaTauri': '#2B4562',
-  'Racing Bulls': '#2B4562',
-  'Visa Cash App RB': '#2B4562',
-  'Alfa Romeo': '#900000',
-  'Alfa Romeo F1 Team': '#900000',
-  'Stake F1 Team': '#900000',
-  'Haas F1 Team': '#FFFFFF',
-  'MoneyGram Haas F1 Team': '#FFFFFF',
-  'Williams': '#005AFF',
-  'Williams Racing': '#005AFF'
 };
 
 export function getTeamColor(team: string): string {

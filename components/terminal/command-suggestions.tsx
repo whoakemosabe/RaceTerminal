@@ -76,127 +76,126 @@ export function CommandSuggestions({
 
   // Focus input after selection
   const handleSelect = (suggestion: string) => {
-    // Extract the actual value without description and code/nationality
-    let value = suggestion.includes('(') ? suggestion.split(' (')[0].trim() : suggestion.trim();
-    let shouldShowSuggestions = false;
-    
-    // Split command into parts
+    let value = suggestion.trim();
     const parts = command.split(' ');
-    const firstPart = parts[0];
-    
-    // If it's a base command (no spaces in input), add a space after
-    if (parts.length === 1 && !command.includes(' ')) {
-      onSelect(`${value} `);
-      onClose();
+    value = value.split('(')[0].trim();
+
+    // Handle base commands
+    if (parts.length === 1) {
+      onSelect(value + ' ');
+      onShowSuggestionsChange(true);
       return;
     }
 
-    // Check if this is a single-argument command
-    const singleArgCommands = ['/list', '/ls'];
-    if (singleArgCommands.includes(firstPart)) {
-      onSelect(`${firstPart} ${value}`);
-      onClose();
-      return;
-    }
-    
-    // For team suggestions, only take the team name part
-    if (suggestionType === 'argument' && 
-        (command.startsWith('/team') || 
-         command.startsWith('/tm') || 
-         command.startsWith('/compare team') || 
-         command.startsWith('/m team') ||
-         command.startsWith('/mt'))) {
-      // Extract just the team name without any extra info
-      value = value.split('(')[0].split(',')[0].trim();
-      // Handle special cases for team names
-      if (value.includes('Red Bull')) value = 'redbull';
-      else if (value.includes('Mercedes')) value = 'mercedes';
-      else if (value.includes('Ferrari')) value = 'ferrari';
-      else if (value.includes('McLaren')) value = 'mclaren';
-      else if (value.includes('Aston Martin')) value = 'aston_martin';
-      else if (value.includes('Alpine')) value = 'alpine';
-      else if (value.includes('Williams')) value = 'williams';
-      else if (value.includes('AlphaTauri')) value = 'alphatauri';
-      else if (value.includes('Alfa Romeo')) value = 'alfa';
-      else if (value.includes('Haas')) value = 'haas';
-    }
+    // Handle command arguments
+    const baseCommand = parts[0].toLowerCase();
+    const prefix = parts.slice(0, -1).join(' ');
+    const newCommand = `${prefix} ${value}`;
 
-    // For driver suggestions, only take the name part before any parentheses or commas
-    if (suggestionType === 'argument' && 
-        (command.startsWith('/driver') || 
-         command.startsWith('/d') || 
-         command.startsWith('/compare driver') || 
-         command.startsWith('/m driver') ||
-         command.startsWith('/md'))) {
-      value = value.split('(')[0].split(',')[0].trim();
-    }
+    // Commands that need multiple arguments
+    const multiArgCommands = {
+      '/compare': 2, // type + name1 + name2
+      '/m': 2,
+      '/md': 1, // name1 + name2
+      '/mt': 1
+    };
 
-    // Handle /md and /mt shortcuts
-    if (parts[0] === '/md' || parts[0] === '/mt') {
-      // Remove the "(First Driver/Team)" or "(Second Driver/Team)" suffix
-      value = value.split(' (')[0];
-      onSelect(`${parts[0]} ${value} `);
-      shouldShowSuggestions = true;
-      onClose();
-      return;
-    }
-    
-    // Special handling for compare commands
-    if (['/compare', '/m'].includes(parts[0])) {
-      if (parts.length === 1) {
-        onSelect(`${parts[0]} ${value} `);
-        shouldShowSuggestions = true;
-      } else {
-        const prefix = parts.slice(0, -1).join(' ').trimEnd();
-        if (parts[1] === 'driver' || parts[1] === 'team') {
-          shouldShowSuggestions = true;
-        }
-        onSelect(`${prefix} ${value} `);
-      }
-      onClose();
+    const argsNeeded = multiArgCommands[baseCommand];
+    if (argsNeeded && parts.length <= argsNeeded + 1) {
+      onSelect(newCommand + ' ');
+      onShowSuggestionsChange(true);
     } else {
-      // Standard handling for other commands
-      if (parts.length > 1) {
-        const prefix = parts.slice(0, -1).join(' ').trimEnd();
-        onSelect(`${prefix} ${value} `);
-      } else {
-        onSelect(`${value} `);
-      }
+      onSelect(newCommand);
       onClose();
-    }
-
-    // Keep focus on input but don't add space
-    const input = inputRef.current;
-    if (input) {
-      input.focus();
-      // Set cursor position to end of input
-      requestAnimationFrame(() => {
-        if (shouldShowSuggestions) {
-          onShowSuggestionsChange(true);
-        }
-        const length = input.value.length;
-        input.setSelectionRange(length, length);
-      });
     }
   };
+
+  // Handle key events on the input element
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isVisible || suggestions.length === 0) return;
+
+      switch (e.key) {
+        case 'Enter':
+          if (isNavigatingSuggestions && suggestions[selectedIndex]) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSelect(suggestions[selectedIndex].value);
+            onNavigationStateChange(false);
+            onClose();
+          }
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          e.stopPropagation();
+          if (!isNavigatingSuggestions) {
+            onNavigationStateChange(true);
+            return;
+          }
+          const nextIndex = (selectedIndex + 1) % suggestions.length;
+          setSelectedIndex(nextIndex);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          e.stopPropagation();
+          if (!isNavigatingSuggestions) {
+            onNavigationStateChange(true);
+            return;
+          }
+          const prevIndex = (selectedIndex - 1 + suggestions.length) % suggestions.length;
+          setSelectedIndex(prevIndex);
+          break;
+        case 'Tab':
+          e.preventDefault();
+          e.stopPropagation();
+          if (suggestions[selectedIndex]) {
+            handleSelect(suggestions[selectedIndex].value);
+            onNavigationStateChange(false);
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+          onNavigationStateChange(false);
+          inputRef.current?.focus();
+          break;
+      }
+    };
+
+    // Attach to the input element instead of window
+    const input = inputRef.current;
+    if (input) {
+      input.addEventListener('keydown', handleKeyDown, { capture: true });
+      return () => input.removeEventListener('keydown', handleKeyDown, { capture: true });
+    }
+  }, [
+    suggestions,
+    selectedIndex,
+    isVisible,
+    handleSelect,
+    isNavigatingSuggestions,
+    onNavigationStateChange,
+    onClose,
+    inputRef
+  ]);
 
   // Use SuggestionManager to get suggestions
   useEffect(() => {
     if (!command.startsWith('/')) {
-      setSuggestions([]);
-      setSelectedIndex(0);
+      clearSuggestions();
       return;
     }
 
-    const input = command.toLowerCase();
+    const input = command.toLowerCase().trim();
     const parts = input.split(' ');
     const firstPart = parts[0];
+    const lastPart = parts[parts.length - 1];
 
     // Don't show suggestions for /user command after the space
     if (firstPart === '/user' || firstPart === '/u') {
       if (parts.length > 1) {
-        setSuggestions([]);
-        setSelectedIndex(0);
+        clearSuggestions();
         return;
       }
     }
@@ -212,13 +211,33 @@ export function CommandSuggestions({
     }
 
     // Get suggestions from manager
-    const matches = suggestionManager.current.getSuggestions(command);
+    const matches = suggestionManager.current.getSuggestions(command.trim());
     setSuggestionType(parts.length === 1 ? 'command' : 'argument');
+    
+    // Show suggestions immediately after space for commands that have next stages
+    const shouldShowAfterSpace = command.endsWith(' ') && (
+      firstPart === '/compare' ||
+      firstPart === '/m' ||
+      (firstPart === '/theme' && parts.length <= 2) ||
+      (parts[1] === 'driver' && parts.length <= 4) ||
+      (parts[1] === 'team' && parts.length <= 4)
+    );
 
-    // Ensure unique suggestions and sort them
-    setSuggestions(matches.sort((a, b) => a.value.localeCompare(b.value)));
+    if (matches.length > 0 || shouldShowAfterSpace) {
+      // Ensure unique suggestions and sort them
+      setSuggestions(matches.sort((a, b) => a.value.localeCompare(b.value)));
+      setSelectedIndex(0);
+      onShowSuggestionsChange(true);
+    } else {
+      clearSuggestions();
+    }
+  }, [hasSetUsername, command, command.trim()]);
+
+  const clearSuggestions = () => {
+    setSuggestions([]);
     setSelectedIndex(0);
-  }, [hasSetUsername, command]);
+    onShowSuggestionsChange(false);
+  };
 
   // Rest of the code remains the same...
 
@@ -234,75 +253,6 @@ export function CommandSuggestions({
       }
     }
   }, [selectedIndex, isVisible, suggestions.length, isNavigatingSuggestions]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isVisible || suggestions.length === 0) return;
-
-      switch (e.key) {
-        case 'Enter':
-          if (suggestions[selectedIndex]) {
-            e.preventDefault();
-            handleSelect(suggestions[selectedIndex].value);
-            onNavigationStateChange(false);
-            onClose();
-          }
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          if (!isNavigatingSuggestions) {
-            onNavigationStateChange(true);
-            return;
-          }
-          const nextIndex = (selectedIndex + 1) % suggestions.length;
-          setSelectedIndex(nextIndex);
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          if (!isNavigatingSuggestions) {
-            onNavigationStateChange(true);
-            return;
-          }
-          const prevIndex = (selectedIndex - 1 + suggestions.length) % suggestions.length;
-          setSelectedIndex(prevIndex);
-          break;
-        case 'Tab':
-          e.preventDefault();
-          if (suggestions[selectedIndex]) {
-            handleSelect(suggestions[selectedIndex].value);
-            onNavigationStateChange(false);
-            onClose();
-          }
-          break;
-        case 'Escape':
-          e.preventDefault();
-          onClose();
-          onNavigationStateChange(false);
-          inputRef.current?.focus();
-          break;
-      }
-      
-      // Always stop propagation for handled keys
-      e.stopPropagation();
-    };
-
-    // Attach to the input element instead of window
-    const input = inputRef.current;
-    if (input) {
-      input.addEventListener('keydown', handleKeyDown);
-      return () => input.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [
-    suggestions,
-    selectedIndex,
-    isVisible,
-    onSelect,
-    handleSelect,
-    isNavigatingSuggestions,
-    onNavigationStateChange,
-    onClose,
-    inputRef
-  ]);
 
   if (!isVisible || suggestions.length === 0) return null;
 

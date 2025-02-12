@@ -26,28 +26,7 @@ export function SessionInfo() {
 
   // Don't render anything until mounted to prevent hydration mismatch
   if (!mounted) {
-    return (
-      <div className="mb-2 p-2 glass-panel">
-        <div className="gap-4 grid grid-cols-4 md:grid-cols-1">
-          <div className="flex items-center gap-2 text-primary">
-            <Terminal size={16} />
-            <span className="font-mono text-sm">RaceTerminal Pro</span>
-          </div>
-          <div className="flex items-center gap-2 opacity-0 text-muted-foreground">
-            <Calendar size={16} />
-            <span className="font-mono text-sm">Loading...</span>
-          </div>
-          <div className="flex items-center gap-2 opacity-0 text-muted-foreground">
-            <Clock size={16} />
-            <span className="font-mono text-sm">Loading...</span>
-          </div>
-          <div className="flex items-center gap-2 opacity-0 text-muted-foreground">
-            <Cpu size={16} />
-            <span className="font-mono text-sm">Loading...</span>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
