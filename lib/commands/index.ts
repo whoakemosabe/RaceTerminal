@@ -96,14 +96,10 @@ export const commands: Command[] = [
     source: 'OpenF1 API'
   },
   {
-    command: '/status',
-    description: 'View current Formula 1 track status and flags',
-    source: 'OpenF1 API'
-  },
-  {
     command: '/weather (/w)',
     description: 'View current weather conditions at Formula 1 circuit',
-    source: 'OpenF1 API'
+    source: 'OpenF1 API',
+    category: 'LIVE DATA'
   },
   {
     command: '/tires <number>',

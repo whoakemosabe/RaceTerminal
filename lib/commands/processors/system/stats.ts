@@ -1,0 +1,1 @@
+// This file is no longer needed as the stats command is now in system/index.ts

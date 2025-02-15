@@ -79,7 +79,25 @@ export const teamThemes: Record<string, { primary: string; secondary: string; ac
 };
 
 export function getTeamColor(team: string): string {
-  return teamColors[team] || '#666666';
+  // Normalize team name by removing extra spaces and making case-insensitive
+  const normalizedTeam = team.trim().toLowerCase();
+  
+  // Find matching team name
+  const match = Object.entries(teamColors).find(([key]) => 
+    key.toLowerCase() === normalizedTeam
+  );
+  
+  if (match) {
+    return match[1];
+  }
+  
+  // Try partial matches
+  const partialMatch = Object.entries(teamColors).find(([key]) => 
+    key.toLowerCase().includes(normalizedTeam) ||
+    normalizedTeam.includes(key.toLowerCase())
+  );
+  
+  return partialMatch ? partialMatch[1] : '#666666';
 }
 
 export function findTeamId(search: string): string | null {

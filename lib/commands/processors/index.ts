@@ -1,4 +1,4 @@
-import { systemCommands } from './system';
+import { systemCommands } from './system/index';
 import { helpCommands } from './system/help';
 import { driverCommands } from './driver';
 import { raceCommands } from './race';

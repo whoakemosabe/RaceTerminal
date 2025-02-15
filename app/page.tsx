@@ -41,6 +41,13 @@ export default function Home() {
   const isResizingRef = useRef(false);
   const initialHeightRef = useRef(700);
   const { username } = useUsername();
+  
+  // Set session start time on mount
+  useEffect(() => {
+    if (!localStorage.getItem('session_start_time')) {
+      localStorage.setItem('session_start_time', Date.now().toString());
+    }
+  }, []);
 
   // Check if username has been set
   useEffect(() => {
@@ -142,7 +149,7 @@ export default function Home() {
     localStorage.removeItem('commandHistory');
     setHistory([]);
     setHistoryIndex(-1);
-    setCommandBuffer('');
+    setCommand('');
   }, []);
 
   // Memoize command processor to prevent recreation
@@ -441,18 +448,18 @@ export default function Home() {
         <div className="gradient-bg" />
         <div className="grid-lines" />
       </div>
-      <div className="flex-shrink-0 mx-auto px-8 pt-2 pb-1 w-full max-w-7xl">
+      <div className="flex-shrink-0 mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-1 w-full max-w-7xl">
         <header className="mb-2 px-4 py-2 border-b border-border/20 text-center glass-panel">
-          <h1 className="bg-clip-text bg-gradient-to-r from-secondary via-primary to-secondary font-bold text-4xl text-transparent tracking-tight animate-pulse">
+          <h1 className="bg-clip-text bg-gradient-to-r from-secondary via-primary to-secondary font-bold text-2xl sm:text-3xl lg:text-4xl text-transparent tracking-tight animate-pulse">
             RaceTerminal Pro
           </h1>
-          <p className="mt-1 text-muted-foreground/80 text-xs tracking-wide">
+          <p className="mt-1 text-muted-foreground/80 text-[10px] sm:text-xs tracking-wide">
             Your futuristic motorsports data companion
           </p>
         </header>
       </div>
 
-      <div className="flex flex-col mx-auto px-8 w-full max-w-7xl h-[calc(100vh-100px)] terminal-container">
+      <div className="flex flex-col mx-auto px-4 sm:px-6 lg:px-8 w-full max-w-7xl h-[calc(100vh-100px)] terminal-container">
         <FullscreenTerminal
           isOpen={isFullscreen}
           onClose={() => {

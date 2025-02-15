@@ -174,7 +174,7 @@ export const listCommands = {
             `<img src="${flagUrl}" alt="${team.nationality} flag" style="display:inline-block;vertical-align:middle;margin:0 2px;height:13px;width:25px;object-fit:cover;">` : 
             '';
           
-          return `${(index + 1).toString().padStart(2, ' ')}. ${flag} ${formatWithTeamColor(team.name)} (${team.code}) | 🏆 ${team.championships} Championships | 📍 ${team.hq} | 📅 ${team.established}`;
+          return `${(index + 1).toString().padStart(2, ' ')}. ${flag} ${formatWithTeamColor(team.name)} | 🏆 ${team.championships} Championships | 📍 ${team.hq} | 📅 ${team.established}`;
         });
 
         return [

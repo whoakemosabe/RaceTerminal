@@ -330,8 +330,8 @@ export function Terminal({
       </div>
 
       {/* Command Input */}
-      <div className="px-4 py-1.5 border-b border-border/10 terminal-input-wrapper">
-        <div className="flex items-center gap-4">
+      <div className="px-2 sm:px-4 py-1.5 border-b border-border/10 terminal-input-wrapper">
+        <div className="flex items-center gap-2 sm:gap-4">
           <TerminalIcon className="w-4 h-4 text-primary/80" aria-hidden="true" />
           <div className="relative flex flex-1 gap-2" onClick={() => onCloseWelcome?.()}>
             <CommandSuggestions
@@ -385,9 +385,9 @@ export function Terminal({
             />
             <Button
               onClick={onExecute}
-              size="sm"
+              size="sm" 
               onMouseDown={() => onCloseWelcome?.()}
-              className="px-4 h-8 text-sm execute-button"
+              className="px-2 sm:px-4 h-8 text-xs sm:text-sm execute-button whitespace-nowrap"
               disabled={isProcessing}>
               {isProcessing ? 'Processing...' : 'Execute'}
             </Button>
@@ -524,14 +524,14 @@ export function Terminal({
       
       {/* Bottom Status Bar */}
       <div className="relative flex items-center px-3 py-1 border-t border-border/10 select-none terminal-status-bar">
-        <div className="grid grid-cols-3 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-0 w-full">
           {/* Left Section - Version */}
-          <div className="flex justify-start items-center gap-2 text-muted-foreground">
+          <div className="hidden sm:flex justify-start items-center gap-2 text-muted-foreground">
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2 cursor-help">
                   <TerminalIcon className="w-3.5 h-3.5" />
-                  <span className="font-mono text-xs">
+                  <span className="font-mono text-[10px] sm:text-xs">
                     RaceTerminal Pro v{APP_VERSION}
                   </span>
                 </div>
@@ -543,14 +543,14 @@ export function Terminal({
           </div>
 
           {/* Middle Section - Session Info */}
-          <div className="flex justify-center items-center gap-4">
+          <div className="flex justify-center items-center gap-2 sm:gap-4">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleReset}
-                  className="h-6 w-6 hover:text-secondary/80 transition-colors hover:bg-transparent"
+                  className="h-5 w-5 sm:h-6 sm:w-6 hover:text-secondary/80 transition-colors hover:bg-transparent"
                 >
                   <RotateCw className="w-3.5 h-3.5" />
                 </Button>
@@ -559,12 +559,12 @@ export function Terminal({
                 <p>Reset Terminal</p>
               </TooltipContent>
             </Tooltip>
-            <div className="flex flex-col items-center text-xs text-muted-foreground/50">
+            <div className="flex flex-col items-center text-[10px] sm:text-xs text-muted-foreground/50">
               <div>
                 Powered by <a href="http://ergast.com/mrd/" target="_blank" rel="noopener noreferrer" className="text-primary/50 hover:text-primary/80 transition-colors">Ergast</a> & <a href="https://openf1.org" target="_blank" rel="noopener noreferrer" className="text-secondary/50 hover:text-secondary/80 transition-colors">OpenF1</a>
               </div>
               {mounted && hasSetUsername && (
-                <div className="flex items-center gap-1 text-[10px] opacity-70">
+                <div className="hidden sm:flex items-center gap-1 text-[10px] opacity-70">
                   <Clock className="w-3 h-3" />
                   <span>Session started at {sessionStart}</span>
                 </div>
@@ -573,12 +573,12 @@ export function Terminal({
           </div>
 
           {/* Right Section - Status */}
-          <div className="flex justify-end items-center gap-4">
+          <div className="hidden sm:flex justify-end items-center gap-4">
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2 cursor-help status-active">
                   <Cpu className="w-3.5 h-3.5" />
-                  <span className="font-mono text-xs">{hasSetUsername ? 'Active' : 'Waiting for username'}</span>
+                  <span className="font-mono text-[10px] sm:text-xs">{hasSetUsername ? 'Active' : 'Waiting for username'}</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="top" align="end" className="tooltip-content">

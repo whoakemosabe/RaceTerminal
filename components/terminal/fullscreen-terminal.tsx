@@ -93,22 +93,22 @@ export function FullscreenTerminal({
           </motion.div>
 
           <motion.div 
-            className="mx-auto p-4 max-w-6xl h-screen container"
+            className="mx-auto p-2 sm:p-4 max-w-6xl h-screen container"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ delay: 0.1, duration: 0.2 }}
           >
             <div className="flex flex-col h-full">
-              <motion.div 
-                className="flex items-center gap-2 mb-2 text-primary"
+              <motion.div
+                className="flex items-center gap-1 sm:gap-2 mb-2 text-primary"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ delay: 0.2 }}
               >
                 <TerminalIcon className="w-5 h-5" aria-hidden="true" />
-                <h2 className="font-medium text-lg">RaceTerminal Pro</h2>
+                <h2 className="font-medium text-base sm:text-lg">RaceTerminal Pro</h2>
               </motion.div>
 
               <motion.div 

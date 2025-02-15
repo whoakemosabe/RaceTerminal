@@ -231,7 +231,7 @@ body.resizing * {
 }
 
 .terminal-history {
-  @apply px-4 py-2;
+  @apply px-2 sm:px-4 py-2;
   flex: 1;
   min-height: 200px;
   padding-bottom: 1rem;
@@ -251,8 +251,18 @@ body.resizing * {
 .terminal-history .terminal-timestamp,
 .terminal-history .terminal-prompt,
 .terminal-history div {
-  font-size: var(--terminal-font-size, 14px);
+  font-size: var(--terminal-font-size, 12px);
   line-height: 1.5;
+}
+
+@media (min-width: 640px) {
+  .terminal-history,
+  .terminal-history code,
+  .terminal-history .terminal-timestamp,
+  .terminal-history .terminal-prompt,
+  .terminal-history div {
+    font-size: var(--terminal-font-size, 14px);
+  }
 }
 
 .terminal-history::before {
@@ -332,19 +342,35 @@ body.resizing * {
 }
 
 /* Team colors - ensure they override other styles */
-.terminal-history span[style*="color: #"] {
-  color: var(--team-color, inherit) !important;
+.terminal-history span[style*="color:"] {
+  color: var(--color-override, inherit) !important;
+}
+
+/* Ensure team colors are preserved */
+.terminal-history div span[style*="color:"] {
+  text-shadow: none !important;
+}
+
+/* Remove any conflicting color overrides */
+.terminal-history div:has(> span[style*="color:"]) span[style*="color:"] {
+  text-shadow: none !important;
+}
+
+/* Ensure team colors have highest priority */
+.terminal-history span[style*="!important"] {
+  color: var(--color-override, inherit) !important;
+  text-shadow: none !important;
 }
 
 /* Ensure team colors are preserved */
 .terminal-history div span[style*="color: #"] {
-  color: var(--team-color, inherit) !important;
+  color: inherit !important;
   text-shadow: none !important;
 }
 
 /* Remove any conflicting color overrides */
 .terminal-history div:has(> span[style*="color: #"]) span[style*="color: #"] {
-  color: var(--team-color, inherit) !important;
+  color: inherit !important;
   text-shadow: none !important;
 }
 

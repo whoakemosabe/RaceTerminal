@@ -288,11 +288,13 @@ function formatOvertakeAnalysis(analysis: any[], raceData: any): string[] {
 
     // Calculate defensive rating based on how many times they were overtaken
     const defendRating =
-      data.timesBeingOvertaken === 0 && data.positionsLost === 0 ? '<span style="color: hsl(var(--success))">🟣 Impenetrable</span>' :
-      data.timesBeingOvertaken <= 1 && data.positionsLost <= 1 ? '<span style="color: hsl(var(--success))">🟢 Excellent</span>' :
+      data.timesBeingOvertaken === 0 && data.positionsLost === 0 && data.finishPos <= data.startPos && data.startPos <= 10 ? '<span style="color: hsl(var(--success))">🟣 Impenetrable</span>' :
+      data.timesBeingOvertaken === 0 && data.positionsLost === 0 && data.finishPos <= data.startPos ? '<span style="color: hsl(var(--success))">🟢 Excellent</span>' :
+      data.timesBeingOvertaken <= 1 && data.positionsLost <= 1 ? '<span style="color: hsl(var(--success))">🟢 Strong</span>' :
       data.timesBeingOvertaken <= 2 && data.positionsLost <= 2 ? '<span style="color: hsl(var(--warning))">🟡 Solid</span>' :
-      data.timesBeingOvertaken <= 3 && data.positionsLost <= 3 ? '<span style="color: hsl(var(--info))">🟠 Vulnerable</span>' :
-      '<span style="color: hsl(var(--error))">🔴 Poor</span>';
+      data.timesBeingOvertaken <= 3 && data.positionsLost <= 3 ? '<span style="color: hsl(var(--warning))">🟡 Fair</span>' :
+      data.timesBeingOvertaken <= 4 ? '<span style="color: hsl(var(--info))">🟠 Vulnerable</span>' :
+      '<span style="color: hsl(var(--error))">🔴 Weak</span>';
 
     return [
       `P${data.finishPos}. ${driver.Driver.givenName} ${driver.Driver.familyName} ${flag} | <span style="color: ${teamColor}">${driver.Constructor.name}</span>`,

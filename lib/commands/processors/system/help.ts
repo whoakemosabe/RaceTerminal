@@ -709,6 +709,62 @@ export const helpCommands: HelpCommands = {
       const cleanSearchTerm = searchTerm.startsWith('/') ? searchTerm.slice(1) : searchTerm;
       const commandKey = `/${cleanSearchTerm}`;
       
+      // Special handling for driver and team help
+      if (cleanSearchTerm === 'driver') {
+        return [
+          'COMMAND REFERENCE: /DRIVER',
+          '═'.repeat(60),
+          '',
+          'DESCRIPTION',
+          'View detailed Formula 1 driver information including career statistics, achievements, and current status.',
+          '',
+          'USAGE',
+          '/driver <name> (/d)',
+          '',
+          'SEARCH OPTIONS',
+          '• Full name (e.g., hamilton)',
+          '• Driver code (e.g., HAM)',
+          '• Race number (e.g., 44)',
+          '• Nickname (e.g., schumi)',
+          '',
+          'EXAMPLES',
+          ...commandExamples['/driver'],
+          '',
+          'NOTES',
+          ...commandNotes['/driver'],
+          '',
+          'RELATED COMMANDS',
+          ...relatedCommands['/driver']
+        ].join('\n');
+      }
+
+      if (cleanSearchTerm === 'team') {
+        return [
+          'COMMAND REFERENCE: /TEAM',
+          '═'.repeat(60),
+          '',
+          'DESCRIPTION',
+          'View comprehensive Formula 1 team information including history, achievements, technical details, and current status.',
+          '',
+          'USAGE',
+          '/team <name>',
+          '',
+          'SEARCH OPTIONS',
+          '• Full name (e.g., ferrari)',
+          '• Team code (e.g., FER)',
+          '• Nickname (e.g., redbull)',
+          '',
+          'EXAMPLES',
+          ...commandExamples['/team'],
+          '',
+          'NOTES',
+          ...commandNotes['/team'],
+          '',
+          'RELATED COMMANDS',
+          ...relatedCommands['/team']
+        ].join('\n');
+      }
+
       // Handle command aliases
       const aliasedCommand = commandAliases[commandKey];
       const effectiveCommand = aliasedCommand ? `/${aliasedCommand.split(' ')[0]}` : commandKey;
@@ -720,18 +776,33 @@ export const helpCommands: HelpCommands = {
 
       if (matchedCategory) {
         const [categoryName, categoryInfo] = matchedCategory;
-        const categoryCommands = commands.filter(cmd => 
-          categoryInfo.commands.some(term => 
-            cmd.command.toLowerCase().includes(term)
-          )
-        );
-
         return [
-          `📚 ${categoryName} COMMANDS`,
+          `COMMAND REFERENCE: ${categoryName}`,
           '═'.repeat(60),
+          '',
+          'DESCRIPTION',
           categoryInfo.description,
           '',
-          ...categoryCommands.map(formatCommand)
+          'AVAILABLE COMMANDS',
+          ...commands
+            .filter(cmd => categoryInfo.commands.some(term => cmd.command.toLowerCase().includes(term)))
+            .map(cmd => {
+              const [baseCmd, ...params] = cmd.command.split(' ');
+              const shortcut = Object.entries(commandAliases)
+                .find(([alias, target]) => target === baseCmd)?.[0];
+              const aliasText = shortcut ? ` (${shortcut})` : '';
+              return `• ${baseCmd}${params.length ? ` ${params.join(' ')}` : ''}${aliasText}\n  ${cmd.description}`;
+            }),
+          '',
+          'NOTES',
+          `• All commands support tab completion`,
+          `• Commands are case-insensitive`,
+          `• Use /help <command> for detailed help`,
+          '',
+          'RELATED CATEGORIES',
+          ...Object.keys(helpCategories)
+            .filter(cat => cat !== categoryName)
+            .map(cat => `• ${cat.toLowerCase()} - ${helpCategories[cat as keyof typeof helpCategories].description}`)
         ].join('\n');
       }
 
