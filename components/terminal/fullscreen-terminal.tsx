@@ -21,6 +21,7 @@ interface FullscreenTerminalProps {
   onExecute: () => void;
   showWelcome?: boolean;
   onCloseWelcome?: () => void;
+  inputRef: React.RefObject<HTMLInputElement>;
 }
 
 export function FullscreenTerminal({
@@ -61,7 +62,7 @@ export function FullscreenTerminal({
       {isOpen && (
         <motion.div
           ref={containerRef}
-          className="fixed inset-0 z-50"
+          className="z-50 fixed inset-0"
           initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
           animate={{ 
             opacity: 1,
@@ -76,7 +77,7 @@ export function FullscreenTerminal({
           transition={{ duration: 0.2, ease: "easeInOut" }}
         >
           <motion.div 
-            className="absolute top-4 right-4 z-50"
+            className="top-4 right-4 z-50 absolute"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -84,7 +85,7 @@ export function FullscreenTerminal({
           >
             <button
               onClick={onClose}
-              className="p-2 rounded-full bg-card hover:bg-card/70 transition-colors" 
+              className="bg-card hover:bg-card/70 p-2 rounded-full transition-colors" 
               aria-label="Close fullscreen terminal"
             >
               <X className="w-5 h-5 text-primary" aria-hidden="true" />
@@ -92,13 +93,13 @@ export function FullscreenTerminal({
           </motion.div>
 
           <motion.div 
-            className="container mx-auto h-screen max-w-6xl p-4"
+            className="mx-auto p-4 max-w-6xl h-screen container"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ delay: 0.1, duration: 0.2 }}
           >
-            <div className="h-full flex flex-col">
+            <div className="flex flex-col h-full">
               <motion.div 
                 className="flex items-center gap-2 mb-2 text-primary"
                 initial={{ opacity: 0, x: -20 }}
@@ -107,7 +108,7 @@ export function FullscreenTerminal({
                 transition={{ delay: 0.2 }}
               >
                 <TerminalIcon className="w-5 h-5" aria-hidden="true" />
-                <h2 className="text-lg font-medium">RaceTerminal Pro</h2>
+                <h2 className="font-medium text-lg">RaceTerminal Pro</h2>
               </motion.div>
 
               <motion.div 
