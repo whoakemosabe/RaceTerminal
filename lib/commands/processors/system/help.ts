@@ -12,13 +12,18 @@ function formatCommand(cmd: typeof commands[0]): string {
   const shortcut = Object.entries(commandAliases)
     .find(([alias, target]) => target === cleanCmd)?.[0];
   
-  return [
-    `${cleanCmd}${params.length ? ' ' + params.join(' ') : ''}`,
-    aliases || shortcut ? `Aliases: ${[aliases, shortcut].filter(Boolean).join(', ')}` : '',
-    `Description: ${cmd.description}`,
-    `Source: ${cmd.source}`,
-    ''
-  ].filter(Boolean).join('\n');
+  const lines = [
+    `${cleanCmd}${params.length ? ' ' + params.join(' ') : ''}`
+  ];
+  
+  if (aliases || shortcut) {
+    lines.push(`Aliases: ${[aliases, shortcut].filter(Boolean).join(', ')}`);
+  }
+  
+  lines.push(`Description: ${cmd.description}`);
+  lines.push(`Source: ${cmd.source}`);
+  
+  return lines.join('\n');
 }
 
 function getCommandExamples(cmd: string): string {
@@ -68,18 +73,45 @@ const helpCategories = {
 // Detailed command examples
 const commandExamples: Record<string, string[]> = {
   '/driver': [
+    'Current Drivers:',
     '/driver hamilton - View Lewis Hamilton\'s profile',
     '/driver VER - View Max Verstappen using driver code',
     '/driver 1 - View driver using race number',
-    '/driver schumi - View Michael Schumacher\'s profile'
+    '/driver checo - View Sergio Perez using nickname',
+    '',
+    'World Champions:',
+    '/driver senna - View Ayrton Senna\'s profile',
+    '/driver schumi - View Michael Schumacher\'s profile',
+    '/driver prost - View Alain Prost\'s profile',
+    '',
+    'Notable Drivers:',
+    '/driver moss - View Stirling Moss\'s profile',
+    '/driver villeneuve - View Gilles Villeneuve\'s profile',
+    '/driver montoya - View Juan Pablo Montoya\'s profile'
+  ],
+  '/team': [
+    'Current Teams:',
+    '/team redbull - View Red Bull Racing profile',
+    '/team ferrari - View Scuderia Ferrari profile',
+    '/team mercedes - View Mercedes-AMG Petronas profile',
+    '',
+    'Search Variations:',
+    '/team rb - View Red Bull Racing (using nickname)',
+    '/team amr - View Aston Martin (using code)',
+    '/team mclaren - View McLaren F1 Team',
+    '',
+    'Detailed Information:',
+    '/team alpine - View Alpine F1 Team details',
+    '/team haas - View Haas F1 Team profile',
+    '/team williams - View Williams Racing history'
   ],
   '/theme': [
-    '• /theme ferrari - Apply Ferrari team colors',
-    '• /theme dracula - Use Dracula editor theme',
-    '• /theme calc amber - Enable calculator mode with amber display',
-    '• /theme default - Reset to default colors',
-    '• /theme nord - Apply Nord editor theme',
-    '• /theme monokai - Apply Monokai editor theme'
+    '/theme ferrari - Apply Ferrari team colors',
+    '/theme dracula - Use Dracula editor theme',
+    '/theme calc amber - Enable calculator mode with amber display',
+    '/theme default - Reset to default colors',
+    '/theme nord - Apply Nord editor theme',
+    '/theme monokai - Apply Monokai editor theme'
   ],
   '/pace': [
     '/pace 2023 1 - Analyze race pace from 2023 Bahrain GP',
@@ -122,19 +154,113 @@ const commandExamples: Record<string, string[]> = {
     '/retro - Toggle retro text effect',
     '/retro all - Enable all retro effects',
     '/retro reset - Disable all effects'
+  ],
+  '/qualifying': [
+    'Current Session:',
+    '/qualifying 2024 1 - View 2024 Bahrain GP qualifying',
+    '/qualifying 2024 2 - View 2024 Saudi Arabian GP qualifying',
+    '/qualifying 2024 3 - View 2024 Australian GP qualifying',
+    '',
+    'Historical Sessions:',
+    '/qualifying 2023 1 - View 2023 Bahrain GP qualifying',
+    '/qualifying 2023 5 - View 2023 Miami GP qualifying',
+    '/qualifying 2023 22 - View 2023 Abu Dhabi GP qualifying'
+  ],
+  '/sprint': [
+    'Current Season:',
+    '/sprint 2024 1 - View first sprint race of 2024',
+    '/sprint 2024 2 - View second sprint race of 2024',
+    '',
+    'Previous Season:',
+    '/sprint 2023 1 - View Azerbaijan GP sprint',
+    '/sprint 2023 4 - View Belgian GP sprint',
+    '/sprint 2023 6 - View Qatar GP sprint'
+  ],
+  '/pitstops': [
+    'Current Season:',
+    '/pitstops 2024 1 - View 2024 Bahrain GP pit stops',
+    '/pitstops 2024 2 - View 2024 Saudi Arabian GP pit stops',
+    '',
+    'Previous Season:',
+    '/pitstops 2023 1 - View 2023 Bahrain GP pit stops',
+    '/pitstops 2023 5 - View 2023 Miami GP pit stops',
+    '/pitstops 2023 22 - View 2023 Abu Dhabi GP pit stops'
+  ],
+  '/fastest': [
+    'Current Season:',
+    '/fastest 2024 1 - View 2024 Bahrain GP fastest laps',
+    '/fastest 2024 2 - View 2024 Saudi Arabian GP fastest laps',
+    '',
+    'Previous Season:',
+    '/fastest 2023 1 - View 2023 Bahrain GP fastest laps',
+    '/fastest 2023 5 - View 2023 Miami GP fastest laps',
+    '/fastest 2023 22 - View 2023 Abu Dhabi GP fastest laps'
+  ],
+  '/laps': [
+    'Current Season:',
+    '/laps 2024 1 - View 2024 Bahrain GP lap times',
+    '/laps 2024 2 - View 2024 Saudi Arabian GP lap times',
+    '',
+    'Previous Season:',
+    '/laps 2023 1 - View 2023 Bahrain GP lap times',
+    '/laps 2023 5 - View 2023 Miami GP lap times',
+    '/laps 2023 22 - View 2023 Abu Dhabi GP lap times'
   ]
 };
 
 // Command usage notes
 const commandNotes: Record<string, string[]> = {
   '/driver': [
+    'Search Options:',
     '• Search by full name (e.g., hamilton)',
     '• Search by driver code (e.g., HAM)',
     '• Search by race number (e.g., 44)',
     '• Search by nickname (e.g., schumi)',
+    '',
+    'Available Data:',
     '• Includes current and historical drivers',
-    '• Shows nationality and career info',
-    '• Case-insensitive search'
+    '• Current F1 drivers with teams',
+    '• World Champions with years',
+    '• Notable drivers from F1 history',
+    '',
+    'Driver Information:',
+    '• Full name and nationality',
+    '• Driver number and code',
+    '• Team affiliation',
+    '• Career achievements',
+    '• Championship history',
+    '',
+    'Features:',
+    '• Case-insensitive search',
+    '• Fuzzy matching for nicknames',
+    '• National flag display',
+    '• Team color coding'
+  ],
+  '/team': [
+    'Search Options:',
+    '• Search by full name (e.g., ferrari)',
+    '• Search by code (e.g., FER)',
+    '• Search by nickname (e.g., redbull)',
+    '',
+    'Available Data:',
+    '• All current F1 teams',
+    '• Team headquarters location',
+    '• Year established',
+    '• Championship history',
+    '• Technical details',
+    '',
+    'Team Information:',
+    '• Official team name',
+    '• Team principal',
+    '• Power unit supplier',
+    '• Notable achievements',
+    '• Historical records',
+    '',
+    'Features:',
+    '• Case-insensitive search',
+    '• Team color coding',
+    '• National flag display',
+    '• Comprehensive statistics'
   ],
   '/theme': [
     'F1 Team Themes:',
@@ -201,16 +327,241 @@ const commandNotes: Record<string, string[]> = {
     '• Includes championship data',
     '• Performance metrics',
     '• Historical achievements'
+  ],
+  '/standings': [
+    'Available Data:',
+    '• Current season standings',
+    '• Points totals',
+    '• Position changes',
+    '• Race wins',
+    '• Podium finishes',
+    '',
+    'Features:',
+    '• Live updates during races',
+    '• Historical comparisons',
+    '• Team color coding',
+    '• National flags'
+  ],
+  '/teams': [
+    'Available Data:',
+    '• Constructor standings',
+    '• Points totals',
+    '• Development progress',
+    '• Technical updates',
+    '',
+    'Features:',
+    '• Live updates',
+    '• Performance trends',
+    '• Team comparisons',
+    '• Historical records'
+  ],
+  '/schedule': [
+    'Available Data:',
+    '• Full season calendar',
+    '• Race start times',
+    '• Sprint events',
+    '• Testing sessions',
+    '',
+    'Features:',
+    '• Local time conversion',
+    '• Track information',
+    '• Weather forecasts',
+    '• Historical results'
+  ],
+  '/next': [
+    'Available Data:',
+    '• Next race details',
+    '• Countdown timer',
+    '• Track information',
+    '• Weather forecast',
+    '',
+    'Features:',
+    '• Real-time updates',
+    '• Circuit details',
+    '• Previous results',
+    '• Session schedule'
+  ],
+  '/last': [
+    'Available Data:',
+    '• Race results',
+    '• Lap times',
+    '• Pit stops',
+    '• Key moments',
+    '',
+    'Features:',
+    '• Detailed analysis',
+    '• Performance metrics',
+    '• Team comparisons',
+    '• Driver battles'
+  ],
+  '/live': [
+    'Available Data:',
+    '• Real-time positions',
+    '• Sector times',
+    '• Speed traps',
+    '• Tire information',
+    '',
+    'Features:',
+    '• Live updates',
+    '• Gap calculations',
+    '• DRS detection',
+    '• Battle tracking'
+  ],
+  '/telemetry': [
+    'Available Data:',
+    '• Throttle position',
+    '• Brake usage',
+    '• Gear selection',
+    '• Engine RPM',
+    '• Speed data',
+    '',
+    'Features:',
+    '• Real-time updates',
+    '• Driver comparison',
+    '• Performance analysis',
+    '• Energy deployment'
+  ],
+  '/weather': [
+    'Available Data:',
+    '• Air temperature',
+    '• Track temperature',
+    '• Wind speed/direction',
+    '• Precipitation chance',
+    '• Humidity levels',
+    '',
+    'Features:',
+    '• Real-time updates',
+    '• Forecast tracking',
+    '• Track conditions',
+    '• Weather radar'
+  ],
+  '/qualifying': [
+    'Available Data:',
+    '• Q1, Q2, Q3 session times',
+    '• Sector times',
+    '• Speed trap data',
+    '• Track evolution',
+    '• Elimination order',
+    '',
+    'Features:',
+    '• Purple/green sector highlighting',
+    '• Theoretical best laps',
+    '• Mini sector analysis',
+    '• Gap to pole position',
+    '• Session progression',
+    '',
+    'Additional Information:',
+    '• Track conditions',
+    '• Tire compounds used',
+    '• Traffic analysis',
+    '• Out/in lap times',
+    '• Sector improvements'
+  ],
+  '/sprint': [
+    'Available Data:',
+    '• Sprint race results',
+    '• Grid positions',
+    '• Finishing positions',
+    '• Points scored',
+    '• Race duration',
+    '',
+    'Features:',
+    '• Position changes',
+    '• Lap time analysis',
+    '• Sprint shootout results',
+    '• Performance metrics',
+    '• Battle highlights',
+    '',
+    'Additional Information:',
+    '• Weather conditions',
+    '• Tire strategies',
+    '• Team performance',
+    '• Sprint format details',
+    '• Championship impact'
+  ],
+  '/pitstops': [
+    'Available Data:',
+    '• Stop duration',
+    '• Lap numbers',
+    '• Tire compounds',
+    '• Position changes',
+    '• Total pit time',
+    '',
+    'Features:',
+    '• Team performance',
+    '• Strategy analysis',
+    '• Undercut/overcut',
+    '• Stack timing',
+    '• Position impact',
+    '',
+    'Additional Information:',
+    '• Pit crew stats',
+    '• Stop sequence',
+    '• Track position',
+    '• Race situation',
+    '• Safety car impact'
+  ],
+  '/fastest': [
+    'Available Data:',
+    '• Fastest lap time',
+    '• Sector times',
+    '• Speed traps',
+    '• Lap number',
+    '• Tire compound',
+    '',
+    'Features:',
+    '• Lap evolution',
+    '• Track conditions',
+    '• Fuel load effect',
+    '• DRS usage',
+    '• Tire performance',
+    '',
+    'Additional Information:',
+    '• Weather impact',
+    '• Track temperature',
+    '• Car setup',
+    '• Race situation',
+    '• Points impact'
+  ],
+  '/laps': [
+    'Available Data:',
+    '• Lap times',
+    '• Sector times',
+    '• Position changes',
+    '• Gap to leader',
+    '• Interval to next',
+    '',
+    'Features:',
+    '• Stint analysis',
+    '• Tire degradation',
+    '• Fuel correction',
+    '• Traffic impact',
+    '• Battle tracking',
+    '',
+    'Additional Information:',
+    '• Weather changes',
+    '• Track evolution',
+    '• Safety car periods',
+    '• DRS trains',
+    '• Strategy impact'
   ]
 };
 
 // Related commands for each command
 const relatedCommands: Record<string, string[]> = {
   '/driver': [
+    '• /list drivers - List all available drivers',
     '• /compare - Compare driver statistics',
     '• /standings - Championship standings',
-    '• /list drivers - List all drivers',
-    '• /telemetry - Live car data'
+    '• /telemetry - Live car data',
+    '• /team - View team information'
+  ],
+  '/team': [
+    '• /list teams - List all available teams',
+    '• /compare team - Compare team statistics',
+    '• /teams - View constructor standings',
+    '• /car - View car specifications',
+    '• /theme - Apply team colors'
   ],
   '/theme': [
     '• /list themes - Show all available themes',
@@ -255,6 +606,97 @@ const relatedCommands: Record<string, string[]> = {
     '• /team - Team information',
     '• /standings - Championship standings',
     '• /stats - Usage statistics'
+  ],
+  '/standings': [
+    '• /teams - Constructor standings',
+    '• /driver - Driver information',
+    '• /compare - Compare statistics',
+    '• /last - Recent race results',
+    '• /schedule - Season calendar'
+  ],
+  '/teams': [
+    '• /standings - Driver standings',
+    '• /compare team - Team comparisons',
+    '• /car - Car specifications',
+    '• /theme - Team colors',
+    '• /telemetry - Car performance'
+  ],
+  '/schedule': [
+    '• /next - Next race details',
+    '• /track - Circuit information',
+    '• /weather - Track conditions',
+    '• /last - Previous results',
+    '• /live - Session timing'
+  ],
+  '/next': [
+    '• /schedule - Full calendar',
+    '• /weather - Track forecast',
+    '• /track - Circuit details',
+    '• /live - Session timing',
+    '• /telemetry - Car data'
+  ],
+  '/last': [
+    '• /race - Historical results',
+    '• /pace - Race analysis',
+    '• /gap - Interval analysis',
+    '• /overtake - Battle analysis',
+    '• /plot - Lap time charts'
+  ],
+  '/live': [
+    '• /telemetry - Car data',
+    '• /weather - Track conditions',
+    '• /status - Session status',
+    '• /tires - Compound tracking',
+    '• /gap - Interval analysis'
+  ],
+  '/telemetry': [
+    '• /live - Session timing',
+    '• /tires - Tire performance',
+    '• /weather - Track conditions',
+    '• /status - Session status',
+    '• /car - Technical specs'
+  ],
+  '/weather': [
+    '• /track - Circuit details',
+    '• /live - Session timing',
+    '• /telemetry - Car performance',
+    '• /tires - Compound choice',
+    '• /status - Track conditions'
+  ],
+  '/qualifying': [
+    '• /sector - Detailed sector analysis',
+    '• /fastest - Fastest lap records',
+    '• /plot - Lap time progression',
+    '• /weather - Track conditions',
+    '• /telemetry - Car performance'
+  ],
+  '/sprint': [
+    '• /race - Full race results',
+    '• /pace - Performance analysis',
+    '• /gap - Interval tracking',
+    '• /overtake - Battle analysis',
+    '• /plot - Lap time charts'
+  ],
+  '/pitstops': [
+    '• /race - Full race results',
+    '• /pace - Stint analysis',
+    '• /gap - Position changes',
+    '• /laps - Lap time impact',
+    '• /plot - Strategy visualization'
+  ],
+  '/fastest': [
+    '• /qualifying - Session results',
+    '• /sector - Sector analysis',
+    '• /telemetry - Car data',
+    '• /weather - Track conditions',
+    '• /plot - Lap time charts'
+  ],
+  '/laps': [
+    '• /pace - Race analysis',
+    '• /gap - Interval tracking',
+    '• /plot - Time progression',
+    '• /pitstops - Strategy impact',
+    '• /overtake - Position changes'
   ]
 };
 
@@ -263,11 +705,17 @@ export const helpCommands: HelpCommands = {
     // If a specific command is provided
     if (args[0]) {
       const searchTerm = args[0].toLowerCase();
-      const commandKey = `/${searchTerm.replace('/', '')}`;
+      // Clean up search term and handle aliases
+      const cleanSearchTerm = searchTerm.startsWith('/') ? searchTerm.slice(1) : searchTerm;
+      const commandKey = `/${cleanSearchTerm}`;
+      
+      // Handle command aliases
+      const aliasedCommand = commandAliases[commandKey];
+      const effectiveCommand = aliasedCommand ? `/${aliasedCommand.split(' ')[0]}` : commandKey;
       
       // Check for category help first
       const matchedCategory = Object.entries(helpCategories).find(([name]) => 
-        name.toLowerCase().includes(searchTerm)
+        name.toLowerCase().includes(cleanSearchTerm)
       );
 
       if (matchedCategory) {
@@ -288,45 +736,49 @@ export const helpCommands: HelpCommands = {
       }
 
       // Check for specific command help
-      if (commandInfo[commandKey]) {
-        const info = commandInfo[commandKey];
-        const command = commands.find(cmd => 
-          cmd.command.split(' ')[0].replace(/\s*\(.*?\)/, '').toLowerCase() === commandKey
-        );
+      const info = commandInfo[effectiveCommand] || commandInfo[commandKey];
+      const command = commands.find(cmd => {
+        const cmdBase = cmd.command.split(' ')[0].replace(/\s*\(.*?\)/, '').toLowerCase();
+        return cmdBase === effectiveCommand.toLowerCase() || 
+               cmdBase === commandKey.toLowerCase() ||
+               cmdBase === cleanSearchTerm.toLowerCase();
+      });
 
-        if (command) {
-          const [baseCmd, ...params] = command.command.split(' ');
-          const shortcut = Object.entries(commandAliases)
-            .find(([alias, target]) => target === baseCmd)?.[0];
-          const aliases = baseCmd.match(/\((.*?)\)/)?.[1];
-          const aliasText = aliases || shortcut ? ` (${[aliases, shortcut].filter(Boolean).join(', ')})` : '';
+      if (command && info) {
+        const [baseCmd, ...params] = command.command.split(' ');
+        const shortcut = Object.entries(commandAliases)
+          .find(([alias, target]) => target === baseCmd)?.[0];
+        const aliases = baseCmd.match(/\((.*?)\)/)?.[1];
+        const aliasText = aliases || shortcut ? ` (${[aliases, shortcut].filter(Boolean).join(', ')})` : '';
 
-          return [
-            `📚 ${baseCmd.toUpperCase()} COMMAND REFERENCE`,
-            '═'.repeat(60),
-            `\nDescription: ${command.description}`,
-            `Description: ${info.description}`,
-            `Category: ${info.category}`,
-            `Source: ${command.source}`,
-            '',
-            'Usage:',
-            `${baseCmd}${params.length ? ` ${params.join(' ')}` : ''}${aliasText}`,
-            '',
-            'Examples:',
-            getCommandExamples(commandKey),
-            '',
-            'Notes:',
-            getCommandNotes(commandKey),
-            '',
-            'Related Commands:',
-            getRelatedCommands(commandKey)
-          ].filter(Boolean).join('\n');
-        }
+        return [
+          `COMMAND REFERENCE: ${baseCmd.toUpperCase()}`,
+          '═'.repeat(60),
+          '',
+          'DESCRIPTION',
+          info.description,
+          '',
+          'DETAILS',
+          `Category: ${info.category}`,
+          `Source: ${command.source}`,
+          '',
+          'USAGE',
+          `${baseCmd}${params.length ? ` ${params.join(' ')}` : ''}${aliasText}`,
+          '',
+          'EXAMPLES',
+          getCommandExamples(effectiveCommand) || getCommandExamples(commandKey) || '',
+          '',
+          'NOTES',
+          getCommandNotes(effectiveCommand) || getCommandNotes(commandKey) || '',
+          '',
+          'RELATED COMMANDS',
+          getRelatedCommands(effectiveCommand) || getRelatedCommands(commandKey) || ''
+        ].filter(Boolean).join('\n');
       }
 
       // Check for category help
       const matchedQuickRef = quickReferenceCategories.find(cat => 
-        cat.title.toLowerCase().includes(searchTerm.replace('/', ''))
+        cat.title.toLowerCase().includes(cleanSearchTerm)
       );
 
       if (matchedQuickRef) {
@@ -359,9 +811,11 @@ export const helpCommands: HelpCommands = {
     }
 
     const header = [
-      '📚 RACETERMINAL PRO COMMAND REFERENCE',
+      'RACETERMINAL PRO COMMAND REFERENCE',
       '═'.repeat(60),
-      '\nWelcome to RaceTerminal Pro! This terminal provides comprehensive Formula 1 data access and analysis.',
+      '',
+      'Welcome to RaceTerminal Pro!',
+      'This terminal provides comprehensive Formula 1 data access and analysis.',
       'Below is a complete list of available commands organized by category.',
       ''
     ];
@@ -380,38 +834,39 @@ export const helpCommands: HelpCommands = {
 
     return [
       ...header,
-      '🏁 RACE INFORMATION',
+      'RACE INFORMATION',
       '═'.repeat(60),
       content.filter(cmd => cmd.includes('standings') || cmd.includes('schedule') || cmd.includes('track')).join('\n'),
       '\n',
-      '📊 LIVE DATA',
+      'LIVE DATA',
       '═'.repeat(60),
       content.filter(cmd => cmd.includes('live') || cmd.includes('telemetry') || cmd.includes('weather')).join('\n'),
       '',
-      '📈 ANALYSIS',
+      'ANALYSIS',
       '═'.repeat(60),
       content.filter(cmd => {
         const info = commandInfo[cmd.split('\n')[0].split(' ')[0].trim()];
         return info && info.category === 'ANALYSIS';
       }).join('\n'),
       '',
-      '✨ EFFECTS',
+      'EFFECTS',
       '═'.repeat(60),
       content.filter(cmd => {
         const info = commandInfo[cmd.split('\n')[0].split(' ')[0].trim()];
         return info && info.category === 'EFFECTS';
       }).join('\n'),
       '',
-      '⚙️ SYSTEM',
+      'SYSTEM',
       '═'.repeat(60),
       content.filter(cmd => {
         const info = commandInfo[cmd.split('\n')[0].split(' ')[0].trim()];
         return info && info.category === 'SYSTEM';
       }).join('\n'),
       '',
-      'Tips:',
+      'TIPS',
+      '═'.repeat(60),
       '• Use /list <type> to see available data (drivers, teams, tracks, cars)',
-      '• Use Tab for command completion',
+      '• Tab completion is available for most commands',
       '• Commands are case-insensitive',
       '• Most commands have shortcuts (shown in parentheses)',
       '• Press Alt+Enter to toggle fullscreen mode',
@@ -421,4 +876,4 @@ export const helpCommands: HelpCommands = {
       'For example: /help pace'
     ].join('\n');
   }
-};
+}

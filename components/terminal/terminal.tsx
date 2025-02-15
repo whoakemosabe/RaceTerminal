@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Terminal as TerminalIcon, Info, Clock, Calendar, Cpu, RotateCw, HelpCircle } from 'lucide-react';
 import { APP_VERSION, LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
-import { teamThemes } from '@/lib/utils';
+import { teamThemes, teamNicknames } from '@/lib/utils';
 import { colorThemes } from '@/lib/themes/colors';
 import { calculatorThemes } from '@/lib/themes/calculator';
 import { Input } from '@/components/ui/input';
@@ -57,6 +57,62 @@ export function Terminal({
   const [themeLoaded, setThemeLoaded] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('default');
 
+  // Listen for theme changes
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const savedTheme = localStorage.getItem('terminal_theme');
+      if (savedTheme) {
+        // Handle calculator mode
+        if (savedTheme === 'calculator') {
+          const calcScheme = localStorage.getItem('calculator_color_scheme');
+          setCurrentTheme(`calc ${calcScheme || 'classic'}`);
+          return;
+        }
+        // Handle team themes
+        if (teamNicknames[savedTheme]) {
+          setCurrentTheme(teamNicknames[savedTheme][0].toLowerCase());
+          return;
+        }
+        // Handle editor themes
+        if (colorThemes[savedTheme]) {
+          setCurrentTheme(savedTheme);
+          return;
+        }
+        // Default case: replace underscores with spaces and capitalize
+        setCurrentTheme(savedTheme.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+      } else {
+        setCurrentTheme('default');
+      }
+    };
+
+    // Initial theme load
+    handleThemeChange();
+
+    // Listen for theme changes
+    window.addEventListener('themeChange', handleThemeChange);
+    
+    return () => {
+      window.removeEventListener('themeChange', handleThemeChange);
+    };
+  }, []);
+  // Move formatThemeName outside component to avoid recreation
+  const formatThemeName = useCallback((theme: string) => {
+    if (theme === 'calculator') {
+      const calcScheme = localStorage.getItem('calculator_color_scheme');
+      return `calc ${calcScheme || 'classic'}`;
+    }
+    // Handle team themes
+    if (teamNicknames[theme]) {
+      return teamNicknames[theme][0].toLowerCase();
+    }
+    // Handle editor themes
+    if (colorThemes[theme]) {
+      return theme;
+    }
+    // Replace underscores with spaces and capitalize words
+    return theme.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }, []);
+
   // Scroll to top when new command is added
   useEffect(() => {
     if (historyRef.current) {
@@ -90,7 +146,7 @@ export function Terminal({
     // Load saved theme
     if (!themeLoaded) {
       const savedTheme = localStorage.getItem('terminal_theme');
-      setCurrentTheme(savedTheme?.replace(/_/g, ' ') || 'default');
+      setCurrentTheme(savedTheme ? formatThemeName(savedTheme) : 'default');
       
       // Remove calculator mode class by default
       document.documentElement.classList.remove('calculator-enabled');
@@ -174,7 +230,25 @@ export function Terminal({
     return () => window.removeEventListener('usernameChange', handleUsernameChange as EventListener);
 
   }, [themeLoaded]);
+  
+  // Listen for theme changes
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const theme = localStorage.getItem('terminal_theme');
+      setCurrentTheme(theme ? formatThemeName(theme) : 'default');
+    };
 
+    // Initial theme load
+    handleThemeChange();
+
+    // Listen for theme changes
+    window.addEventListener('themeChange', handleThemeChange);
+    
+    return () => {
+      window.removeEventListener('themeChange', handleThemeChange);
+    };
+  }, [formatThemeName]);
+  
   // Handle font size changes
   useEffect(() => {
     const handleFontSizeChange = (e: CustomEvent) => {
@@ -417,11 +491,14 @@ export function Terminal({
                   <div className="flex items-center gap-2 terminal-prompt" style={{ lineHeight: '1.5' }}>
                     {mounted && (
                       <span className="terminal-timestamp" style={{ lineHeight: '1.5' }}>
-                        [{entry.timestamp || 'unknown'}] {entry.username}@terminal
+                        <span style={{ color: 'hsl(var(--secondary))' }}>[{entry.timestamp || 'unknown'}] {entry.username}@terminal :~$</span>
                       </span>
                     )}
-                    <code className="text-[hsl(217_100%_80%)]" style={{ lineHeight: '1.5' }}>{entry.command}</code>
+                    <code className="text-[hsl(var(--primary))]" style={{ lineHeight: '1.5' }}>{entry.command}</code>
                   </div>
+
+
+                  
                   <div
                     className={cn(
                       "pl-4 whitespace-pre-wrap break-words",
@@ -497,19 +574,6 @@ export function Terminal({
 
           {/* Right Section - Status */}
           <div className="flex justify-end items-center gap-4">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 cursor-help text-muted-foreground/70">
-                  <div className="w-2 h-2 rounded-full bg-primary/50" />
-                  <span className="font-mono text-[10px]">
-                    {currentTheme}
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="end" className="tooltip-content">
-                <p>Current Theme</p>
-              </TooltipContent>
-            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2 cursor-help status-active">

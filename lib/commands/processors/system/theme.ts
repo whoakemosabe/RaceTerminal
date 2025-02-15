@@ -143,6 +143,8 @@ function handleDefaultTheme(): string {
   document.documentElement.style.setProperty('--muted', '217.2 32.6% 17.5%');
   document.documentElement.style.setProperty('--muted-foreground', '215 20.2% 65.1%');
   localStorage.removeItem('terminal_theme');
+  // Dispatch theme change immediately
+  setTimeout(() => window.dispatchEvent(new CustomEvent('themeChange')), 0);
   return '🎨 Terminal theme reset to default colors!';
 }
 
@@ -181,6 +183,8 @@ function handleColorTheme(colorTheme: any, themeName: string): string {
     document.documentElement.style.setProperty('--history-border', colorTheme.border);
     
     localStorage.setItem('terminal_theme', themeName.toLowerCase());
+    // Dispatch theme change immediately
+    setTimeout(() => window.dispatchEvent(new CustomEvent('themeChange')), 0);
     return `🎨 Terminal theme changed to ${themeName} colors!`;
   } catch (error) {
     console.error('Failed to apply theme:', error);
@@ -224,6 +228,8 @@ function handleTeamTheme(teamId: string): string {
     document.documentElement.style.setProperty('--history-border', `hsl(${theme.border})`);
     
     localStorage.setItem('terminal_theme', teamId);
+    // Dispatch theme change immediately
+    setTimeout(() => window.dispatchEvent(new CustomEvent('themeChange')), 0);
     
     return `🎨 Terminal theme changed to ${teamNicknames[teamId][0]} colors!`;
   } catch (error) {

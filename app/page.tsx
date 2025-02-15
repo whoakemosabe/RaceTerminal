@@ -28,7 +28,6 @@ export default function Home() {
   const [command, setCommand] = useState('');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [commandBuffer, setCommandBuffer] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isNavigatingSuggestions, setIsNavigatingSuggestions] = useState(false);
@@ -186,7 +185,6 @@ export default function Home() {
     
     setIsProcessing(true);
     setHistoryIndex(-1);
-    setCommandBuffer('');
     
     try {
       const newEntry = { 
@@ -284,30 +282,38 @@ export default function Home() {
     switch (e.key) {
       case 'ArrowUp':
         e.preventDefault();
-        if (!isNavigatingSuggestions && history.length > 0) {
-          if (historyIndex === -1) {
-            setCommandBuffer(command);
-          }
-          const newIndex = historyIndex + 1;
-          if (newIndex < history.length) {
-            setHistoryIndex(newIndex);
-            setCommand(history[history.length - 1 - newIndex].command);
-            setShowSuggestions(false);
-          }
+        if (isNavigatingSuggestions) {
+          // Handle suggestion navigation
+          onNavigationStateChange(true);
+        } else if (history.length > 0) {
+          // Handle command history navigation
+          const nextIndex = Math.min(historyIndex + 1, history.length - 1);
+          setHistoryIndex(nextIndex);
+          setCommand(history[history.length - 1 - nextIndex].command);
+          setShowSuggestions(false);
         }
         break;
 
       case 'ArrowDown':
         e.preventDefault();
-        if (!isNavigatingSuggestions && historyIndex > -1) {
-          const newIndex = historyIndex - 1;
-          setHistoryIndex(newIndex);
-          setCommand(newIndex === -1 ? commandBuffer : history[history.length - 1 - newIndex].command);
+        if (isNavigatingSuggestions) {
+          // Handle suggestion navigation
+          onNavigationStateChange(true);
+        } else if (historyIndex > -1) {
+          // Handle command history navigation
+          const nextIndex = historyIndex - 1;
+          setHistoryIndex(nextIndex);
+          if (nextIndex === -1) {
+            setCommand('');
+          } else {
+            setCommand(history[history.length - 1 - nextIndex].command);
+          }
           setShowSuggestions(false);
         }
         break;
 
       case 'Tab':
+        if (isNavigatingSuggestions) return;
         e.preventDefault();
         const input = command.toLowerCase();
         const suggestions: string[] = [];
