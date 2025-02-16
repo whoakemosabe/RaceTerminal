@@ -1,5 +1,5 @@
 import { Suggestion, SuggestionProvider, deduplicate } from './base';
-import { teamNicknames, getTeamColor } from '@/lib/utils';
+import { teamNicknames, getTeamColor, teamThemes } from '@/lib/utils';
 import { colorThemes } from '@/lib/themes/colors';
 import { calculatorThemes } from '@/lib/themes/calculator';
 import { commands } from '@/lib/commands';
@@ -16,9 +16,9 @@ export class ThemeSuggestionProvider implements SuggestionProvider {
       if (!calcSearch) {
         Object.entries(calculatorThemes).forEach(([name, theme]) => {
           suggestions.push({
-            value: name,
+            value: `calc ${name}`,
             description: theme.description || 'Calculator theme',
-            suffix: 'LCD Theme'
+            suffix: `<div style="display:inline-block;padding:2px 8px;background:${theme.bg};color:${theme.text};border:1px solid ${theme.text};border-radius:3px;font-family:monospace">123</div>`
           });
         });
         return suggestions;
@@ -28,9 +28,9 @@ export class ThemeSuggestionProvider implements SuggestionProvider {
       Object.entries(calculatorThemes).forEach(([name, theme]) => {
         if (name.toLowerCase().includes(calcSearch)) {
           suggestions.push({
-            value: name,
+            value: `calc ${name}`,
             description: theme.description || 'Calculator theme',
-            suffix: 'LCD Theme'
+            suffix: `<div style="display:inline-block;padding:2px 8px;background:${theme.bg};color:${theme.text};border:1px solid ${theme.text};border-radius:3px;font-family:monospace">123</div>`
           });
         }
       });
@@ -58,7 +58,8 @@ export class ThemeSuggestionProvider implements SuggestionProvider {
       if (matches) {
         suggestions.push({
           value: teamName,
-          description: `Team Theme (${shortName.toUpperCase()}, Est. ${names[4]})`
+          description: `Team Theme (Est. ${names[4]})`,
+          suffix: shortName.toUpperCase()
         });
       }
     });
@@ -68,7 +69,8 @@ export class ThemeSuggestionProvider implements SuggestionProvider {
       if (!searchTerm || id.toLowerCase().includes(searchTerm)) {
         suggestions.push({
           value: id,
-          description: theme.description || 'Editor color theme'
+          description: theme.description || 'Editor color theme',
+          suffix: id
         });
       }
     });

@@ -5,12 +5,12 @@ function formatDriverSuggestion(id: string, nicknames: string[]): Suggestion {
   const name = nicknames[0];
   const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '';
   const nationality = nicknames.find(n => countryToCode[n]) || '';
-  const number = driverNumbers[id] || '';
+  const number = driverNumbers[id];
   
   return {
     value: name,
-    description: `${code}${number ? ` | #${number.padStart(2, '0')}` : ''}`,
-    suffix: nationality
+    description: nationality,
+    suffix: number ? `#${number.padStart(2, '0')}` : code
   };
 }
 

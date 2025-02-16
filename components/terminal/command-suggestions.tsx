@@ -36,9 +36,16 @@ export function CommandSuggestions({
   const [suggestionType, setSuggestionType] = useState<'command' | 'argument'>('command');
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const lastCommandRef = useRef<string>('');
-  const suggestionManager = useRef(new SuggestionManager());
+  const suggestionManager = useRef<SuggestionManager | null>(null);
   const isFirstRenderRef = useRef(true);
   const [hasSetUsername, setHasSetUsername] = useState(false);
+
+  // Lazy initialize suggestion manager
+  useEffect(() => {
+    if (!suggestionManager.current) {
+      suggestionManager.current = new SuggestionManager();
+    }
+  }, []);
 
   // Check if username has been set
   useEffect(() => {
@@ -226,13 +233,17 @@ export function CommandSuggestions({
     }
 
     // Get suggestions from manager
-    const matches = suggestionManager.current.getSuggestions(command);
+    const matches = suggestionManager.current?.getSuggestions(command) || [];
     setSuggestionType(stage === 0 ? 'command' : 'argument');
 
     // Show all suggestions for new stage, otherwise filter by current input
     const filteredMatches = isNewStage ? 
       matches : 
-      matches.filter(s => s.value.toLowerCase().startsWith(currentPart.toLowerCase()));
+      matches.filter(s => {
+        const lowerValue = s.value.toLowerCase();
+        const lowerPart = currentPart.toLowerCase();
+        return lowerValue.startsWith(lowerPart);
+      });
 
     setSuggestions(filteredMatches);
     setSelectedIndex(0);
@@ -294,7 +305,7 @@ export function CommandSuggestions({
               const isSelected = index === selectedIndex;
               
               return (
-                <motion.div
+                <motion.div 
                   key={`${suggestion.value}-${index}`}
                   ref={el => itemRefs.current[index] = el}
                   className={cn(
@@ -322,6 +333,11 @@ export function CommandSuggestions({
                       {suggestion.description && (
                         <span className="ml-2 text-muted-foreground/70 text-xs tracking-wide">
                           {suggestion.description}
+                          {suggestion.metadata && (
+                            <span className="ml-1 text-secondary/70">
+                              ({suggestion.metadata})
+                            </span>
+                          )}
                         </span>
                       )}
                       {isAlias && (
@@ -330,7 +346,11 @@ export function CommandSuggestions({
                         </span>
                       )}
                       {suggestion.suffix && (
-                        <span className="ml-2 text-accent/70 text-xs tracking-wide">
+                        <span className={cn(
+                          "ml-2 px-2 py-0.5 rounded-md text-xs font-mono",
+                          "bg-card/40 border border-border/20 backdrop-blur-sm",
+                          isSelected ? "text-primary border-primary/20" : "text-muted-foreground"
+                        )}>
                           {suggestion.suffix}
                         </span>
                       )}

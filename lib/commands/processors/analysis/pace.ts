@@ -101,10 +101,22 @@ function analyzeStints(laps: any[], times: number[]): StintPerformance[] {
   laps.forEach((lap, idx) => {
     const time = times[idx];
     const lapNumber = parseInt(lap.lap);
-    if (!time || isNaN(time) || time <= 0 || time > 120 || isNaN(lapNumber)) return;
+    if (!time || isNaN(time) || time <= 0 || time > 120 || isNaN(lapNumber) || lap.time.includes('PIT')) {
+      // End current stint if we hit an invalid lap
+      if (currentStint.length >= 3) {
+        stints.push(createStintPerformance(
+          currentStint,
+          stints.length + 1,
+          stintStart,
+          stintStart + consecutiveLaps - 1
+        ));
+        currentStint = [];
+      }
+      return;
+    }
     
-    // Start of first stint
-    if (stintStart === 0) {
+    // First lap of a new stint
+    if (currentStint.length === 0) {
       stintStart = lapNumber;
       lastLapTime = time;
       currentStint.push(time);
@@ -115,7 +127,7 @@ function analyzeStints(laps: any[], times: number[]): StintPerformance[] {
     // Check for new stint conditions
     const lapGap = lapNumber - (stintStart + consecutiveLaps);
     const timeDelta = Math.abs(time - lastLapTime);
-    const isNewStint = lapGap > 1 || timeDelta > 3.0;
+    const isNewStint = lapGap > 1 || timeDelta > 3.0; // Stricter time delta for stint separation
 
     if (isNewStint && currentStint.length >= 3) {
       stints.push(createStintPerformance(
@@ -134,6 +146,7 @@ function analyzeStints(laps: any[], times: number[]): StintPerformance[] {
     consecutiveLaps++;
   });
 
+  // Add final stint if it has enough laps
   if (currentStint.length >= 3) {
     stints.push(createStintPerformance(
       currentStint,
@@ -308,7 +321,7 @@ function formatDriverOutput(
   // Format stint analysis
   const stintAnalysis = driver.stints.map(stint => 
     formatStintAnalysis(stint)
-  ).join('\n\n');
+  ).join('\n');
 
   return [
     driverLine,
@@ -316,8 +329,9 @@ function formatDriverOutput(
     `Lap Times | ${lapTimeStats}`,
     `Performance | ${perfMetrics}`,
     '',
-    'Stint Analysis:',
+    '┌─ STINT ANALYSIS ────────────────────────────────',
     stintAnalysis,
+    '└' + '─'.repeat(48),
     '',
     `Best Stint: <span style="color: hsl(var(--muted-foreground))">${driver.bestStint ? `#${driver.bestStint.number} (Laps ${driver.bestStint.startLap}-${driver.bestStint.endLap}, ${driver.bestStint.laps} laps)` : 'N/A'}</span>`,
     ''

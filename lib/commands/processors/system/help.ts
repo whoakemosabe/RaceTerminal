@@ -108,6 +108,11 @@ const commandExamples: Record<string, string[]> = {
   '/theme': [
     '/theme ferrari - Apply Ferrari team colors',
     '/theme dracula - Use Dracula editor theme',
+    '/theme synthwave - Apply retro-futuristic neon theme',
+    '/theme palenight - Use elegant purple-accented theme',
+    '/theme ayu-dark - Apply clean focused dark theme',
+    '/theme github-light - Use GitHub light theme',
+    '/theme one-dark-pro - Apply professional dark theme',
     '/theme calc amber - Enable calculator mode with amber display',
     '/theme default - Reset to default colors',
     '/theme nord - Apply Nord editor theme',

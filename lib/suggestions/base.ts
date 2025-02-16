@@ -2,8 +2,10 @@
 export interface Suggestion {
   value: string;
   description?: string;
+  metadata?: string;
   alias?: string;
   suffix?: string;
+  id?: string;
 }
 
 export interface SuggestionProvider {
@@ -11,10 +13,10 @@ export interface SuggestionProvider {
 }
 
 export function deduplicate(suggestions: Suggestion[]): Suggestion[] {
-  const seen = new Set<string>();
-  return suggestions.filter(suggestion => {
-    if (seen.has(suggestion.value)) return false;
-    seen.add(suggestion.value);
-    return true;
+  // Use Map for O(1) lookups and preserve last occurrence of each value
+  const uniqueMap = new Map<string, Suggestion>();
+  suggestions.forEach(suggestion => {
+    uniqueMap.set(suggestion.value, suggestion);
   });
+  return Array.from(uniqueMap.values());
 }

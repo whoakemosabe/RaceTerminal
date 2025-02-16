@@ -221,38 +221,51 @@ export const listCommands = {
       case 'themes': {
         const separator = '═'.repeat(60);
         
-        // Team Themes Section
+        // Format team themes with color swatches
         const teamSection = [
           '🏎️  F1 TEAM THEMES',
           separator,
-          ...Object.entries(teamNicknames).map(([id, names]) => {
-            const teamName = names[0];
-            const teamColor = getTeamColor(teamName);
+          Object.entries(teamNicknames).map(([id, names]) => {
+            const teamName = names[0].padEnd(25);
             const theme = teamThemes[id];
-            return `<div style="display: inline-block; margin: 2px 0; padding: 4px 8px; background: linear-gradient(to right, hsl(${theme.primary}), hsl(${theme.secondary})); border: 1px solid hsl(${theme.border}); border-radius: 4px; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${teamName}</div>`;
-          })
+            // Special handling for Haas (white background)
+            const isHaas = id === 'haas';
+            return `<span style="display:inline-block;margin:4px;padding:2px 12px;min-width:200px;font-size:12px;background:linear-gradient(to right,hsl(${theme.primary}),hsl(${theme.secondary}));border:1px solid hsl(${theme.border});border-radius:4px;color:${isHaas ? '#111111' : 'white'} !important;font-family:monospace;text-shadow:${isHaas ? 'none' : '0 1px 2px rgba(0,0,0,0.9),0 2px 4px rgba(0,0,0,0.7),0 0 8px rgba(255,255,255,0.2)'};font-weight:600;letter-spacing:0.02em">${teamName}</span>`;
+          }).join('\n')
         ];
 
-        // Editor Themes Section
+        // Format editor themes with color swatches
         const editorSection = [
           '',
           '🎨 EDITOR THEMES',
           separator,
-          ...Object.entries(colorThemes).map(([name, theme]) => {
-            return `<div style="display: inline-block; margin: 2px 0; padding: 4px 8px; background: linear-gradient(to right, hsl(${theme.primary}), hsl(${theme.secondary})); border: 1px solid hsl(${theme.border}); border-radius: 4px; color: hsl(${theme.foreground}); text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${name}</div> - ${theme.description || 'Custom color scheme'}`;
-          })
+          Object.entries(colorThemes).map(([name, theme]) => {
+            const themeName = name.padEnd(15);
+            // Calculate if theme is light or dark based on background
+            const [h, s, l] = theme.background.split(' ');
+            const isLight = parseInt(l) > 50;
+            // Use dark text for light themes, light text for dark themes
+            const textColor = isLight ? '#111111' : '#ffffff';
+            const textShadow = isLight ? 'none' : '0 1px 2px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.7), 0 0 8px rgba(255,255,255,0.3)';
+            return `<span style="display:inline-block;margin:4px;padding:2px 12px;min-width:200px;font-size:12px;background:linear-gradient(to right,hsl(${theme.primary}),hsl(${theme.secondary}));border:1px solid hsl(${theme.border});border-radius:4px;color:${textColor} !important;font-family:monospace;text-shadow:${textShadow};font-weight:600;letter-spacing:0.02em;box-shadow:inset 0 1px rgba(255,255,255,0.15),0 1px 3px rgba(0,0,0,0.2)">${themeName}</span> ${theme.description || 'Custom color scheme'}`;
+          }).join('\n')
         ];
 
-        // Calculator Themes Section
+        // Format calculator themes with LCD-style swatches
         const calcSection = [
           '',
           '🖩 CALCULATOR THEMES',
           separator,
-          ...Object.entries(calculatorThemes).map(([name, theme]) => {
+          Object.entries(calculatorThemes).map(([name, theme]) => {
             const bgColor = theme.bg || '#c8d1c0';
             const textColor = theme.text || '#0d1f0c';
-            return `<div style="display: inline-block; margin: 2px 0; padding: 4px 8px; background: ${bgColor}; border: 1px solid ${textColor}; border-radius: 4px; color: ${textColor};">${name}</div> - ${theme.description || 'Calculator theme'}`;
-          })
+            const accentColor = theme.accent || textColor;
+            const shadowColor = `${textColor}80`;
+            const themeName = name.padEnd(15);
+            // Create LCD-style display with numbers
+            const lcdDisplay = `<span style="display:inline-block;margin-left:8px;padding:1px 6px;font-family:'Courier New',monospace;font-size:14px;background:${bgColor};border:1px solid ${accentColor};border-radius:2px;color:${textColor} !important;text-shadow:0 0 2px ${shadowColor};font-weight:bold;letter-spacing:0.1em;box-shadow:inset 0 2px 4px rgba(0,0,0,0.2),inset 0 -1px 1px rgba(255,255,255,0.3)">12:34</span>`;
+            return `<span style="display:inline-block;margin:4px;padding:2px 12px;min-width:200px;font-size:12px;font-family:monospace;background:${bgColor};border:1px solid ${accentColor};border-radius:4px;box-shadow:inset 0 2px 4px rgba(0,0,0,0.15),inset 0 -1px 1px rgba(255,255,255,0.3)"><span style="color:${textColor} !important;text-shadow:0 0 3px ${shadowColor};font-weight:600;letter-spacing:0.02em">${themeName}</span>${lcdDisplay}</span> ${theme.description || 'Calculator theme'}`;
+          }).join('\n')
         ];
 
         return [

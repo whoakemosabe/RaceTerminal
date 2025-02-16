@@ -48,8 +48,8 @@ export class TrackSuggestionProvider implements SuggestionProvider {
       if (matches) {
         suggestions.push({
           value: name,
-          description: `${nickname} | ${details.length}km | ${details.turns} turns`,
-          suffix: code
+          description: nickname,
+          suffix: `${details.turns}T`
         });
       }
     });

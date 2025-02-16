@@ -84,7 +84,11 @@ function analyzeGaps(raceData: any, lapTimes: any[]): GapAnalysis[] {
   const driverLaps = groupLapsByDriver(lapTimes);
   
   // Filter out retired/DNF drivers and sort by position
-  const finishers = raceData.Results
+  const finishers = raceData.Results.map(result => ({
+    ...result,
+    // Add lap count to each result
+    completedLaps: result.laps || driverLaps.get(result.Driver.driverId.toUpperCase())?.length || 0
+  }))
     .filter(result => 
       result?.status && 
       !['R', 'D', 'W', 'E', 'F', 'N'].includes(result.status)
@@ -178,7 +182,7 @@ function timeToSeconds(time: string): number {
   }
 }
 
-function calculateGapToAhead(driverLaps: any[], driverAhead: any, driverLapsMap: Map<string, any[]>): number | null {
+function calculateGapToAhead(driverLaps: any[], driverAhead: any, driverLapsMap: Map<string, any[]>): { seconds: number, percentage: number } | null {
   if (!driverAhead || !Array.isArray(driverLaps) || driverLaps.length === 0) return null;
   
   // Skip if driver ahead retired or has invalid status
@@ -191,20 +195,42 @@ function calculateGapToAhead(driverLaps: any[], driverAhead: any, driverLapsMap:
   const gaps = driverLaps.map((lap, index) => {
     const aheadLap = aheadLaps[index];
     if (!aheadLap || !lap) return null;
+
+    // Handle pit stops more gracefully
+    if (lap.time.includes('PIT') || aheadLap.time.includes('PIT')) {
+      // Skip this lap but don't invalidate the entire stint
+      return null;
+    }
     
     const lapTime = timeToSeconds(lap.time);
     const aheadTime = timeToSeconds(aheadLap.time);
     
-    // Validate times
-    if (isNaN(lapTime) || isNaN(aheadTime) || lapTime <= 0 || aheadTime <= 0) return null;
+    // Basic time validation
+    if (isNaN(lapTime) || isNaN(aheadTime)) return null;
+    if (lapTime <= 0 || aheadTime <= 0) return null;
     
-    return lapTime - aheadTime;
+    // Skip anomalous gaps (likely due to incidents, blue flags, etc)
+    const gap = lapTime - aheadTime;
+    // More permissive gap filtering
+    if (Math.abs(gap) > 60.0) return null; // Only skip extremely large gaps
+    
+    // Return both absolute gap and percentage
+    return {
+      seconds: gap,
+      percentage: (gap / aheadTime) * 100
+    };
   }).filter(gap => gap !== null);
 
-  return gaps.length > 0 ? gaps.reduce((a, b) => a + b, 0) / gaps.length : null;
+  if (gaps.length === 0) return null;
+  
+  // Calculate averages for both metrics
+  return {
+    seconds: gaps.reduce((a, b) => a + b.seconds, 0) / gaps.length,
+    percentage: gaps.reduce((a, b) => a + b.percentage, 0) / gaps.length
+  };
 }
 
-function calculateGapToLeader(driverLaps: any[], leader: any, driverLapsMap: Map<string, any[]>): number | null {
+function calculateGapToLeader(driverLaps: any[], leader: any, driverLapsMap: Map<string, any[]>): { seconds: number, percentage: number } | null {
   if (!leader || !Array.isArray(driverLaps) || driverLaps.length === 0 || 
       !leader?.status || ['R', 'D', 'W', 'E', 'F', 'N'].includes(leader.status)) return null;
 
@@ -215,23 +241,42 @@ function calculateGapToLeader(driverLaps: any[], leader: any, driverLapsMap: Map
   const gaps = driverLaps.map((lap, index) => {
     const leaderLap = leaderLaps[index];
     if (!leaderLap || !lap) return null;
+
+    // Handle pit stops more gracefully
+    if (lap.time.includes('PIT') || leaderLap.time.includes('PIT')) {
+      // Skip this lap but don't invalidate the entire stint
+      return null;
+    }
     
-    const lapTime = timeToSeconds(lap.time);
     const leaderTime = timeToSeconds(leaderLap.time);
+    const lapTime = timeToSeconds(lap.time);
     
-    // Validate times
-    if (isNaN(lapTime) || isNaN(leaderTime) || lapTime <= 0 || leaderTime <= 0) return null;
+    // Basic time validation
+    if (isNaN(lapTime) || isNaN(leaderTime)) return null;
+    if (lapTime <= 0 || leaderTime <= 0) return null;
     
-    return lapTime - leaderTime;
+    // Skip anomalous gaps (likely due to incidents, blue flags, etc)
+    const gap = lapTime - leaderTime;
+    // More permissive gap filtering for lapped cars
+    if (Math.abs(gap) > 120.0) return null; // Only skip gaps over 2 minutes
+    
+    // Return both absolute gap and percentage
+    return {
+      seconds: gap,
+      percentage: (gap / leaderTime) * 100
+    };
   }).filter(gap => gap !== null);
 
-  // Store initial gap for trend analysis
-  const initialGapToLeader = gaps.length > 0 ? gaps[0] : null;
-
-  return gaps.length > 0 ? gaps.reduce((a, b) => a + b, 0) / gaps.length : null;
+  if (gaps.length === 0) return null;
+  
+  // Calculate averages for both metrics
+  return {
+    seconds: gaps.reduce((a, b) => a + b.seconds, 0) / gaps.length,
+    percentage: Math.abs(gaps.reduce((a, b) => a + b.percentage, 0) / gaps.length) // Ensure percentage is positive
+  };
 }
 
-function calculateInitialGapToLeader(driverLaps: any[], leader: any, driverLapsMap: Map<string, any[]>): number | null {
+function calculateInitialGapToLeader(driverLaps: any[], leader: any, driverLapsMap: Map<string, any[]>): { seconds: number, percentage: number } | null {
   if (!leader || !Array.isArray(driverLaps) || driverLaps.length === 0 || 
       !leader?.status || ['R', 'D', 'W', 'E', 'F', 'N'].includes(leader.status)) return null;
 
@@ -244,12 +289,16 @@ function calculateInitialGapToLeader(driverLaps: any[], leader: any, driverLapsM
 
   if (!firstLap || !firstLeaderLap) return null;
 
+  const firstLeaderTime = timeToSeconds(firstLeaderLap.time);
   const lapTime = timeToSeconds(firstLap.time);
-  const leaderTime = timeToSeconds(firstLeaderLap.time);
 
-  if (isNaN(lapTime) || isNaN(leaderTime) || lapTime <= 0 || leaderTime <= 0) return null;
+  if (isNaN(lapTime) || isNaN(firstLeaderTime) || firstLeaderTime <= 0) return null;
 
-  return lapTime - leaderTime;
+  // Calculate initial gap as percentage of leader's lap time
+  return {
+    seconds: lapTime - firstLeaderTime,
+    percentage: ((lapTime - firstLeaderTime) / firstLeaderTime) * 100
+  };
 }
 
 function calculateGapConsistency(driverLaps: any[], leader: any, driverLapsMap: Map<string, any[]>): number | null {
@@ -267,9 +316,10 @@ function calculateGapConsistency(driverLaps: any[], leader: any, driverLapsMap: 
     const leaderTime = timeToSeconds(leaderLap.time);
     
     // Validate times
-    if (isNaN(lapTime) || isNaN(leaderTime) || lapTime <= 0 || leaderTime <= 0) return null;
+    if (isNaN(lapTime) || isNaN(leaderTime) || leaderTime <= 0) return null;
     
-    return lapTime - leaderTime;
+    // Calculate gap as percentage of leader's lap time
+    return ((lapTime - leaderTime) / leaderTime) * 100;
   }).filter(gap => gap !== null);
 
   if (gaps.length === 0) return null;
@@ -300,15 +350,30 @@ function findClosestRival(driverLaps: any[], driver: any, allDrivers: any[], dri
     const gaps = driverLaps.map((lap, index) => {
       const rivalLap = rivalLaps[index];
       if (!rivalLap || !lap) return null;
+
+      // Handle pit stops more gracefully
+      if (lap.time.includes('PIT') || rivalLap.time.includes('PIT')) {
+        // Skip this lap but don't invalidate the entire stint
+        return null;
+      }
       
       const lapTime = timeToSeconds(lap.time);
       const rivalTime = timeToSeconds(rivalLap.time);
       
-      if (isNaN(lapTime) || isNaN(rivalTime)) return null;
+      // Validate times more permissively
+      if (isNaN(lapTime) || isNaN(rivalTime) || rivalTime <= 0 || lapTime <= 0) return null;
       
+      // Calculate absolute gap in seconds
       const gap = Math.abs(lapTime - rivalTime);
-      // Count laps within battle range (1.5 seconds)
-      if (gap < 1.5) battleLaps++;
+      
+      // Allow larger gaps for battles
+      if (gap > 20.0) return null; // Skip only very large gaps
+      
+      // Count laps within battle range (2.0 seconds)
+      if (gap < 2.0) {
+        battleLaps++;
+      }
+      
       return gap;
     }).filter(gap => gap !== null);
 
@@ -348,17 +413,17 @@ function formatGapAnalysis(analysis: GapAnalysis[]): string[] {
     const flag = flagUrl ? `<img src="${flagUrl}" alt="${driver.driver.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : '';
 
     // Format gap to leader (always positive since they're behind)
-    const gapToLeader = driver.position === "1" ? 
+    const gapToLeaderStr = driver.position === "1" ? 
       'LEADER' :
-      driver.avgGapToLeader !== null ?
-        `+${driver.avgGapToLeader.toFixed(3)}s (${((driver.avgGapToLeader / driver.bestLap) * 100).toFixed(1)}%)` :
+      driver.avgGapToLeader?.seconds !== undefined ?
+        `+${Math.abs(driver.avgGapToLeader.seconds).toFixed(3)}s (+${Math.abs(driver.avgGapToLeader.percentage).toFixed(2)}%)` :
         'N/A';
        
     // Format gap to car ahead (if any)
     const gapToAheadStr = driver.position === "1" ? 
       'N/A' :
-      driver.gapToAhead !== null ?
-        `${driver.gapToAhead.toFixed(3)}s${driver.driverAhead?.name ? ` to ${driver.driverAhead.name}` : ''} (${((driver.gapToAhead / driver.bestLap) * 100).toFixed(1)}%)` :
+      driver.gapToAhead?.seconds !== undefined ?
+        `+${Math.abs(driver.gapToAhead.seconds).toFixed(3)}s (+${Math.abs(driver.gapToAhead.percentage).toFixed(2)}%)${driver.driverAhead?.name ? ` to ${driver.driverAhead.name}` : ''}` :
         'N/A';
 
     const consistency = driver.gapConsistency !== null ?
@@ -366,8 +431,8 @@ function formatGapAnalysis(analysis: GapAnalysis[]): string[] {
       'N/A';
 
     // Calculate gap trend
-    const gapTrend = driver.gapToLeader !== null && driver.initialGapToLeader !== null ?
-      driver.gapToLeader - driver.initialGapToLeader :
+    const gapTrend = driver.avgGapToLeader?.percentage !== undefined && driver.initialGapToLeader?.percentage !== undefined ?
+      driver.avgGapToLeader.percentage - driver.initialGapToLeader.percentage :
       null;
 
     const trendIndicator = gapTrend !== null ?
@@ -404,7 +469,7 @@ function formatGapAnalysis(analysis: GapAnalysis[]): string[] {
     // Format gaps line with proper indicators
     const gapsLine = driver.position === "1" ?
       `Gaps: ${trendIndicator} | <span style="color: hsl(var(--muted-foreground))">Race Leader</span>` :
-      `Gaps: ${trendIndicator} | <span style="color: hsl(var(--muted-foreground))">Leader: ${gapToLeader} | Behind: ${gapToAheadStr}</span>`;
+      `Gaps: ${trendIndicator} | <span style="color: hsl(var(--muted-foreground))">Leader: ${gapToLeaderStr} | Behind: ${gapToAheadStr}</span>`;
     return [
       driverLine,
       gapsLine,

@@ -60,6 +60,56 @@ export const colorThemes = {
     muted: '235 23% 19%',
     border: '94 38% 61%'
   },
+  'synthwave': {
+    description: 'Retro-futuristic neon theme',
+    background: '240 20% 10%',
+    foreground: '180 100% 85%',
+    primary: '320 100% 65%',
+    secondary: '260 100% 70%',
+    accent: '180 100% 60%',
+    muted: '240 30% 20%',
+    border: '320 100% 65%'
+  },
+  'palenight': {
+    description: 'Elegant dark theme with purple accents',
+    background: '229 20% 20%',
+    foreground: '220 25% 95%',
+    primary: '291 50% 65%',
+    secondary: '199 50% 65%',
+    accent: '261 73% 66%',
+    muted: '229 25% 30%',
+    border: '291 50% 65%'
+  },
+  'ayu-dark': {
+    description: 'Clean and focused dark theme',
+    background: '220 15% 12%',
+    foreground: '40 15% 85%',
+    primary: '35 100% 60%',
+    secondary: '180 50% 55%',
+    accent: '160 100% 45%',
+    muted: '220 15% 20%',
+    border: '35 100% 60%'
+  },
+  'github-light': {
+    description: 'GitHub light theme for better readability',
+    background: '210 20% 98%',
+    foreground: '210 25% 20%',
+    primary: '212 92% 45%',
+    secondary: '212 60% 50%',
+    accent: '316 72% 45%',
+    muted: '210 15% 85%',
+    border: '212 92% 45%'
+  },
+  'one-dark-pro': {
+    description: 'Professional dark theme with vibrant colors',
+    background: '220 13% 18%',
+    foreground: '220 14% 90%',
+    primary: '207 82% 66%',
+    secondary: '29 54% 61%',
+    accent: '286 47% 67%',
+    muted: '220 13% 28%',
+    border: '207 82% 66%'
+  },
   'gruvbox': {
     description: 'Retro groove color scheme',
     background: '0 0% 16%',
