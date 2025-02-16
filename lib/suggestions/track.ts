@@ -24,7 +24,7 @@ export class TrackSuggestionProvider implements SuggestionProvider {
       if (!searchTerm) {
         suggestions.push({
           value: name,
-          description: `${nickname} | ${details.length}km | ${details.turns} turns`,
+          description: nickname,
           suffix: code
         });
         return;
@@ -48,7 +48,7 @@ export class TrackSuggestionProvider implements SuggestionProvider {
       if (matches) {
         suggestions.push({
           value: name,
-          description: nickname,
+          description: `${nickname}`,
           suffix: `${details.turns}T`
         });
       }

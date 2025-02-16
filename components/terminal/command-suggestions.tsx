@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ChevronRight } from 'lucide-react';
 import { LOCALSTORAGE_USERNAME_KEY, DEFAULT_USERNAME } from '@/lib/constants';
@@ -36,9 +36,11 @@ export function CommandSuggestions({
   const [suggestionType, setSuggestionType] = useState<'command' | 'argument'>('command');
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const lastCommandRef = useRef<string>('');
+  const exitAnimationRef = useRef<NodeJS.Timeout>();
   const suggestionManager = useRef<SuggestionManager | null>(null);
   const isFirstRenderRef = useRef(true);
   const [hasSetUsername, setHasSetUsername] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   // Lazy initialize suggestion manager
   useEffect(() => {
@@ -84,6 +86,12 @@ export function CommandSuggestions({
   // Focus input after selection
   const handleSelect = (suggestion: string) => {
     let value = suggestion.trim();
+    setIsExiting(true);
+    exitAnimationRef.current = setTimeout(() => {
+      setIsExiting(false);
+      onClose();
+    }, 100);
+
     const parts = command.split(/\s+/).filter(Boolean);
     const baseCommand = parts[0].toLowerCase();
     const stage = parts.length - (command.endsWith(' ') ? 0 : 1);
@@ -117,10 +125,10 @@ export function CommandSuggestions({
     if (needsMoreArgs) {
       // Ensure exactly one space at the end
       onSelect(newCommand.trimEnd() + ' ');
-      onShowSuggestionsChange(true); // Keep suggestions open
+      setIsExiting(false); // Keep suggestions open
+      onShowSuggestionsChange(true);
     } else { 
       onSelect(newCommand.trim()); // Complete the command
-      onClose(); // Close suggestions
     }
   };
 
@@ -135,8 +143,7 @@ export function CommandSuggestions({
           e.stopPropagation();
           if (suggestions[selectedIndex]) {
             handleSelect(suggestions[selectedIndex].value);
-            onNavigationStateChange(false);
-            onClose();
+            onNavigationStateChange(false); 
           }
           break;
         case 'ArrowDown':
@@ -170,7 +177,11 @@ export function CommandSuggestions({
         case 'Escape':
           e.preventDefault();
           e.stopPropagation();
-          onClose();
+          setIsExiting(true);
+          exitAnimationRef.current = setTimeout(() => {
+            setIsExiting(false);
+            onClose();
+          }, 100);
           onNavigationStateChange(false);
           inputRef.current?.focus();
           break;
@@ -269,16 +280,44 @@ export function CommandSuggestions({
     }
   }, [selectedIndex, isVisible, suggestions.length, isNavigatingSuggestions]);
 
-  if (!isVisible || suggestions.length === 0) return null;
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (exitAnimationRef.current) {
+        clearTimeout(exitAnimationRef.current);
+      }
+    };
+  }, []);
+
+  if ((!isVisible && !isExiting) || suggestions.length === 0) return null;
+
+  const dropdownVariants: Variants = {
+    initial: { 
+      opacity: 0,
+      y: 10,
+      transition: { duration: 0.1 }
+    },
+    animate: { 
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.1 }
+    },
+    exit: { 
+      opacity: 0,
+      y: -4,
+      transition: { duration: 0.1, ease: [0.3, 0, 0.2, 1] }
+    }
+  };
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 10 }}
-        transition={{ duration: 0.1, ease: "easeOut" }}
+        variants={dropdownVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
         className="top-full right-0 left-0 z-[60] absolute mt-2 overflow-hidden"
+        key="suggestions-dropdown"
       >
         <div className="relative bg-card/30 shadow-lg backdrop-blur-xl border border-border/20 rounded-lg overflow-hidden">
           {/* Header */}
@@ -309,14 +348,19 @@ export function CommandSuggestions({
                   key={`${suggestion.value}-${index}`}
                   ref={el => itemRefs.current[index] = el}
                   className={cn(
-                    "px-3 py-2 rounded-md text-sm cursor-pointer transition-all duration-150",
+                    "px-3 py-2 rounded-md text-sm cursor-pointer transition-all duration-100",
                     "hover:bg-card/50 relative group",
                     isSelected ? "bg-card/60 shadow-inner" : "hover:shadow-inner"
                   )}
                   onClick={() => handleSelect(suggestion.value)}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.1, delay: index * 0.02 }}
+                  exit={{ opacity: 0, x: -4 }}
+                  transition={{ 
+                    duration: 0.1,
+                    delay: index * 0.015,
+                    ease: [0.2, 0, 0, 1]
+                  }}
                 >
                   <div className="relative flex items-center gap-2">
                     <ChevronRight 
@@ -330,16 +374,6 @@ export function CommandSuggestions({
                       isSelected ? "text-primary" : "text-primary/80"
                     )}>
                       {suggestion.value}
-                      {suggestion.description && (
-                        <span className="ml-2 text-muted-foreground/70 text-xs tracking-wide">
-                          {suggestion.description}
-                          {suggestion.metadata && (
-                            <span className="ml-1 text-secondary/70">
-                              ({suggestion.metadata})
-                            </span>
-                          )}
-                        </span>
-                      )}
                       {isAlias && (
                         <span className="ml-2 text-secondary/70 text-xs tracking-wide">
                           → {suggestion.alias}
@@ -354,13 +388,21 @@ export function CommandSuggestions({
                           {suggestion.suffix}
                         </span>
                       )}
+                      {suggestion.metadata && (
+                        <span className="ml-2 text-secondary/70 text-xs tracking-wide">
+                          ({suggestion.metadata})
+                        </span>
+                      )}
                     </span>
                   </div>
                   {cmd && suggestionType === 'command' && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      transition={{ duration: 0.1, ease: "easeOut" }}
+                      transition={{ 
+                        duration: 0.1,
+                        ease: [0.2, 0, 0.2, 1]
+                      }}
                       className={cn(
                         "mt-1 text-xs font-light tracking-wide pl-6",
                         isSelected ? "text-muted-foreground" : "text-muted-foreground/50"

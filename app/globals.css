@@ -74,6 +74,33 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes terminalFlicker {
+  0% { opacity: 0; }
+  10% { opacity: 0.6; }
+  15% { opacity: 0.2; }
+  20% { opacity: 0.9; }
+  25% { opacity: 0.4; }
+  30% { opacity: 1; }
+  35% { opacity: 0.3; }
+  40% { opacity: 0.8; }
+  45% { opacity: 0.2; }
+  50% { opacity: 1; }
+  55% { opacity: 0.5; }
+  60% { opacity: 0.8; }
+  65% { opacity: 0.3; }
+  70% { opacity: 0.9; }
+  75% { opacity: 0.4; }
+  80% { opacity: 1; }
+  85% { opacity: 0.7; }
+  90% { opacity: 0.9; }
+  95% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.terminal-history-appear {
+  animation: terminalFlicker 0.6s ease-in-out forwards;
+}
+
 @keyframes slideIn {
   from { transform: translateY(-4px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -313,11 +340,17 @@ body.resizing * {
 
 @keyframes status-blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  80% { opacity: 0.4; }
 }
+
 
 .status-active {
   color: hsl(142.1 76.2% 36.3%);
+  animation: status-blink 2s ease-in-out infinite;
+}
+
+.status-waiting {
+  color: hsl(var(--error));
   animation: status-blink 2s ease-in-out infinite;
 }
 

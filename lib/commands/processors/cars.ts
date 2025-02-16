@@ -6,39 +6,26 @@ export const carCommands = {
   '/car': async (args: string[], originalCommand: string) => {
     if (!args[0]) {
       const cmd = originalCommand === '/c' ? '/c' : '/car';
-      return `❌ Error: Please provide a car name or year\nUsage: ${cmd} <name|year> (e.g., ${cmd} rb19 or ${cmd} 2023)\nTip: Use /list cars to see all available cars`;
+      return `❌ Error: Please provide a car name\nUsage: ${cmd} <name> (e.g., ${cmd} mp4-4)\nTip: Use /list cars to see all available cars`;
     }
 
-    // Normalize search term
-    const search = args[0].toLowerCase();
+    // Normalize search but preserve hyphens for car IDs that use them
+    const carId = args[0].toLowerCase();
+    const car = F1_CARS[carId];
 
-    // Handle year-based searches
-    const yearMap: Record<string, string[]> = {
-      '2024': ['rb20', 'w15', 'sf24'],
-      '2023': ['rb19', 'w14', 'sf23', 'amr23', 'mcl60', 'a523']
-    };
-    
-    // Direct match with car code
-    if (F1_CARS[search]) {
-      return formatCarInfo(F1_CARS[search]);
-    }
-    
-    // Search by year - return all cars from that year
-    if (yearMap[search]) {
-      return formatYearCars(yearMap[search].map(code => F1_CARS[code]), search);
-    }
-    
-    // Search by team name
-    const teamSearch = search.replace(/\s+/g, '').toLowerCase();
-    const carByTeam = Object.values(F1_CARS).find(car => 
-      car.team.replace(/\s+/g, '').toLowerCase().includes(teamSearch)
-    );
-
-    if (!carByTeam) {
-      return `❌ Error: Could not find car "${args[0]}". Try using:\n• Car name (e.g., rb19, w14)\n• Year (e.g., 2023)\n• Team name (e.g., redbull)`;
+    if (!car) {
+      // Try without hyphens as fallback
+      const fallbackId = args[0].toLowerCase().replace(/[/-]/g, '');
+      const fallbackCar = F1_CARS[fallbackId];
+      
+      if (fallbackCar) {
+        return formatCarInfo(fallbackCar);
+      }
+      
+      return `❌ Error: Could not find car "${args[0]}". Try using the exact car code (e.g., mp4-4, f2002, rb19)`;
     }
 
-    return formatCarInfo(carByTeam);
+    return formatCarInfo(car);
   }
 };
 

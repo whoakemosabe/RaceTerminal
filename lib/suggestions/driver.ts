@@ -10,7 +10,7 @@ function formatDriverSuggestion(id: string, nicknames: string[]): Suggestion {
   return {
     value: name,
     description: nationality,
-    suffix: number ? `#${number.padStart(2, '0')}` : code
+    suffix: number ? `#${number.padStart(2, '0')} | ${code}` : code
   };
 }
 

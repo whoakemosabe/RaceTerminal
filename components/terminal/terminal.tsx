@@ -470,6 +470,10 @@ export function Terminal({
       ) : history.length > 0 && (
         <div className="relative flex-1 font-mono text-sm overflow-y-auto terminal-history"
             ref={historyRef} 
+            className={cn(
+              "relative flex-1 font-mono text-sm overflow-y-auto terminal-history",
+              !showWelcome && "terminal-history-appear"
+            )}
             style={{ 
               scrollBehavior: 'smooth',
               fontSize: `${fontSize}px`
@@ -576,13 +580,34 @@ export function Terminal({
           <div className="hidden sm:flex justify-end items-center gap-4">
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 cursor-help status-active">
-                  <Cpu className="w-3.5 h-3.5" />
-                  <span className="font-mono text-[10px] sm:text-xs">{hasSetUsername ? 'Active' : 'Waiting for username'}</span>
+                <div className="flex items-center gap-2 cursor-help font-mono text-[10px] sm:text-xs">
+                  
+                  <div 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ 
+                      background: `linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))`,
+                      boxShadow: '0 0 6px hsl(var(--primary)/0.5)'
+                    }} 
+                  />
+                  <span className="text-muted-foreground/70">{currentTheme}</span>
+                  <span className="text-muted-foreground/50">|</span>
+                  <div className={cn(
+                    hasSetUsername ? "status-active" : "status-waiting",
+                    "flex items-center gap-1"
+                  )}>
+                    {hasSetUsername ? 'Active' : 'Waiting for username'}
+                    <Cpu className="w-3.5 h-3.5" />
+                  </div>
+                  
                 </div>
               </TooltipTrigger>
               <TooltipContent side="top" align="end" className="tooltip-content">
-                <p>Terminal Status</p>
+                <div className="space-y-1">
+                  <p>Terminal Status</p>
+                  <p className="text-[9px] text-muted-foreground/70">
+                    Theme: {currentTheme} | Status: {hasSetUsername ? 'Active' : 'Waiting for username'}
+                  </p>
+                </div>
               </TooltipContent>
             </Tooltip>
           </div>
