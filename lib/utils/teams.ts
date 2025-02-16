@@ -17,64 +17,73 @@ export const teamNicknames: Record<string, string[]> = {
 // Team themes with their corresponding colors
 export const teamThemes: Record<string, { primary: string; secondary: string; accent: string; border: string }> = {
   'red_bull': {
-    primary: '240 100% 47%',
-    secondary: '240 100% 47%',
-    accent: '217 100% 50%', 
-    border: '240 100% 47%'
+    primary: '217 92% 45%',      // Brand blue for entered commands
+    secondary: '0 85% 45%',      // Red for shell prompt
+    accent: '196 100% 50%',      // Cyan for accents
+    border: '217 92% 45%'        // Blue for borders
   },
   'mercedes': {
-    primary: '180 2% 91%',
-    secondary: '174 100% 41%',
-    accent: '174 100% 41%', 
-    border: '174 100% 41%'
+    primary: '174 100% 41%',     // Brand color (entered commands)
+    secondary: '180 85% 35%',    // Shell prompt color
+    accent: '187 100% 42%',      // Accent color
+    border: '174 100% 41%',      // Border color
+    foreground: '210 40% 98%'    // General text color
   },
   'ferrari': {
-    primary: '0 0% 100%',
-    secondary: '48 100% 50%',
-    accent: '0 100% 43%', 
-    border: '0 100% 43%'
+    primary: '0 85% 45%',        // Brand color (entered commands)
+    secondary: '15 80% 50%',     // Shell prompt color
+    accent: '45 100% 50%',       // Accent color
+    border: '0 85% 45%',         // Border color
+    foreground: '210 40% 98%'    // General text color
   },
   'mclaren': {
-    primary: '0 0% 100%',
-    secondary: '199 100% 40%',
-    accent: '32 100% 50%', 
-    border: '32 100% 50%'
+    primary: '32 100% 50%',      // Brand color (entered commands)
+    secondary: '25 90% 45%',     // Shell prompt color
+    accent: '199 100% 45%',      // Accent color
+    border: '32 100% 50%',       // Border color
+    foreground: '210 40% 98%'    // General text color
   },
   'aston_martin': {
-    primary: '0 0% 100%',
-    secondary: '170 100% 35%',
-    accent: '170 100% 22%', 
-    border: '170 100% 22%'
+    primary: '170 100% 25%',     // Brand color (entered commands)
+    secondary: '168 85% 30%',    // Shell prompt color
+    accent: '144 70% 45%',       // Accent color
+    border: '170 100% 25%',      // Border color
+    foreground: '210 40% 98%'    // General text color
   },
   'alpine': {
-    primary: '0 0% 100%',
-    secondary: '339 85% 55%',
-    accent: '203 100% 50%', 
-    border: '203 100% 50%'
+    primary: '203 100% 50%',     // Brand color (entered commands)
+    secondary: '200 85% 45%',    // Shell prompt color
+    accent: '339 85% 55%',       // Accent color
+    border: '203 100% 50%',      // Border color
+    foreground: '210 40% 98%'    // General text color
   },
   'williams': {
-    primary: '0 0% 100%',
-    secondary: '217 100% 65%',
-    accent: '217 100% 50%', 
-    border: '217 100% 50%'
+    primary: '217 100% 50%',     // Brand color (entered commands)
+    secondary: '220 85% 45%',    // Shell prompt color
+    accent: '210 100% 65%',      // Accent color
+    border: '217 100% 50%',      // Border color
+    foreground: '210 40% 98%'    // General text color
   },
   'alphatauri': {
-    primary: '0 0% 100%',
-    secondary: '212 39% 40%',
-    accent: '212 39% 27%', 
-    border: '212 39% 27%'
+    primary: '212 39% 27%',      // Brand color (entered commands)
+    secondary: '215 35% 35%',    // Shell prompt color
+    accent: '200 45% 45%',       // Accent color
+    border: '212 39% 27%',       // Border color
+    foreground: '210 40% 98%'    // General text color
   },
   'alfa': {
-    primary: '0 0% 100%',
-    secondary: '0 100% 40%',
-    accent: '0 100% 28%', 
-    border: '0 100% 28%'
+    primary: '0 100% 45%',       // Vibrant red (entered commands)
+    secondary: '350 90% 45%',    // Shell prompt color (brighter red)
+    accent: '15 95% 50%',        // Accent color (bright orange)
+    border: '0 100% 45%',        // Border color (vibrant red)
+    foreground: '210 40% 98%'    // General text color
   },
   'haas': {
-    primary: '0 0% 100%',
-    secondary: '0 0% 80%',
-    accent: '0 0% 100%',
-    border: '0 0% 100%'
+    primary: '0 0% 20%',         // Brand color (entered commands)
+    secondary: '0 0% 35%',       // Shell prompt color
+    accent: '0 0% 85%',          // Accent color
+    border: '0 0% 20%',          // Border color
+    foreground: '210 40% 98%'    // General text color
   }
 };
 
@@ -103,17 +112,6 @@ export function getTeamColor(team: string): string {
 export function findTeamId(search: string): string | null {
   search = search.toLowerCase().trim();
   
-  // Handle common variations
-  if (search.includes('red bull') || search === 'redbull' || search === 'rb') {
-    return 'red_bull';
-  }
-  if (search.includes('ferrari') || search.includes('scuderia')) {
-    return 'ferrari';
-  }
-  if (search.includes('alphatauri') || search.includes('alpha tauri')) {
-    return 'alphatauri';
-  }
-  
   // Direct match with team ID
   if (teamNicknames[search]) {
     return search;
@@ -121,10 +119,34 @@ export function findTeamId(search: string): string | null {
   
   // Search through nicknames
   for (const [teamId, names] of Object.entries(teamNicknames)) {
-    // Check all variations
-    if (names.some(name => 
-      name.toLowerCase().includes(search) || 
-      name.toLowerCase().replace(/\s+/g, '').includes(search)
+    // Add common variations for each team
+    const searchTerms = [...names];
+    
+    switch (teamId) {
+      case 'ferrari':
+        searchTerms.push('ferrari', 'scuderia', 'sf', 'maranello');
+        break;
+      case 'red_bull':
+        searchTerms.push('redbull', 'rb', 'rbr', 'red bull', 'milton keynes');
+        break;
+      case 'mercedes':
+        searchTerms.push('merc', 'mercs', 'amg', 'petronas', 'brackley');
+        break;
+      case 'alphatauri':
+        searchTerms.push('alpha', 'tauri', 'at', 'racing bulls', 'faenza');
+        break;
+      case 'mclaren':
+        searchTerms.push('mcl', 'papaya', 'woking');
+        break;
+      case 'aston_martin':
+        searchTerms.push('aston', 'amr', 'silverstone');
+        break;
+    }
+    
+    // Check if any search term matches
+    if (searchTerms.some(term => 
+      term.toLowerCase().includes(search) || 
+      search.includes(term.toLowerCase())
     )) {
       return teamId;
     }

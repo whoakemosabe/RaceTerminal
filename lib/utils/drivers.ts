@@ -206,6 +206,10 @@ export function findDriverByNumber(number: string): string | null {
 
 // Reverse lookup map for finding driver IDs
 export function findDriverId(search: string): string | null {
+  if (!search) {
+    return null;
+  }
+
   search = search.toLowerCase();
   search = search.trim();
   // Search priority:
@@ -220,14 +224,17 @@ export function findDriverId(search: string): string | null {
   // Check driver number
   if (/^\d+$/.test(search)) {
     // Normalize search number by removing leading zeros and spaces
-    const searchNumber = search.trim().replace(/^0+/, '') || '0';
+    const searchNumber = search.replace(/^0+/, '') || '0';
     
     // Search through driver numbers
     const driverByNumber = Object.entries(driverNumbers)
-      .find(([_, number]) => number === searchNumber);
+      .find(([_, driverNumber]) => driverNumber === searchNumber);
     
     if (driverByNumber) {
-      return driverByNumber[0];
+      const [driverId] = driverByNumber;
+      if (driverNicknames[driverId]) {
+        return driverByNumber[0];
+      }
     }
   }
 

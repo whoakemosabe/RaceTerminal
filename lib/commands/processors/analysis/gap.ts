@@ -115,7 +115,9 @@ function analyzeGaps(raceData: any, lapTimes: any[]): GapAnalysis[] {
     const gapToAhead = calculateGapToAhead(driverLapTimes, driverAhead, driverLaps);
     const avgGapToLeader = calculateGapToLeader(driverLapTimes, finishers[0], driverLaps);
     const gapConsistency = calculateGapConsistency(driverLapTimes, finishers[0], driverLaps);
-    const { closestRival, minGap } = findClosestRival(driverLapTimes, result, finishers, driverLaps);
+    const { closestRival, minGap, battleLaps } = findClosestRival(driverLapTimes, result, finishers, driverLaps);
+    const bestLap = Math.min(...driverLapTimes.map(lap => timeToSeconds(lap.time)));
+    const initialGapToLeader = calculateInitialGapToLeader(driverLapTimes, finishers[0], driverLaps);
 
     return {
       driver: result.Driver,
@@ -129,7 +131,11 @@ function analyzeGaps(raceData: any, lapTimes: any[]): GapAnalysis[] {
       avgGapToLeader,
       gapConsistency,
       closestRival,
-      minGap
+      minGap,
+      battleLaps,
+      bestLap,
+      initialGapToLeader,
+      gapToLeader: avgGapToLeader
     };
   }).filter(Boolean);
 }
@@ -219,7 +225,31 @@ function calculateGapToLeader(driverLaps: any[], leader: any, driverLapsMap: Map
     return lapTime - leaderTime;
   }).filter(gap => gap !== null);
 
+  // Store initial gap for trend analysis
+  const initialGapToLeader = gaps.length > 0 ? gaps[0] : null;
+
   return gaps.length > 0 ? gaps.reduce((a, b) => a + b, 0) / gaps.length : null;
+}
+
+function calculateInitialGapToLeader(driverLaps: any[], leader: any, driverLapsMap: Map<string, any[]>): number | null {
+  if (!leader || !Array.isArray(driverLaps) || driverLaps.length === 0 || 
+      !leader?.status || ['R', 'D', 'W', 'E', 'F', 'N'].includes(leader.status)) return null;
+
+  const leaderLaps = driverLapsMap.get(leader.Driver.driverId.toUpperCase()) || [];
+  
+  if (leaderLaps.length === 0) return null;
+
+  const firstLap = driverLaps[0];
+  const firstLeaderLap = leaderLaps[0];
+
+  if (!firstLap || !firstLeaderLap) return null;
+
+  const lapTime = timeToSeconds(firstLap.time);
+  const leaderTime = timeToSeconds(firstLeaderLap.time);
+
+  if (isNaN(lapTime) || isNaN(leaderTime) || lapTime <= 0 || leaderTime <= 0) return null;
+
+  return lapTime - leaderTime;
 }
 
 function calculateGapConsistency(driverLaps: any[], leader: any, driverLapsMap: Map<string, any[]>): number | null {
@@ -252,12 +282,13 @@ function calculateGapConsistency(driverLaps: any[], leader: any, driverLapsMap: 
   return Math.sqrt(Math.max(0, variance)); // Ensure non-negative
 }
 
-function findClosestRival(driverLaps: any[], driver: any, allDrivers: any[], driverLapsMap: Map<string, any[]>): { closestRival: any, minGap: number } {
+function findClosestRival(driverLaps: any[], driver: any, allDrivers: any[], driverLapsMap: Map<string, any[]>): { closestRival: any, minGap: number, battleLaps: number } {
   if (!Array.isArray(driverLaps) || driverLaps.length === 0 || !Array.isArray(allDrivers)) {
-    return { closestRival: null, minGap: Infinity };
+    return { closestRival: null, minGap: Infinity, battleLaps: 0 };
   }
 
   const rivalGaps = new Map();
+  let battleLaps = 0;
   
   allDrivers.forEach(rival => {
     if (!rival?.Driver?.driverId || rival.Driver.driverId === driver.Driver.driverId) return;
@@ -275,7 +306,10 @@ function findClosestRival(driverLaps: any[], driver: any, allDrivers: any[], dri
       
       if (isNaN(lapTime) || isNaN(rivalTime)) return null;
       
-      return Math.abs(lapTime - rivalTime);
+      const gap = Math.abs(lapTime - rivalTime);
+      // Count laps within battle range (1.5 seconds)
+      if (gap < 1.5) battleLaps++;
+      return gap;
     }).filter(gap => gap !== null);
 
     if (gaps.length > 0) {
@@ -297,7 +331,7 @@ function findClosestRival(driverLaps: any[], driver: any, allDrivers: any[], dri
     }
   });
 
-  return { closestRival, minGap };
+  return { closestRival, minGap, battleLaps };
 }
 
 function formatGapAnalysis(analysis: GapAnalysis[]): string[] {
@@ -313,20 +347,35 @@ function formatGapAnalysis(analysis: GapAnalysis[]): string[] {
     const flagUrl = getFlagUrl(driver.driver.nationality);
     const flag = flagUrl ? `<img src="${flagUrl}" alt="${driver.driver.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : '';
 
-    const gapToLeader = driver.avgGapToLeader !== null ?
-      `+${driver.avgGapToLeader.toFixed(3)}s` :
-      'N/A';
+    // Format gap to leader (always positive since they're behind)
+    const gapToLeader = driver.position === "1" ? 
+      'LEADER' :
+      driver.avgGapToLeader !== null ?
+        `+${driver.avgGapToLeader.toFixed(3)}s (${((driver.avgGapToLeader / driver.bestLap) * 100).toFixed(1)}%)` :
+        'N/A';
        
-    const gapToAheadStr = driver.gapToAhead !== null ?
-      `+${driver.gapToAhead.toFixed(3)}s${driver.driverAhead?.name ? ` to ${driver.driverAhead.name}` : ''}` :
-      'N/A';
+    // Format gap to car ahead (if any)
+    const gapToAheadStr = driver.position === "1" ? 
+      'N/A' :
+      driver.gapToAhead !== null ?
+        `${driver.gapToAhead.toFixed(3)}s${driver.driverAhead?.name ? ` to ${driver.driverAhead.name}` : ''} (${((driver.gapToAhead / driver.bestLap) * 100).toFixed(1)}%)` :
+        'N/A';
 
     const consistency = driver.gapConsistency !== null ?
       driver.gapConsistency.toFixed(3) :
       'N/A';
 
-    const rivalInfo = driver.closestRival ?
-      `${driver.closestRival.name} (+${driver.minGap < Infinity ? driver.minGap.toFixed(3) : 'N/A'}s)` :
+    // Calculate gap trend
+    const gapTrend = driver.gapToLeader !== null && driver.initialGapToLeader !== null ?
+      driver.gapToLeader - driver.initialGapToLeader :
+      null;
+
+    const trendIndicator = gapTrend !== null ?
+      driver.position === "1" ? '<span style="color: hsl(var(--success))">🟣 Leading</span>' :
+      gapTrend < -0.5 ? '<span style="color: hsl(var(--success))">🟢 Catching</span>' :
+      gapTrend < 0 ? '<span style="color: hsl(var(--success))">🟢 Maintaining</span>' :
+      gapTrend < 0.5 ? '<span style="color: hsl(var(--warning))">🟡 Dropping</span>' :
+      '<span style="color: hsl(var(--error))">🔴 Struggling</span>' :
       'N/A';
 
     const consistencyRating = driver.gapConsistency !== null
@@ -339,15 +388,28 @@ function formatGapAnalysis(analysis: GapAnalysis[]): string[] {
         : '<span style="color: hsl(var(--error))">🔴 Poor</span>'
         : 'N/A';
 
+    const rivalInfo = driver.closestRival ?
+      `${driver.closestRival.name} (+${driver.minGap < Infinity ? driver.minGap.toFixed(3) : 'N/A'}s/${driver.battleLaps}L)` :
+      'N/A';
+
+    // Calculate battle intensity
+    const battleIntensity = driver.battleLaps > 20 ? '<span style="color: hsl(var(--success))">🔥 Intense</span>' :
+                          driver.battleLaps > 10 ? '<span style="color: hsl(var(--warning))">⚡ Active</span>' :
+                          driver.battleLaps > 5 ? '<span style="color: hsl(var(--info))">🌟 Moderate</span>' :
+                          '<span style="color: hsl(var(--muted-foreground))">⚪ Limited</span>';
+
     // Format the main driver line according to the requested format
     const driverLine = `P${driver.position}. ${driver.driver.givenName} ${driver.driver.familyName} | ${driver.driver.nationality} ${flag} | ${formatWithTeamColor(driver.constructor.name)}`;
 
+    // Format gaps line with proper indicators
+    const gapsLine = driver.position === "1" ?
+      `Gaps: ${trendIndicator} | <span style="color: hsl(var(--muted-foreground))">Race Leader</span>` :
+      `Gaps: ${trendIndicator} | <span style="color: hsl(var(--muted-foreground))">Leader: ${gapToLeader} | Behind: ${gapToAheadStr}</span>`;
     return [
       driverLine,
-      `Gap to P${parseInt(driver.position) - 1}: <span style="color: hsl(var(--muted-foreground))">${gapToAheadStr}</span>`,
-      `Gap to Leader: <span style="color: hsl(var(--muted-foreground))">${gapToLeader}</span>`,
-      `Consistency: ${consistencyRating} <span style="color: hsl(var(--muted-foreground))">(±${consistency ? parseFloat(consistency).toFixed(3) : 'N/A'}s)</span>`,
-      `Closest Battle: <span style="color: hsl(var(--muted-foreground))">${rivalInfo}</span>`,
+      gapsLine,
+      `Pace: ${consistencyRating} | <span style="color: hsl(var(--muted-foreground))">Best: ${driver.bestLap.toFixed(3)}s (±${consistency ? parseFloat(consistency).toFixed(3) : 'N/A'}s)</span>`,
+      `Battle: ${battleIntensity} | <span style="color: hsl(var(--muted-foreground))">vs ${rivalInfo}</span>`,
       ''
     ].join('\n');
   });

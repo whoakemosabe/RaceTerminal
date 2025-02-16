@@ -77,36 +77,43 @@ export function CommandSuggestions({
   // Focus input after selection
   const handleSelect = (suggestion: string) => {
     let value = suggestion.trim();
-    const parts = command.split(' ');
-    value = value.split('(')[0].trim();
+    const parts = command.split(/\s+/).filter(Boolean);
+    const baseCommand = parts[0].toLowerCase();
+    const stage = parts.length - (command.endsWith(' ') ? 0 : 1);
 
-    // Handle base commands
-    if (parts.length === 1) {
-      onSelect(value + ' ');
-      onShowSuggestionsChange(true);
-      return;
+    // For team commands, use the team ID if available
+    if (baseCommand === '/team' && stage === 1) {
+      const teamSuggestion = suggestions.find(s => s.value === value);
+      if (teamSuggestion && 'id' in teamSuggestion) {
+        value = teamSuggestion.id as string;
+      }
     }
 
-    // Handle command arguments
-    const baseCommand = parts[0].toLowerCase();
-    const prefix = parts.slice(0, -1).join(' ');
-    const newCommand = `${prefix} ${value}`;
+    // Clean up value (remove aliases)
+    value = value.split('(')[0].trim();
 
-    // Commands that need multiple arguments
-    const multiArgCommands = {
-      '/compare': 2, // type + name1 + name2
-      '/m': 2,
-      '/md': 1, // name1 + name2
-      '/mt': 1
-    };
+    // Build new command with proper spacing
+    let newCommand = stage === 0 ? value : `${parts.slice(0, stage).join(' ')} ${value}`;
 
-    const argsNeeded = multiArgCommands[baseCommand];
-    if (argsNeeded && parts.length <= argsNeeded + 1) {
-      onSelect(newCommand + ' ');
-      onShowSuggestionsChange(true);
-    } else {
-      onSelect(newCommand);
-      onClose();
+    // Determine if command needs more arguments
+    const needsMoreArgs = (
+      // Compare command needs type + 2 items
+      (baseCommand === '/compare' || baseCommand === '/m') && stage < 3 ||
+      // Compare shortcuts need 2 items
+      (baseCommand === '/md' || baseCommand === '/mt') && stage < 2 ||
+      // Single argument commands on first stage
+      stage === 0 ||
+      // Commands that always need arguments
+      ['/driver', '/d', '/track', '/t', '/team', '/theme'].includes(baseCommand)
+    );
+
+    if (needsMoreArgs) {
+      // Ensure exactly one space at the end
+      onSelect(newCommand.trimEnd() + ' ');
+      onShowSuggestionsChange(true); // Keep suggestions open
+    } else { 
+      onSelect(newCommand.trim()); // Complete the command
+      onClose(); // Close suggestions
     }
   };
 
@@ -117,9 +124,9 @@ export function CommandSuggestions({
 
       switch (e.key) {
         case 'Enter':
-          if (isNavigatingSuggestions && suggestions[selectedIndex]) {
-            e.preventDefault();
-            e.stopPropagation();
+          e.preventDefault();
+          e.stopPropagation();
+          if (suggestions[selectedIndex]) {
             handleSelect(suggestions[selectedIndex].value);
             onNavigationStateChange(false);
             onClose();
@@ -166,8 +173,8 @@ export function CommandSuggestions({
     // Attach to the input element instead of window
     const input = inputRef.current;
     if (input) {
-      input.addEventListener('keydown', handleKeyDown, { capture: true });
-      return () => input.removeEventListener('keydown', handleKeyDown, { capture: true });
+      input.addEventListener('keydown', handleKeyDown);
+      return () => input.removeEventListener('keydown', handleKeyDown);
     }
   }, [
     suggestions,
@@ -182,64 +189,61 @@ export function CommandSuggestions({
 
   // Use SuggestionManager to get suggestions
   useEffect(() => {
-    if (!command.startsWith('/')) {
+    // Clear suggestions if not a command or empty
+    if (!command || !command.startsWith('/')) {
       clearSuggestions();
       return;
     }
 
-    const input = command.toLowerCase().trim();
-    const parts = input.split(' ');
-    const firstPart = parts[0];
-    const lastPart = parts[parts.length - 1];
+    // Split command and handle spaces
+    const parts = command.toLowerCase().split(/\s+/);
+    const isNewStage = command.endsWith(' ');
+    const stage = isNewStage ? parts.length : parts.length - 1;
+    const currentPart = isNewStage ? '' : parts[parts.length - 1];
 
-    // Don't show suggestions for /user command after the space
-    if (firstPart === '/user' || firstPart === '/u') {
-      if (parts.length > 1) {
-        clearSuggestions();
-        return;
-      }
-    }
+    // Special handling for /user command
+    const isUserCommand = parts[0] === '/user' || parts[0] === '/u';
+    const isUserCommandWithArg = isUserCommand && stage > 0;
 
-    // If no username is set, only show /user command
-    if (!hasSetUsername) {
+    // Username validation
+    if (!hasSetUsername && !isUserCommand) {
       const userCommands = ['/user', '/u'];
       const matches = userCommands
-        .filter(c => c.startsWith(firstPart))
+        .filter(c => c.startsWith(parts[0] || ''))
         .map(c => ({ value: c }));
       setSuggestions(matches);
+      if (matches.length > 0) {
+        setSelectedIndex(0);
+        onShowSuggestionsChange(true);
+      }
+      return;
+    }
+
+    // Don't show suggestions for /user command with argument
+    if (isUserCommandWithArg) {
+      clearSuggestions();
       return;
     }
 
     // Get suggestions from manager
-    const matches = suggestionManager.current.getSuggestions(command.trim());
-    setSuggestionType(parts.length === 1 ? 'command' : 'argument');
-    
-    // Show suggestions immediately after space for commands that have next stages
-    const shouldShowAfterSpace = command.endsWith(' ') && (
-      firstPart === '/compare' ||
-      firstPart === '/m' ||
-      (firstPart === '/theme' && parts.length <= 2) ||
-      (parts[1] === 'driver' && parts.length <= 4) ||
-      (parts[1] === 'team' && parts.length <= 4)
-    );
+    const matches = suggestionManager.current.getSuggestions(command);
+    setSuggestionType(stage === 0 ? 'command' : 'argument');
 
-    if (matches.length > 0 || shouldShowAfterSpace) {
-      // Ensure unique suggestions and sort them
-      setSuggestions(matches.sort((a, b) => a.value.localeCompare(b.value)));
-      setSelectedIndex(0);
-      onShowSuggestionsChange(true);
-    } else {
-      clearSuggestions();
-    }
-  }, [hasSetUsername, command, command.trim()]);
+    // Show all suggestions for new stage, otherwise filter by current input
+    const filteredMatches = isNewStage ? 
+      matches : 
+      matches.filter(s => s.value.toLowerCase().startsWith(currentPart.toLowerCase()));
+
+    setSuggestions(filteredMatches);
+    setSelectedIndex(0);
+    onShowSuggestionsChange(filteredMatches.length > 0);
+  }, [command, hasSetUsername, onShowSuggestionsChange]);
 
   const clearSuggestions = () => {
     setSuggestions([]);
     setSelectedIndex(0);
     onShowSuggestionsChange(false);
   };
-
-  // Rest of the code remains the same...
 
   // Scroll selected item into view
   useEffect(() => {

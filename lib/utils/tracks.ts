@@ -65,9 +65,12 @@ export function getTrackDetails(trackId: string): TrackDetails {
 export function findTrackId(search: string): string | null {
   search = search.toLowerCase().trim();
   
-  // Special case for Monza variations
-  if (['autodromo', 'nazionale', 'royal park', 'temple'].some(term => search.includes(term))) {
+  // Special cases
+  if (['autodromo', 'nazionale', 'royal park', 'temple', 'monza'].some(term => search.includes(term))) {
     return 'monza';
+  }
+  if (['spa', 'francorchamps', 'ardennes'].some(term => search.includes(term))) {
+    return 'spa';
   }
   
   // Direct match with track ID
@@ -77,15 +80,16 @@ export function findTrackId(search: string): string | null {
   
   // Search through nicknames
   for (const [trackId, nicknames] of Object.entries(trackNicknames)) {
-    // Check exact matches first
-    if (nicknames.some(nick => nick.toLowerCase() === search) || 
-        trackId.replace('_', '').toLowerCase() === search) {
+    // Check exact matches first (case-insensitive)
+    if (nicknames.some(nick => nick.toLowerCase() === search) ||
+        trackId.replace(/_/g, ' ').toLowerCase() === search) {
       return trackId;
     }
     
-    // Then check partial matches
-    if (nicknames.some(nick => nick.toLowerCase().includes(search)) || 
-        trackId.replace('_', '').toLowerCase().includes(search)) {
+    // Then check partial matches (case-insensitive)
+    if (nicknames.some(nick => nick.toLowerCase().includes(search)) ||
+        trackId.replace(/_/g, ' ').toLowerCase().includes(search) ||
+        nicknames.some(nick => search.includes(nick.toLowerCase()))) {
       return trackId;
     }
   }

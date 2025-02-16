@@ -208,12 +208,12 @@ function handleTeamTheme(teamId: string): string {
     // Set theme colors
     document.documentElement.style.setProperty('--primary', theme.primary);
     document.documentElement.style.setProperty('--secondary', theme.secondary);
+    document.documentElement.style.setProperty('--foreground', '210 40% 98%');
     document.documentElement.style.setProperty('--primary-foreground', '210 40% 98%');
     document.documentElement.style.setProperty('--secondary-foreground', '210 40% 98%');
     document.documentElement.style.setProperty('--accent-foreground', '210 40% 98%');
     document.documentElement.style.setProperty('--accent', theme.accent);
     document.documentElement.style.setProperty('--border', theme.border);
-    document.documentElement.style.setProperty('--foreground', '210 40% 98%');
     document.documentElement.style.setProperty('--card-foreground', '210 40% 98%');
     document.documentElement.style.setProperty('--popover-foreground', '210 40% 98%');
     document.documentElement.style.setProperty('--muted', '217.2 32.6% 17.5%');

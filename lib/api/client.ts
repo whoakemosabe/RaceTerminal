@@ -128,6 +128,10 @@ export const api = {
   async getDriverInfo(driverId: string) {
     return retryRequest(async () => {
       try {
+        if (!driverId) {
+          throw new Error('Driver not found. Please check the name and try again.');
+        }
+
         // Normalize driver ID but preserve underscores
         const normalizedId = driverId.toLowerCase();
         const fallbackId = normalizedId.replace(/_/g, '');
@@ -148,14 +152,14 @@ export const api = {
         }
 
         if (!driver) {
-          throw new Error('Driver not found');
+          throw new Error('Driver not found. Please check the name and try again.');
         }
 
         return driver;
       } catch (error) {
         console.error('Error fetching driver info:', error);
         if (error instanceof Error) {
-          if (error.message.includes('404') || error.message === 'Driver not found') {
+          if (error.message.includes('404') || error.message.includes('Driver not found')) {
             throw new Error('Driver not found. Please check the name and try again.');
           }
           throw new Error('Could not fetch driver data. Please try again later.');

@@ -94,37 +94,53 @@ function convertLapTimes(laps: any[]): number[] {
 function analyzeStints(laps: any[], times: number[]): StintPerformance[] {
   const stints: StintPerformance[] = [];
   let currentStint: number[] = [];
-  let lastLapNumber: number | null = null;
-  let lastLapTime: number | null = null;
+  let stintStart = 0;
+  let lastLapTime = 0;
+  let consecutiveLaps = 0;
 
   laps.forEach((lap, idx) => {
     const time = times[idx];
-    if (!time || isNaN(time) || time <= 0 || time > 120) return;
-    
     const lapNumber = parseInt(lap.lap);
-    if (lastLapNumber === null) {
-      lastLapNumber = lapNumber;
+    if (!time || isNaN(time) || time <= 0 || time > 120 || isNaN(lapNumber)) return;
+    
+    // Start of first stint
+    if (stintStart === 0) {
+      stintStart = lapNumber;
       lastLapTime = time;
       currentStint.push(time);
+      consecutiveLaps = 1;
       return;
     }
 
-    const isNewStint = 
-      (lapNumber - lastLapNumber > 3) ||
-      (Math.abs(time - lastLapTime!) > 3.5);
+    // Check for new stint conditions
+    const lapGap = lapNumber - (stintStart + consecutiveLaps);
+    const timeDelta = Math.abs(time - lastLapTime);
+    const isNewStint = lapGap > 1 || timeDelta > 3.0;
 
     if (isNewStint && currentStint.length >= 3) {
-      stints.push(createStintPerformance(currentStint, stints.length + 1, lastLapNumber!, lapNumber));
+      stints.push(createStintPerformance(
+        currentStint,
+        stints.length + 1,
+        stintStart,
+        stintStart + consecutiveLaps - 1
+      ));
       currentStint = [];
+      stintStart = lapNumber;
+      consecutiveLaps = 0;
     }
 
     currentStint.push(time);
-    lastLapNumber = lapNumber;
     lastLapTime = time;
+    consecutiveLaps++;
   });
 
   if (currentStint.length >= 3) {
-    stints.push(createStintPerformance(currentStint, stints.length + 1, lastLapNumber!, lastLapNumber! + currentStint.length));
+    stints.push(createStintPerformance(
+      currentStint,
+      stints.length + 1,
+      stintStart,
+      stintStart + consecutiveLaps - 1
+    ));
   }
 
   return stints;
@@ -158,7 +174,27 @@ function calculateMedian(numbers: number[]): number {
 
 function calculateConsistency(numbers: number[]): number {
   const avg = calculateAverage(numbers);
-  return Math.sqrt(numbers.reduce((acc, n) => acc + Math.pow(n - avg, 2), 0) / numbers.length);
+  if (avg <= 0) return Infinity;
+
+  // Calculate variance with Welford's online algorithm for better numerical stability
+  let m2 = 0;
+  let delta;
+  let delta2;
+  let count = 0;
+
+  for (const x of numbers) {
+    count++;
+    delta = x - avg;
+    delta2 = delta * delta;
+    m2 += delta2;
+  }
+
+  // Calculate standard deviation
+  const variance = m2 / count;
+  const stdDev = Math.sqrt(variance);
+
+  // Return normalized consistency score (0-100)
+  return (stdDev / avg) * 100;
 }
 
 function calculateIQR(numbers: number[]): number {
@@ -177,35 +213,45 @@ function calculateTrend(numbers: number[]): number {
 function formatPaceAnalysis(analysis: DriverPaceAnalysis[]): string[] {
   analysis.sort((a, b) => a.avgTime - b.avgTime);
   
+  // Find the fastest lap of the race
+  const fastestLap = Math.min(...analysis.map(d => d.bestTime));
+
   return analysis.map((driver, index) => {
     const driverResult = driver.result;
     const startPos = parseInt(driverResult.grid) || 20;
     const finishPos = index + 1;
+    
+    // Calculate performance relative to fastest lap
+    const lapDelta = ((driver.bestTime - fastestLap) / fastestLap) * 100;
     
     const tireScore = calculateTireScore(
       driver.timesInSeconds,
       startPos,
       finishPos,
       driver.stints,
-      calculateTrend(driver.timesInSeconds),
+      lapDelta,
       index
     );
 
     const tireRating = 
-      tireScore >= 9.2 ? '<span style="color: hsl(var(--success))">💫 Outstanding</span>' :
-      tireScore >= 8.2 ? '<span style="color: hsl(var(--success))">🟢 Excellent</span>' :
-      tireScore >= 7.0 ? '<span style="color: hsl(var(--success))">🟢 Good</span>' :
-      tireScore >= 5.8 ? '<span style="color: hsl(var(--warning))">🟡 Fair</span>' :
-      tireScore >= 4.5 ? '<span style="color: hsl(var(--info))">🟠 Moderate</span>' :
+      tireScore >= 9.5 ? '<span style="color: hsl(var(--success))">💫 Outstanding</span>' :
+      tireScore >= 8.5 ? '<span style="color: hsl(var(--success))">🟢 Excellent</span>' :
+      tireScore >= 7.5 ? '<span style="color: hsl(var(--success))">🟢 Good</span>' :
+      tireScore >= 6.0 ? '<span style="color: hsl(var(--warning))">🟡 Fair</span>' :
+      tireScore >= 5.0 ? '<span style="color: hsl(var(--info))">🟠 Moderate</span>' :
       '<span style="color: hsl(var(--error))">🔴 Poor</span>';
 
-    const relativePerf = ((driver.avgTime / analysis[0].avgTime) - 1) * 100;
+    // Calculate relative performance to leader
+    const leaderTime = analysis[0].avgTime;
+    const timeDiff = driver.avgTime - leaderTime;
+    const relativePerf = timeDiff;
+
     const perfRating = 
-      relativePerf <= 0.3 ? '<span style="color: hsl(var(--success))">💫 Outstanding</span>' :
-      relativePerf <= 0.6 ? '<span style="color: hsl(var(--success))">🟢 Strong</span>' :
-      relativePerf <= 1.0 ? '<span style="color: hsl(var(--success))">🟢 Competitive</span>' :
-      relativePerf <= 1.5 ? '<span style="color: hsl(var(--warning))">🟡 Midfield</span>' :
-      relativePerf <= 2.0 ? '<span style="color: hsl(var(--info))">🟠 Developing</span>' :
+      relativePerf <= 0.001 ? '<span style="color: hsl(var(--success))">🟣 Fastest</span>' :
+      relativePerf <= 0.2 ? '<span style="color: hsl(var(--success))">💫 Outstanding</span>' :
+      relativePerf <= 0.4 ? '<span style="color: hsl(var(--success))">🟢 Strong</span>' :
+      relativePerf <= 0.7 ? '<span style="color: hsl(var(--warning))">🟡 Competitive</span>' :
+      relativePerf <= 1.0 ? '<span style="color: hsl(var(--info))">🟠 Midfield</span>' :
       '<span style="color: hsl(var(--error))">🔴 Poor</span>';
 
     const trend = calculateTrend(driver.timesInSeconds);
@@ -215,7 +261,7 @@ function formatPaceAnalysis(analysis: DriverPaceAnalysis[]): string[] {
       driver,
       index + 1,
       perfRating,
-      relativePerf,
+      timeDiff.toFixed(3),
       tireRating,
       trendIndicator
     );
@@ -226,7 +272,7 @@ function formatDriverOutput(
   driver: DriverPaceAnalysis,
   position: number,
   perfRating: string,
-  relativePerf: number,
+  relativePerf: string,
   tireRating: string,
   trendIndicator: string
 ): string {
@@ -254,12 +300,15 @@ function formatDriverOutput(
   ].join(' │ ');
 
   const perfMetrics = [
-    `Race Pace: ${perfRating} <span style="color: hsl(var(--muted-foreground))">(${relativePerf.toFixed(3)}% off lead)</span>`,
+    `Race Pace: ${perfRating} <span style="color: hsl(var(--muted-foreground))">${relativePerf <= 0.001 ? '(Leader)' : `(+${relativePerf}s)`}</span>`,
     `Tire Management: ${tireRating}`,
     `Pace Trend: ${trendIndicator}`
   ].join(' │ ');
 
-  const stintAnalysis = driver.stints.map(formatStintAnalysis).join('\n\n');
+  // Format stint analysis
+  const stintAnalysis = driver.stints.map(stint => 
+    formatStintAnalysis(stint)
+  ).join('\n\n');
 
   return [
     driverLine,

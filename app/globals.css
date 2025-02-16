@@ -323,22 +323,22 @@ body.resizing * {
 
 .terminal-timestamp {
   font-family: monospace;
-  color: hsl(var(--history-secondary));
+  color: hsl(var(--secondary));
   font-size: inherit;
 }
 
 .terminal-prompt {
   font-family: monospace;
-  color: hsl(var(--history-secondary));
+  color: hsl(var(--secondary));
   font-size: inherit;
 }
 
 .terminal-history code {
-  color: hsl(var(--history-primary));
+  color: hsl(var(--primary));
 }
 
 .terminal-history div {
-  color: hsl(var(--history-fg));
+  color: hsl(var(--foreground));
 }
 
 /* Team colors - ensure they override other styles */

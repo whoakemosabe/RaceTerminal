@@ -288,13 +288,43 @@ function formatOvertakeAnalysis(analysis: any[], raceData: any): string[] {
 
     // Calculate defensive rating based on how many times they were overtaken
     const defendRating =
-      data.timesBeingOvertaken === 0 && data.positionsLost === 0 && data.finishPos <= data.startPos && data.startPos <= 10 ? '<span style="color: hsl(var(--success))">🟣 Impenetrable</span>' :
-      data.timesBeingOvertaken === 0 && data.positionsLost === 0 && data.finishPos <= data.startPos ? '<span style="color: hsl(var(--success))">🟢 Excellent</span>' :
-      data.timesBeingOvertaken <= 1 && data.positionsLost <= 1 ? '<span style="color: hsl(var(--success))">🟢 Strong</span>' :
-      data.timesBeingOvertaken <= 2 && data.positionsLost <= 2 ? '<span style="color: hsl(var(--warning))">🟡 Solid</span>' :
-      data.timesBeingOvertaken <= 3 && data.positionsLost <= 3 ? '<span style="color: hsl(var(--warning))">🟡 Fair</span>' :
-      data.timesBeingOvertaken <= 4 ? '<span style="color: hsl(var(--info))">🟠 Vulnerable</span>' :
-      '<span style="color: hsl(var(--error))">🔴 Weak</span>';
+      // Calculate defensive score based on multiple factors
+      (() => {
+        // Base score starts at 10
+        let score = 10;
+        
+        // Penalize based on positions lost relative to starting position
+        const positionsLostPenalty = (data.finishPos - data.startPos) * 1.5;
+        score -= Math.max(0, positionsLostPenalty);
+        
+        // Penalize for being overtaken, weighted by starting position
+        // Front runners should be penalized more for being overtaken
+        const startPosWeight = Math.max(0.5, (20 - data.startPos) / 10); // 1.5 for P1, 0.5 for P20
+        const overtakenPenalty = data.timesBeingOvertaken * startPosWeight;
+        score -= overtakenPenalty;
+        
+        // Bonus for maintaining or improving position
+        if (data.finishPos <= data.startPos) {
+          score += 2;
+          // Extra bonus for front row starters maintaining position
+          if (data.startPos <= 3) {
+            score += 1;
+          }
+        }
+        
+        // Adjust for track position defense
+        // More credit for defending at the front
+        if (data.finishPos <= 5) {
+          score += 1;
+        }
+        
+        // Final score determines rating
+        return score >= 9 ? '<span style="color: hsl(var(--success))">🟣 Impenetrable</span>' :
+               score >= 7 ? '<span style="color: hsl(var(--success))">🟢 Strong</span>' :
+               score >= 5 ? '<span style="color: hsl(var(--warning))">🟡 Solid</span>' :
+               score >= 3 ? '<span style="color: hsl(var(--info))">🟠 Fair</span>' :
+                          '<span style="color: hsl(var(--error))">🔴 Weak</span>';
+      })();
 
     return [
       `P${data.finishPos}. ${driver.Driver.givenName} ${driver.Driver.familyName} ${flag} | <span style="color: ${teamColor}">${driver.Constructor.name}</span>`,
