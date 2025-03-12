@@ -1,7 +1,7 @@
 import { commands } from '@/lib/commands';
 import { CommandFunction } from '../index';
 import { commandAliases } from '@/components/terminal/command-processor';
-import { quickReferenceCategories } from '@/lib/data/quick-reference';
+import { commandCategories, CommandExample } from '@/lib/data/quick-reference';
 import { commandInfo } from '@/lib/data/command-info';
 
 // Helper functions
@@ -27,7 +27,7 @@ function formatCommand(cmd: typeof commands[0]): string {
 }
 
 function getCommandExamples(cmd: string): string {
-  return commandExamples[cmd]?.join('\n') || '';
+  return commandExamples[cmd]?.examples?.join('\n') || '';
 }
 
 function getCommandNotes(cmd: string): string {
@@ -46,7 +46,7 @@ interface HelpCommands {
 const helpCategories = {
   'RACE INFORMATION': {
     description: 'Commands for accessing race data, standings, and schedules',
-    commands: ['standings', 'teams', 'schedule', 'next', 'last', 'track', 'car']
+    commands: ['standings', 'teams', 'schedule', 'next', 'last', 'track', 'car', 'race']
   },
   'LIVE DATA': {
     description: 'Real-time data during active F1 sessions',
@@ -54,7 +54,7 @@ const helpCategories = {
   },
   'HISTORICAL DATA': {
     description: 'Historical race results and statistics',
-    commands: ['race', 'qualifying', 'sprint', 'pitstops', 'fastest', 'laps']
+    commands: ['qualifying', 'sprint', 'pitstops', 'fastest', 'laps', 'race']
   },
   'ANALYSIS': {
     description: 'Advanced race and performance analysis tools',
@@ -71,133 +71,161 @@ const helpCategories = {
 };
 
 // Detailed command examples
-const commandExamples: Record<string, string[]> = {
-  '/driver': [
-    'Current Drivers:',
-    '/driver hamilton - View Lewis Hamilton\'s profile',
-    '/driver VER - View Max Verstappen using driver code',
-    '/driver 1 - View driver using race number',
-    '/driver checo - View Sergio Perez using nickname',
-    '',
-    'World Champions:',
-    '/driver senna - View Ayrton Senna\'s profile',
-    '/driver schumi - View Michael Schumacher\'s profile',
-    '/driver prost - View Alain Prost\'s profile',
-    '',
-    'Notable Drivers:',
-    '/driver moss - View Stirling Moss\'s profile',
-    '/driver villeneuve - View Gilles Villeneuve\'s profile',
-    '/driver montoya - View Juan Pablo Montoya\'s profile'
-  ],
-  '/team': [
-    'Current Teams:',
-    '/team redbull - View Red Bull Racing profile',
-    '/team ferrari - View Scuderia Ferrari profile',
-    '/team mercedes - View Mercedes-AMG Petronas profile',
-    '',
-    'Search Variations:',
-    '/team rb - View Red Bull Racing (using nickname)',
-    '/team amr - View Aston Martin (using code)',
-    '/team mclaren - View McLaren F1 Team',
-    '',
-    'Detailed Information:',
-    '/team alpine - View Alpine F1 Team details',
-    '/team haas - View Haas F1 Team profile',
-    '/team williams - View Williams Racing history'
-  ],
-  '/pace': [
-    '/pace 2023 1 - Analyze race pace from 2023 Bahrain GP',
-    '/pace 2023 5 - Analyze race pace from 2023 Miami GP',
-    '/pace 2024 1 - Analyze race pace from 2024 Bahrain GP'
-  ],
-  '/gap': [
-    '/gap 2023 1 - Analyze gaps from 2023 Bahrain GP',
-    '/gap 2023 5 - Analyze gaps from 2023 Miami GP',
-    '/gap 2024 1 - Analyze gaps from 2024 Bahrain GP'
-  ],
-  '/sector': [
-    '/sector 2023 1 - Analyze sector times from 2023 Bahrain GP',
-    '/sector 2023 5 - Analyze sector times from 2023 Miami GP',
-    '/sector 2024 1 - Analyze sector times from 2024 Bahrain GP'
-  ],
-  '/overtake': [
-    '/overtake 2023 1 - Analyze overtakes from 2023 Bahrain GP',
-    '/overtake 2023 5 - Analyze overtakes from 2023 Miami GP',
-    '/overtake 2024 1 - Analyze overtakes from 2024 Bahrain GP'
-  ],
-  '/plot': [
-    '/plot 2023 1 verstappen - Plot Verstappen\'s lap times from 2023 Bahrain GP',
-    '/plot 2023 5 leclerc - Plot Leclerc\'s lap times from 2023 Miami GP',
-    '/plot 2024 1 hamilton - Plot Hamilton\'s lap times from 2024 Bahrain GP'
-  ],
-  '/compare': [
-    '/compare driver verstappen hamilton - Compare Verstappen and Hamilton\'s careers',
-    '/compare team redbull mercedes - Compare Red Bull and Mercedes statistics',
-    '/md verstappen hamilton - Quick driver comparison shortcut',
-    '/mt redbull mercedes - Quick team comparison shortcut'
-  ],
-  '/theme': [
-    '/theme ferrari - Apply Ferrari team colors',
-    '/theme dracula - Use Dracula editor theme',
-    '/theme calc amber - Enable calculator mode with amber display',
-    '/theme default - Reset to default colors'
-  ],
-  '/retro': [
-    '/retro - Toggle retro text effect',
-    '/retro all - Enable all retro effects',
-    '/retro reset - Disable all effects'
-  ],
-  '/qualifying': [
-    'Current Session:',
-    '/qualifying 2024 1 - View 2024 Bahrain GP qualifying',
-    '/qualifying 2024 2 - View 2024 Saudi Arabian GP qualifying',
-    '/qualifying 2024 3 - View 2024 Australian GP qualifying',
-    '',
-    'Historical Sessions:',
-    '/qualifying 2023 1 - View 2023 Bahrain GP qualifying',
-    '/qualifying 2023 5 - View 2023 Miami GP qualifying',
-    '/qualifying 2023 22 - View 2023 Abu Dhabi GP qualifying'
-  ],
-  '/sprint': [
-    'Current Season:',
-    '/sprint 2024 1 - View first sprint race of 2024',
-    '/sprint 2024 2 - View second sprint race of 2024',
-    '',
-    'Previous Season:',
-    '/sprint 2023 1 - View Azerbaijan GP sprint',
-    '/sprint 2023 4 - View Belgian GP sprint',
-    '/sprint 2023 6 - View Qatar GP sprint'
-  ],
-  '/pitstops': [
-    'Current Season:',
-    '/pitstops 2024 1 - View 2024 Bahrain GP pit stops',
-    '/pitstops 2024 2 - View 2024 Saudi Arabian GP pit stops',
-    '',
-    'Previous Season:',
-    '/pitstops 2023 1 - View 2023 Bahrain GP pit stops',
-    '/pitstops 2023 5 - View 2023 Miami GP pit stops',
-    '/pitstops 2023 22 - View 2023 Abu Dhabi GP pit stops'
-  ],
-  '/fastest': [
-    'Current Season:',
-    '/fastest 2024 1 - View 2024 Bahrain GP fastest laps',
-    '/fastest 2024 2 - View 2024 Saudi Arabian GP fastest laps',
-    '',
-    'Previous Season:',
-    '/fastest 2023 1 - View 2023 Bahrain GP fastest laps',
-    '/fastest 2023 5 - View 2023 Miami GP fastest laps',
-    '/fastest 2023 22 - View 2023 Abu Dhabi GP fastest laps'
-  ],
-  '/laps': [
-    'Current Season:',
-    '/laps 2024 1 - View 2024 Bahrain GP lap times',
-    '/laps 2024 2 - View 2024 Saudi Arabian GP lap times',
-    '',
-    'Previous Season:',
-    '/laps 2023 1 - View 2023 Bahrain GP lap times',
-    '/laps 2023 5 - View 2023 Miami GP lap times',
-    '/laps 2023 22 - View 2023 Abu Dhabi GP lap times'
-  ]
+const commandExamples: Record<string, CommandExample> = {
+  '/race': {
+    command: '/race <year> <round> (/r)',
+    description: 'View historical Formula 1 race results with full classification, gaps, retirements, and race analysis',
+    examples: [
+      'Current Season:',
+      '/race 2024 1 - View 2024 Bahrain GP results',
+      '/race 2024 2 - View 2024 Saudi Arabian GP results',
+      '/race 2024 3 - View 2024 Australian GP results',
+      '',
+      'Previous Season:',
+      '/race 2023 1 - View 2023 Bahrain GP results',
+      '/race 2023 5 - View 2023 Miami GP results',
+      '/race 2023 22 - View 2023 Abu Dhabi GP results',
+      '',
+      'Historical Races:',
+      '/race 2021 1 - View 2021 Bahrain GP results',
+      '/race 1988 1 - View 1988 Brazilian GP results',
+      '/race 1950 1 - View first F1 World Championship race'
+    ]
+  },
+  '/driver': {
+    command: '/driver <name> (/d)',
+    description: 'View F1 driver details, stats, and career info',
+    examples: [
+      'Usage:',
+      '• /driver <name> - Search by full name (e.g., hamilton)',
+      '• /driver <code> - Search by driver code (e.g., HAM)',
+      '• /driver <number> - Search by race number (e.g., 44)',
+      '• /driver <nickname> - Search by nickname (e.g., schumi)'
+    ]
+  },
+  '/team': {
+    command: '/team <name>',
+    description: 'View F1 team history, achievements, and details',
+    examples: [
+      'Usage:',
+      '• /team <name> - Search by team name (e.g., ferrari)',
+      '• /team <code> - Search by team code (e.g., FER)',
+      '• /team <nickname> - Search by nickname (e.g., redbull)'
+    ]
+  },
+  '/pace': {
+    command: '/pace <year> <round>',
+    description: 'Analyze race pace and performance',
+    examples: [
+      'Usage:',
+      '• /pace <year> <round> - Analyze race pace (e.g., /pace 2024 1)'
+    ]
+  },
+  '/gap': {
+    command: '/gap <year> <round>',
+    description: 'Analyze race gaps and intervals',
+    examples: [
+      'Usage:',
+      '• /gap <year> <round> - Analyze race gaps (e.g., /gap 2024 1)'
+    ]
+  },
+  '/sector': {
+    command: '/sector <year> <round>',
+    description: 'Analyze qualifying sector times',
+    examples: [
+      'Usage:',
+      '• /sector <year> <round> - Analyze sector times (e.g., /sector 2024 1)'
+    ]
+  },
+  '/overtake': {
+    command: '/overtake <year> <round>',
+    description: 'Analyze race overtaking statistics',
+    examples: [
+      'Usage:',
+      '• /overtake <year> <round> - Analyze overtakes (e.g., /overtake 2024 1)'
+    ]
+  },
+  '/plot': {
+    command: '/plot <year> <round> <driver>',
+    description: 'Generate lap time progression chart',
+    examples: [
+      'Usage:',
+      '• /plot <year> <round> <driver> - Plot lap times (e.g., /plot 2024 1 verstappen)'
+    ]
+  },
+  '/compare': {
+    command: '/compare <type> <name1> <name2>',
+    description: 'Compare driver or team statistics',
+    examples: [
+      'Usage:',
+      '• /compare driver <name1> <name2> - Compare drivers (e.g., /compare driver verstappen hamilton)',
+      '• /compare team <name1> <name2> - Compare teams (e.g., /compare team redbull mercedes)',
+      '• /md <name1> <name2> - Quick driver comparison',
+      '• /mt <name1> <name2> - Quick team comparison'
+    ]
+  },
+  '/theme': {
+    command: '/theme <name>',
+    description: 'Change terminal color theme',
+    examples: [
+      'Usage:',
+      '• /theme <team> - Apply team colors (e.g., /theme ferrari)',
+      '• /theme <editor> - Use editor theme (e.g., /theme dracula)',
+      '• /theme calc <scheme> - Enable calculator mode (e.g., /theme calc amber)',
+      '• /theme default - Reset colors'
+    ]
+  },
+  '/retro': {
+    command: '/retro [option]',
+    description: 'Toggle retro terminal effects',
+    examples: [
+      'Usage:',
+      '• /retro - Toggle retro text effect',
+      '• /retro all - Enable all effects',
+      '• /retro reset - Disable all effects'
+    ]
+  },
+  '/qualifying': {
+    command: '/qualifying <year> <round>',
+    description: 'View qualifying session results',
+    examples: [
+      'Usage:',
+      '• /qualifying <year> <round> - View qualifying results (e.g., /qualifying 2024 1)'
+    ]
+  },
+  '/sprint': {
+    command: '/sprint <year> <round>',
+    description: 'View sprint race results',
+    examples: [
+      'Usage:',
+      '• /sprint <year> <round> - View sprint results (e.g., /sprint 2024 1)'
+    ]
+  },
+  '/pitstops': {
+    command: '/pitstops <year> <round>',
+    description: 'View pit stop timings and strategies',
+    examples: [
+      'Usage:',
+      '• /pitstops <year> <round> - View pit stop data (e.g., /pitstops 2024 1)'
+    ]
+  },
+  '/fastest': {
+    command: '/fastest <year> <round>',
+    description: 'View fastest lap records',
+    examples: [
+      'Usage:',
+      '• /fastest <year> <round> - View fastest laps (e.g., /fastest 2024 1)'
+    ]
+  },
+  '/laps': {
+    command: '/laps <year> <round> [driver]',
+    description: 'View detailed lap time data',
+    examples: [
+      'Usage:',
+      '• /laps <year> <round> - View all lap times (e.g., /laps 2024 1)',
+      '• /laps <year> <round> <driver> - View specific driver\'s laps (e.g., /laps 2024 1 verstappen)'
+    ]
+  }
 };
 
 // Command usage notes
@@ -536,6 +564,28 @@ const commandNotes: Record<string, string[]> = {
     '• Safety car periods',
     '• DRS trains',
     '• Strategy impact'
+  ],
+  '/race': [
+    'Available Data:',
+    '• Full race classification',
+    '• Finishing positions',
+    '• Time gaps/intervals',
+    '• Laps completed',
+    '• Retirements/DNFs',
+    '',
+    'Features:',
+    '• Historical data since 1950',
+    '• Team color coding',
+    '• National flags',
+    '• Status information',
+    '• Points scored',
+    '',
+    'Additional Information:',
+    '• Race duration',
+    '• Grid positions',
+    '• Position changes',
+    '• Fastest laps',
+    '• Championship impact'
   ]
 };
 
@@ -689,6 +739,13 @@ const relatedCommands: Record<string, string[]> = {
     '• /plot - Time progression',
     '• /pitstops - Strategy impact',
     '• /overtake - Position changes'
+  ],
+  '/race': [
+    '• /qualifying - Session results',
+    '• /sprint - Sprint race results',
+    '• /pitstops - Pit stop analysis',
+    '• /fastest - Fastest lap data',
+    '• /laps - Detailed lap times'
   ]
 };
 
@@ -696,247 +753,212 @@ export const helpCommands: HelpCommands = {
   '/help': async (args: string[]) => {
     // If a specific command is provided
     if (args[0]) {
-      const searchTerm = args[0].toLowerCase();
-      // Clean up search term and handle aliases
-      const cleanSearchTerm = searchTerm.startsWith('/') ? searchTerm.slice(1) : searchTerm;
-      const commandKey = `/${cleanSearchTerm}`;
-      
-      // Special handling for driver and team help
-      if (cleanSearchTerm === 'driver') {
-        return [
-          'COMMAND REFERENCE: /DRIVER',
-          '═'.repeat(60),
-          '',
-          'DESCRIPTION',
-          'View detailed Formula 1 driver information including career statistics, achievements, and current status.',
-          '',
-          'USAGE',
-          '/driver <name> (/d)',
-          '',
-          'SEARCH OPTIONS',
-          '• Full name (e.g., hamilton)',
-          '• Driver code (e.g., HAM)',
-          '• Race number (e.g., 44)',
-          '• Nickname (e.g., schumi)',
-          '',
-          'EXAMPLES',
-          ...commandExamples['/driver'],
-          '',
-          'NOTES',
-          ...commandNotes['/driver'],
-          '',
-          'RELATED COMMANDS',
-          ...relatedCommands['/driver']
-        ].join('\n');
-      }
-
-      if (cleanSearchTerm === 'team') {
-        return [
-          'COMMAND REFERENCE: /TEAM',
-          '═'.repeat(60),
-          '',
-          'DESCRIPTION',
-          'View comprehensive Formula 1 team information including history, achievements, technical details, and current status.',
-          '',
-          'USAGE',
-          '/team <name>',
-          '',
-          'SEARCH OPTIONS',
-          '• Full name (e.g., ferrari)',
-          '• Team code (e.g., FER)',
-          '• Nickname (e.g., redbull)',
-          '',
-          'EXAMPLES',
-          ...commandExamples['/team'],
-          '',
-          'NOTES',
-          ...commandNotes['/team'],
-          '',
-          'RELATED COMMANDS',
-          ...relatedCommands['/team']
-        ].join('\n');
-      }
-
-      // Handle command aliases
-      const aliasedCommand = commandAliases[commandKey];
-      const effectiveCommand = aliasedCommand ? `/${aliasedCommand.split(' ')[0]}` : commandKey;
-      
-      // Check for category help first
-      const matchedCategory = Object.entries(helpCategories).find(([name]) => 
-        name.toLowerCase().includes(cleanSearchTerm)
-      );
-
-      if (matchedCategory) {
-        const [categoryName, categoryInfo] = matchedCategory;
-        return [
-          `COMMAND REFERENCE: ${categoryName}`,
-          '═'.repeat(60),
-          '',
-          'DESCRIPTION',
-          categoryInfo.description,
-          '',
-          'AVAILABLE COMMANDS',
-          ...commands
-            .filter(cmd => categoryInfo.commands.some(term => cmd.command.toLowerCase().includes(term)))
-            .map(cmd => {
-              const [baseCmd, ...params] = cmd.command.split(' ');
-              const shortcut = Object.entries(commandAliases)
-                .find(([alias, target]) => target === baseCmd)?.[0];
-              const aliasText = shortcut ? ` (${shortcut})` : '';
-              return `• ${baseCmd}${params.length ? ` ${params.join(' ')}` : ''}${aliasText}\n  ${cmd.description}`;
-            }),
-          '',
-          'NOTES',
-          `• All commands support tab completion`,
-          `• Commands are case-insensitive`,
-          `• Use /help <command> for detailed help`,
-          '',
-          'RELATED CATEGORIES',
-          ...Object.keys(helpCategories)
-            .filter(cat => cat !== categoryName)
-            .map(cat => `• ${cat.toLowerCase()} - ${helpCategories[cat as keyof typeof helpCategories].description}`)
-        ].join('\n');
-      }
-
-      // Check for specific command help
-      const info = commandInfo[effectiveCommand] || commandInfo[commandKey];
-      const command = commands.find(cmd => {
-        const cmdBase = cmd.command.split(' ')[0].replace(/\s*\(.*?\)/, '').toLowerCase();
-        return cmdBase === effectiveCommand.toLowerCase() || 
-               cmdBase === commandKey.toLowerCase() ||
-               cmdBase === cleanSearchTerm.toLowerCase();
-      });
-
-      if (command && info) {
-        const [baseCmd, ...params] = command.command.split(' ');
-        const shortcut = Object.entries(commandAliases)
-          .find(([alias, target]) => target === baseCmd)?.[0];
-        const aliases = baseCmd.match(/\((.*?)\)/)?.[1];
-        const aliasText = aliases || shortcut ? ` (${[aliases, shortcut].filter(Boolean).join(', ')})` : '';
-
-        return [
-          `COMMAND REFERENCE: ${baseCmd.toUpperCase()}`,
-          '═'.repeat(60),
-          '',
-          'DESCRIPTION',
-          info.description,
-          '',
-          'DETAILS',
-          `Category: ${info.category}`,
-          `Source: ${command.source}`,
-          '',
-          'USAGE',
-          `${baseCmd}${params.length ? ` ${params.join(' ')}` : ''}${aliasText}`,
-          '',
-          'EXAMPLES',
-          getCommandExamples(effectiveCommand) || getCommandExamples(commandKey) || '',
-          '',
-          'NOTES',
-          getCommandNotes(effectiveCommand) || getCommandNotes(commandKey) || '',
-          '',
-          'RELATED COMMANDS',
-          getRelatedCommands(effectiveCommand) || getRelatedCommands(commandKey) || ''
-        ].filter(Boolean).join('\n');
-      }
-
-      // Check for category help
-      const matchedQuickRef = quickReferenceCategories.find(cat => 
-        cat.title.toLowerCase().includes(cleanSearchTerm)
-      );
-
-      if (matchedQuickRef) {
-        const categoryCommands = commands.filter(cmd =>
-          matchedQuickRef.filter.some(term => cmd.command.toLowerCase().includes(term))
-        );
-
-        return [
-          `📚 ${matchedQuickRef.title} COMMANDS`,
-          '═'.repeat(60),
-          '',
-          ...categoryCommands.map(formatCommand)
-        ].join('\n');
-      }
-
-      return [
-        `❌ Help topic "${args[0]}" not found. Try one of these:`,
-        '',
-        'Categories:',
-        ...quickReferenceCategories.map(cat => `• ${cat.title}`),
-        '',
-        'Popular Commands:',
-        '• telemetry - Car telemetry data',
-        '• live - Live timing information',
-        '• weather - Track conditions',
-        '• compare - Compare drivers/teams',
-        '• effects - Visual effects',
-        '• list - Available data'
-      ].join('\n');
+      // Show specific command help
+      return showCommandHelp(args[0]);
     }
 
-    const header = [
-      'RACETERMINAL PRO COMMAND REFERENCE',
+    // Show main help page
+    return [
+      '📚 RACETERMINAL PRO HELP',
       '═'.repeat(60),
       '',
       'Welcome to RaceTerminal Pro!',
-      'This terminal provides comprehensive Formula 1 data access and analysis.',
-      'Below is a complete list of available commands organized by category.',
-      ''
-    ];
-
-    const content = Object.entries(commandInfo).map(([cmd, info]) => {
-      const command = commands.find(c => c.command.split(' ')[0] === cmd);
-      if (!command) return '';
-      
-      const shortcut = Object.entries(commandAliases)
-        .find(([alias, target]) => target === cmd)?.[0];
-      const aliases = command.command.match(/\((.*?)\)/)?.[1];
-      const aliasText = aliases || shortcut ? ` (${[aliases, shortcut].filter(Boolean).join(', ')})` : '';
-
-      return `${cmd}${aliasText}\n  ${info.description}\n`;
-    }).filter(Boolean);
-
-    return [
-      ...header,
-      'RACE INFORMATION',
-      '═'.repeat(60),
-      content.filter(cmd => cmd.includes('standings') || cmd.includes('schedule') || cmd.includes('track')).join('\n'),
-      '\n',
-      'LIVE DATA',
-      '═'.repeat(60),
-      content.filter(cmd => cmd.includes('live') || cmd.includes('telemetry') || cmd.includes('weather')).join('\n'),
+      'Your advanced Formula 1 data companion.',
       '',
-      'ANALYSIS',
-      '═'.repeat(60),
-      content.filter(cmd => {
-        const info = commandInfo[cmd.split('\n')[0].split(' ')[0].trim()];
-        return info && info.category === 'ANALYSIS';
-      }).join('\n'),
-      '',
-      'EFFECTS',
-      '═'.repeat(60),
-      content.filter(cmd => {
-        const info = commandInfo[cmd.split('\n')[0].split(' ')[0].trim()];
-        return info && info.category === 'EFFECTS';
-      }).join('\n'),
-      '',
-      'SYSTEM',
-      '═'.repeat(60),
-      content.filter(cmd => {
-        const info = commandInfo[cmd.split('\n')[0].split(' ')[0].trim()];
-        return info && info.category === 'SYSTEM';
-      }).join('\n'),
+      ...commandCategories.map(category => [
+        category.title,
+        '─'.repeat(40),
+        category.description,
+        '',
+        ...commands
+          .filter(cmd => category.filter.some(term => 
+            cmd.command.toLowerCase().includes(term) ||
+            (cmd.category?.toLowerCase() === category.title.toLowerCase()) ||
+            (term === 'sa' && cmd.command.includes('/sector')) ||
+            (term === 'oa' && cmd.command.includes('/overtake')) ||
+            (term === 'ov' && cmd.command.includes('/overtake')) ||
+            (term === 'md' && cmd.command.includes('/compare driver')) ||
+            (term === 'mt' && cmd.command.includes('/compare team'))
+          ))
+          .map(cmd => {
+            const [baseCmd, ...params] = cmd.command.split(' ');
+            const shortcut = Object.entries(commandAliases)
+              .find(([alias, target]) => target === baseCmd.replace(/\s*\(.*?\)/, ''))?.[0];
+            const aliasText = shortcut ? ` (${shortcut})` : '';
+            return `  ${baseCmd}${params.length ? ` ${params.join(' ')}` : ''}${aliasText}\n    ${cmd.description}`;
+          }),
+        ''
+      ]).flat(),
+      'KEYBOARD SHORTCUTS',
+      '─'.repeat(40),
+      '  Alt + Enter  Fullscreen mode',
+      '  Tab          Command completion',
+      '  ↑/↓          Command history',
+      '  Ctrl + L     Clear terminal',
+      '  Ctrl + C     Cancel command',
+      '  Esc          Close/cancel',
       '',
       'TIPS',
-      '═'.repeat(60),
-      '• Use /list <type> to see available data (drivers, teams, tracks, cars)',
-      '• Tab completion is available for most commands',
-      '• Commands are case-insensitive',
-      '• Most commands have shortcuts (shown in parentheses)',
-      '• Press Alt+Enter to toggle fullscreen mode',
-      '• Press Ctrl+L to clear the terminal',
-      '',
-      'For detailed help on any command, type: /help <command>',
-      'For example: /help pace'
+      '─'.repeat(40),
+      '  • Type /help <command> for detailed help on any command',
+      '  • Use /list to see available data (drivers, teams, tracks)',
+      '  • Commands are case-insensitive',
+      '  • Most commands have shortcuts (shown in parentheses)',
+      '  • Tab completion is available for most commands',
+      '  • Press Alt+Enter to toggle fullscreen mode'
     ].join('\n');
   }
+};
+
+function showCommandHelp(command: string): string {
+  const searchTerm = command.toLowerCase();
+  const cleanSearchTerm = searchTerm.startsWith('/') ? searchTerm.slice(1) : searchTerm;
+  const commandKey = `/${cleanSearchTerm}`;
+  
+  // Special handling for driver help
+  if (cleanSearchTerm === 'driver') {
+    return [
+      '📚 COMMAND HELP: /driver (/d)',
+      '═'.repeat(60),
+      '',
+      'DESCRIPTION',
+      'View detailed Formula 1 driver information including career statistics, achievements, and current status.',
+      '',
+      'USAGE',
+      '/driver <name> (/d)',
+      '',
+      'SEARCH OPTIONS',
+      '• Full name (e.g., hamilton)',
+      '• Driver code (e.g., HAM)',
+      '• Race number (e.g., 44)',
+      '• Nickname (e.g., schumi)',
+      '',
+      'EXAMPLES',
+      'Current Drivers:',
+      '/driver hamilton - View Lewis Hamilton\'s profile',
+      '/driver VER - View Max Verstappen using driver code',
+      '/driver 1 - View driver using race number',
+      '/driver checo - View Sergio Perez using nickname',
+      '',
+      'World Champions:',
+      '/driver senna - View Ayrton Senna\'s profile',
+      '/driver schumi - View Michael Schumacher\'s profile',
+      '/driver prost - View Alain Prost\'s profile',
+      '',
+      'Notable Drivers:',
+      '/driver moss - View Stirling Moss\'s profile',
+      '/driver villeneuve - View Gilles Villeneuve\'s profile',
+      '/driver montoya - View Juan Pablo Montoya\'s profile',
+      '',
+      'NOTES',
+      'Search Options:',
+      '• Search by full name (e.g., hamilton)',
+      '• Search by driver code (e.g., HAM)',
+      '• Search by race number (e.g., 44)',
+      '• Search by nickname (e.g., schumi)',
+      '',
+      'Available Data:',
+      '• Includes current and historical drivers',
+      '• Current F1 drivers with teams',
+      '• World Champions with years',
+      '• Notable drivers from F1 history',
+      '',
+      'Driver Information:',
+      '• Full name and nationality',
+      '• Driver number and code',
+      '• Team affiliation',
+      '• Career achievements',
+      '• Championship history',
+      '',
+      'Features:',
+      '• Case-insensitive search',
+      '• Fuzzy matching for nicknames',
+      '• National flag display',
+      '• Team color coding',
+      '',
+      'RELATED COMMANDS',
+      '• /list drivers - List all available drivers',
+      '• /compare - Compare driver statistics',
+      '• /standings - Championship standings',
+      '• /telemetry - Live car data',
+      '• /team - View team information'
+    ].join('\n');
+  }
+  
+  // Handle command aliases
+  const aliasedCommand = commandAliases[commandKey];
+  const effectiveCommand = aliasedCommand ? `/${aliasedCommand.split(' ')[0]}` : commandKey;
+  
+  // Check for specific command help
+  const info = commandInfo[effectiveCommand] || commandInfo[commandKey];
+  const cmd = commands.find(c => {
+    const cmdBase = c.command.split(' ')[0].replace(/\s*\(.*?\)/, '');
+    return cmdBase.toLowerCase() === effectiveCommand.toLowerCase() || 
+           cmdBase.toLowerCase() === commandKey.toLowerCase() ||
+           cmdBase.toLowerCase() === cleanSearchTerm.toLowerCase();
+  });
+
+  if (cmd && info) {
+    const [baseCmd, ...params] = cmd.command.split(' ');
+    const shortcut = Object.entries(commandAliases)
+      .find(([alias, target]) => target === baseCmd)?.[0];
+    const aliases = baseCmd.match(/\((.*?)\)/)?.[1];
+    const aliasText = aliases || shortcut ? ` (${[aliases, shortcut].filter(Boolean).join(', ')})` : '';
+
+    return [
+      `📚 COMMAND HELP: ${baseCmd}${aliasText}`,
+      '═'.repeat(60),
+      '',
+      'DESCRIPTION',
+      info.description,
+      '',
+      'USAGE',
+      ...commandExamples[effectiveCommand]?.examples || [],
+      '',
+      'NOTES',
+      ...(commandNotes[effectiveCommand] || commandNotes[commandKey] || []),
+      '',
+      'RELATED COMMANDS',
+      ...(relatedCommands[effectiveCommand] || relatedCommands[commandKey] || [])
+    ].filter(Boolean).join('\n');
+  }
+
+  // Check for category help
+  const matchedCategory = commandCategories.find(cat => 
+    cat.title.toLowerCase().includes(cleanSearchTerm)
+  );
+
+  if (matchedCategory) {
+    return [
+      `📚 ${matchedCategory.title} COMMANDS`,
+      '═'.repeat(60),
+      '',
+      matchedCategory.description,
+      '',
+      'AVAILABLE COMMANDS',
+      ...commands
+        .filter(cmd => matchedCategory.filter.some(term => cmd.command.toLowerCase().includes(term)))
+        .map(cmd => {
+          const [baseCmd, ...params] = cmd.command.split(' ');
+          const shortcut = Object.entries(commandAliases)
+            .find(([alias, target]) => target === baseCmd)?.[0];
+          const aliasText = shortcut ? ` (${shortcut})` : '';
+          return `• ${baseCmd}${params.length ? ` ${params.join(' ')}` : ''}${aliasText}\n  ${cmd.description}`;
+        }),
+      '',
+      'NOTES',
+      '• All commands support tab completion',
+      '• Commands are case-insensitive',
+      '• Use /help <command> for detailed help',
+    ].join('\n');
+  }
+  
+  return [
+    '❌ Help topic not found',
+    '',
+    'Try one of these categories:',
+    ...commandCategories.map(cat => `• ${cat.title.toLowerCase()} - ${cat.description}`),
+    '',
+    'Or type /help for the main help page'
+  ].join('\n');
 }

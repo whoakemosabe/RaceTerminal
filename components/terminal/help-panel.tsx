@@ -4,7 +4,7 @@
 import { HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { commands } from '@/lib/commands';
 import { commandAliases } from '@/components/terminal/command-processor';
-import { quickReferenceCategories, keyboardShortcuts } from '@/lib/data/quick-reference';
+import { commandCategories, shortcuts } from '@/lib/data/quick-reference';
 import { commandInfo } from '@/lib/data/command-info';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -93,7 +93,7 @@ export function HelpPanel() {
             <div className="space-y-3">
               <div className="mb-1 font-medium text-primary/80 text-xs">KEYBOARD</div>
               <div className="gap-1.5 grid grid-cols-1 text-xs">
-                {keyboardShortcuts.map((shortcut) => (
+                {shortcuts.map((shortcut) => (
                   <div key={shortcut.key} className="flex justify-between items-center">
                     <kbd className="bg-card/50 px-1.5 py-0.5 rounded font-mono text-[10px]">{shortcut.key}</kbd>
                     <span className="text-muted-foreground">{shortcut.description}</span>
@@ -104,7 +104,7 @@ export function HelpPanel() {
 
             {/* Right Column - Commands */}
             <div className="space-y-4">
-              {quickReferenceCategories.map((category) => (
+              {commandCategories.map((category) => (
                 <div key={category.title}>
                   <div className="flex justify-center items-center gap-2">
                     <div className="flex-1 bg-gradient-to-r from-transparent to-border/20 via-border/20 h-px" />

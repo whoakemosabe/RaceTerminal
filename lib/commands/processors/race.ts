@@ -257,8 +257,8 @@ export const raceCommands: RaceCommands = {
         // Get driver's constructor info
         const constructor = driverTeams.get(result.driver);
         const teamColor = constructor ? getTeamColor(constructor.name) : '#666666';
+        const teamName = constructor ? constructor.name : 'Unknown Team';
 
-        // Get nationality from race data
         const driverInfo = raceData.Results.find((r: any) => 
           `${r.Driver.givenName} ${r.Driver.familyName}` === result.driver
         )?.Driver;
@@ -277,7 +277,7 @@ export const raceCommands: RaceCommands = {
         return [
           `P${result.position}`,
           `${result.driver} ${flag}`,
-          `<span style="color: ${teamColor}">${constructor?.name || 'Unknown Team'}</span>`,
+          `<span style="color: ${teamColor}">${teamName}</span>`,
           `Q1: ${formatTime(result.q1, isFastest.q1)} | Q2: ${formatTime(result.q2, isFastest.q2)} | Q3: ${formatTime(result.q3, isFastest.q3)}`
         ].join(' | ');
       });

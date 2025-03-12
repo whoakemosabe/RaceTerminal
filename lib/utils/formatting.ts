@@ -1,39 +1,69 @@
-export function formatTeamComparison(data: any): string {
-  const { team1, team2 } = data;
+// Formatting utilities
+import { teamColors } from '@/lib/data/team-colors';
+import { countryToCode } from '@/lib/utils/countries';
+
+export function getTeamColor(team: string): string {
+  // Normalize team name by removing extra spaces and making case-insensitive
+  const normalizedTeam = team.trim().toLowerCase();
   
-  if (!team1 || !team2) {
-    return 'Error: Could not fetch comparison data for one or both teams';
+  // Find matching team name
+  const match = Object.entries(teamColors).find(([key]) => 
+    key.toLowerCase() === normalizedTeam
+  );
+  
+  if (match) {
+    return match[1];
   }
+  
+  // Try partial matches
+  const partialMatch = Object.entries(teamColors).find(([key]) => 
+    key.toLowerCase().includes(normalizedTeam) ||
+    normalizedTeam.includes(key.toLowerCase())
+  );
+  
+  return partialMatch ? partialMatch[1] : '#666666';
+}
 
-  const team2Name = team2.constructorId ? 
-    teamNicknames[team2.constructorId]?.[0] || team2.Races[0]?.Constructor?.name || 'Unknown Team' :
-    team2.Races[0]?.Constructor?.name || 'Unknown Team';
+export function getFlagUrl(nationality: string): string {
+  const countryCode = countryToCode[nationality];
+  if (!countryCode) return '';
+  return `https://flagcdn.com/w40/${countryCode.toLowerCase()}.png`;
+}
 
-  const team1Nationality = team1.Races[0]?.Constructor?.nationality || 'Unknown';
-  const team2Nationality = team2.Races[0]?.Constructor?.nationality || 'Unknown';
-  
-  const flagImg1 = getFlagUrl(team1Nationality);
-  const flagImg2 = getFlagUrl(team2Nationality);
-  
-  const coloredTeam1 = formatWithTeamColor(team1Name);
-  const coloredTeam2 = formatWithTeamColor(team2Name);
-  
-  const sideWidth = 25;
-  const separator = '='.repeat(sideWidth * 2 + 5) + '\n        VS        \n' + '='.repeat(sideWidth * 2 + 5);
-  
-  return [
-    '🏎️ TEAM HEAD-TO-HEAD COMPARISON 🏎️',
-    separator,
-    `${flagImg1} ${coloredTeam1}${' '.repeat(Math.max(0, sideWidth - team1Name.length))}     ${flagImg2} ${coloredTeam2}`,
-    `👑 Championships: ${team1.championships}${' '.repeat(Math.max(0, sideWidth - String(team1.championships).length - 15))}     👑 Championships: ${team2.championships}`,
-    `🏎️ Races: ${team1.totalRaces}${' '.repeat(Math.max(0, sideWidth - String(team1.totalRaces).length - 8))}     🏎️ Races: ${team2.totalRaces}`,
-    `🏆 Race Wins: ${team1.wins}${' '.repeat(Math.max(0, sideWidth - String(team1.wins).length - 12))}     🏆 Race Wins: ${team2.wins}`,
-    `🥇 Podiums: ${team1.podiums}${' '.repeat(Math.max(0, sideWidth - String(team1.podiums).length - 10))}     🥇 Podiums: ${team2.podiums}`,
-    `🎯 Pole Positions: ${team1.poles}${' '.repeat(Math.max(0, sideWidth - String(team1.poles).length - 16))}     🎯 Pole Positions: ${team2.poles}`,
-    `⚡ Fastest Laps: ${team1.fastestLaps}${' '.repeat(Math.max(0, sideWidth - String(team1.fastestLaps).length - 15))}     ⚡ Fastest Laps: ${team2.fastestLaps}`,
-    `🌟 Win Rate: ${((team1.wins / team1.totalRaces) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((team1.wins / team1.totalRaces) * 100).toFixed(1).length - 11))}     🌟 Win Rate: ${((team2.wins / team2.totalRaces) * 100).toFixed(1)}%`,
-    `🎯 Podium Rate: ${((team1.podiums / team1.totalRaces) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((team1.podiums / team1.totalRaces) * 100).toFixed(1).length - 14))}     🎯 Podium Rate: ${((team2.podiums / team2.totalRaces) * 100).toFixed(1)}%`,
-    `🎖️ Pole Rate: ${((team1.poles / team1.totalRaces) * 100).toFixed(1)}%${' '.repeat(Math.max(0, sideWidth - ((team1.poles / team1.totalRaces) * 100).toFixed(1).length - 12))}     🎖️ Pole Rate: ${((team2.poles / team2.totalRaces) * 100).toFixed(1)}%`,
-    separator.replace('VS', '🏁')
-  ].join('\n');
+export function formatDriver(text: string, nationality: string): string {
+  if (!text || !nationality) return 'Unknown Driver';
+  const flagUrl = getFlagUrl(nationality);
+  const flag = flagUrl ? ` <img src="${flagUrl}" alt="${nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
+  return `${text} [${nationality}${flag}]`;
+}
+
+export function formatCircuit(name: string, country: string): string {
+  if (!name || !country) return 'Unknown Circuit';
+  const flagUrl = getFlagUrl(country);
+  const flag = flagUrl ? ` <img src="${flagUrl}" alt="${country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:16px;">` : '';
+  return `${name || 'Unknown Circuit'} [${country}${flag}]`;
+}
+
+export function formatWithTeamColor(text: string, team?: string): string {
+  // If team is provided, use it directly, otherwise treat text as team name
+  const teamName = team || text;
+  const color = getTeamColor(text);
+  return `<span style="color: ${color}">${text}</span>`;
+}
+
+export function formatTime(time: string): string {
+  return time;
+}
+
+export function formatLapTime(time: string): string {
+  return time;
+}
+
+export function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString('en-GB', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 }
