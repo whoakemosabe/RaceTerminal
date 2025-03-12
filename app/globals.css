@@ -375,63 +375,30 @@ body.resizing * {
 }
 
 /* Team colors - ensure they override other styles */
-.terminal-history span[style*="color:"] {
-  color: var(--color-override, inherit) !important;
-}
-
-/* Ensure team colors are preserved */
-.terminal-history div span[style*="color:"] {
-  text-shadow: none !important;
-}
-
-/* Remove any conflicting color overrides */
-.terminal-history div:has(> span[style*="color:"]) span[style*="color:"] {
-  text-shadow: none !important;
-}
-
-/* Ensure team colors have highest priority */
-.terminal-history span[style*="!important"] {
-  color: var(--color-override, inherit) !important;
-  text-shadow: none !important;
-}
-
-/* Ensure team colors are preserved */
-.terminal-history div span[style*="color: #"] {
-  color: inherit !important;
-  text-shadow: none !important;
-}
-
-/* Remove any conflicting color overrides */
-.terminal-history div:has(> span[style*="color: #"]) span[style*="color: #"] {
-  color: inherit !important;
-  text-shadow: none !important;
+.terminal-history span[style*="color"] {
+  color: unset;
 }
 
 /* Status indicators */
 .terminal-history div span[style*="color: hsl(var(--success))"] {
   color: hsl(var(--success)) !important;
-  text-shadow: none !important;
 }
 
 .terminal-history div span[style*="color: hsl(var(--warning))"] {
   color: hsl(var(--warning)) !important;
-  text-shadow: none !important;
 }
 
 .terminal-history div span[style*="color: hsl(var(--info))"] {
   color: hsl(var(--info)) !important;
-  text-shadow: none !important;
 }
 
 .terminal-history div span[style*="color: hsl(var(--error))"] {
   color: hsl(var(--error)) !important;
-  text-shadow: none !important;
 }
 
 /* Muted text */
 .terminal-history div span[style*="color: hsl(var(--muted-foreground))"] {
   color: hsl(var(--muted-foreground)) !important;
-  text-shadow: none !important;
 }
 
 /* Error messages */
