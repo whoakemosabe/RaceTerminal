@@ -1,3 +1,4 @@
+/*Glass folding panel below terminal window */
 'use client'
 
 import { HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
@@ -17,11 +18,11 @@ function formatCommand(cmd: typeof commands[0]) {
     .find(([alias, target]) => target === cleanCmd)?.[0];
   
   return (
-    <div key={cmd.command} className="flex items-baseline gap-2 text-xs overflow-hidden">
+    <div key={cmd.command} className="flex items-baseline gap-2 overflow-hidden text-xs">
       <div className="flex items-baseline gap-2 min-w-[160px]">
-        <code className="flex-shrink-0 text-primary whitespace-nowrap font-mono">{cleanCmd}</code>
+        <code className="flex-shrink-0 font-mono text-primary whitespace-nowrap">{cleanCmd}</code>
         {shortcut && (
-          <code className="text-[10px] text-secondary font-mono whitespace-nowrap">
+          <code className="font-mono text-[10px] text-secondary whitespace-nowrap">
             {shortcut}
           </code>
         )}
@@ -42,22 +43,22 @@ export function HelpPanel() {
       )}
     >
       <div 
-        className="flex items-center justify-between px-2 py-1 cursor-pointer hover:bg-card/30 transition-all duration-200 ease-out"
+        className="flex justify-between items-center hover:bg-card/30 px-2 py-1 transition-all duration-200 ease-out cursor-pointer"
         onClick={() => setIsMinimized(!isMinimized)}
       >
         <div className="flex items-center gap-2">
-          <HelpCircle className="text-primary h-4 w-4" />
-          <h2 className="text-sm font-medium text-primary whitespace-nowrap">Quick Reference</h2>
+          <HelpCircle className="w-4 h-4 text-primary" />
+          <h2 className="font-medium text-primary text-sm whitespace-nowrap">Quick Reference</h2>
         </div>
         {isMinimized ? (
-          <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform duration-200 ease-out" />
+          <ChevronUp className="w-4 h-4 text-muted-foreground transition-transform duration-200 ease-out" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 ease-out" />
+          <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200 ease-out" />
         )}
       </div>
 
       {/* Tips Bar Container */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden">
         {/* Mini Tips Bar - Shows when minimized */}
         <div 
           className={cn(
@@ -87,14 +88,14 @@ export function HelpPanel() {
             isMinimized ? "h-0" : "flex-1"
           )}
         >
-          <div className="p-2 grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-4">
+          <div className="gap-4 grid grid-cols-1 sm:grid-cols-[180px_1fr] p-2">
             {/* Left Column - Shortcuts */}
             <div className="space-y-3">
-              <div className="text-xs font-medium text-primary/80 mb-1">KEYBOARD</div>
-              <div className="grid grid-cols-1 gap-1.5 text-xs">
+              <div className="mb-1 font-medium text-primary/80 text-xs">KEYBOARD</div>
+              <div className="gap-1.5 grid grid-cols-1 text-xs">
                 {keyboardShortcuts.map((shortcut) => (
-                  <div key={shortcut.key} className="flex items-center justify-between">
-                    <kbd className="px-1.5 py-0.5 bg-card/50 rounded text-[10px] font-mono">{shortcut.key}</kbd>
+                  <div key={shortcut.key} className="flex justify-between items-center">
+                    <kbd className="bg-card/50 px-1.5 py-0.5 rounded font-mono text-[10px]">{shortcut.key}</kbd>
                     <span className="text-muted-foreground">{shortcut.description}</span>
                   </div>
                 ))}
@@ -105,12 +106,12 @@ export function HelpPanel() {
             <div className="space-y-4">
               {quickReferenceCategories.map((category) => (
                 <div key={category.title}>
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border/20 to-border/20" />
-                    <div className="text-xs font-medium text-primary/80 min-w-[140px] text-center">{category.title}</div>
-                    <div className="h-px flex-1 bg-gradient-to-l from-transparent via-border/20 to-border/20" />
+                  <div className="flex justify-center items-center gap-2">
+                    <div className="flex-1 bg-gradient-to-r from-transparent to-border/20 via-border/20 h-px" />
+                    <div className="min-w-[140px] font-medium text-primary/80 text-xs text-center">{category.title}</div>
+                    <div className="flex-1 bg-gradient-to-l from-transparent to-border/20 via-border/20 h-px" />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 mt-2">
+                  <div className="gap-x-6 gap-y-1 grid grid-cols-1 sm:grid-cols-2 mt-2">
                     {commands
                       .filter(c => category.filter.some(term => 
                         c.command.toLowerCase().includes(term) ||
@@ -130,8 +131,8 @@ export function HelpPanel() {
           </div>
             
             {/* Bottom Tips Bar */}
-            <div className="sticky bottom-0 p-2 border-t border-border/10 text-[10px] text-muted-foreground/70 flex items-center justify-between bg-card/30 backdrop-blur-sm">
-              <div className="hidden sm:block">Type <code className="text-primary px-1 py-0.5 bg-card/30 rounded">/help</code> for detailed documentation</div>
+            <div className="bottom-0 sticky flex justify-between items-center bg-card/30 backdrop-blur-sm p-2 border-t border-border/10 text-[10px] text-muted-foreground/70">
+              <div className="hidden sm:block">Type <code className="bg-card/30 px-1 py-0.5 rounded text-primary">/help</code> for detailed documentation</div>
               <div className="flex items-center gap-2 sm:gap-4">
                 <span>Tab to auto-complete</span>
                 <span>Case-insensitive</span>
