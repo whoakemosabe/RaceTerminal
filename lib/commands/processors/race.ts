@@ -2,6 +2,7 @@ import { api } from '@/lib/api/client';
 import { formatDriver, formatTime, formatDate, calculateCountdown, icons, findTeamId, getFlagUrl, findDriverId, formatDriverComparison, formatTeamComparison, getTeamColor, findTrackId, trackNicknames, getTrackDetails } from '@/lib/utils';
 import { getTeamPrincipal, getTeamPowerUnit, getTeamRecords } from '@/lib/utils/teams';
 import { teamNicknames } from '@/lib/utils/teams';
+import { schedule } from '@/lib/data/schedule';
 import { CommandFunction } from './index';
 interface RaceCommands {
   [key: string]: CommandFunction;
@@ -292,21 +293,6 @@ export const raceCommands: RaceCommands = {
     }
   },
 
-  '/sprint': async (args: string[]) => {
-    if (!args[0] || !args[1]) {
-      return `❌ Error: Please provide year and round\nUsage: /sprint <year> <round>\nExample: /sprint 2023 1\nShortcuts: /sp, /sprint`;
-    }
-
-    const data = await api.getSprintResults(parseInt(args[0]), parseInt(args[1]));
-    if (!data || data.length === 0) {
-      return '❌ Error: No sprint race results available';
-    }
-
-    return data.slice(0, 5).map(result =>
-      `🏃 P${result.position} | 👤 ${formatDriver(result.Driver.givenName + ' ' + result.Driver.familyName, result.Driver.nationality)} | ⏱️ ${formatTime(result.Time?.time || result.status)}`
-    ).join('\n');
-  },
-
   '/next': async () => {
     const data = await api.getNextRace();
     if (!data) {
@@ -421,70 +407,118 @@ export const raceCommands: RaceCommands = {
   },
 
   '/schedule': async (args: string[], originalCommand: string) => {
-    try {
-      const year = new Date().getFullYear();
-      let schedule = await api.getRaceSchedule(year);
+    const now = new Date();
+    const sessionInfo = schedule.getActiveSession();
+
+    // Format all races and sessions
+    const races = schedule.races.map((race, index) => {
+      if (race.type === 'testing') return null;
       
-      if (!schedule || schedule.length === 0) {
-        // If current year has no races, try previous year
-        schedule = await api.getRaceSchedule(year - 1);
-        if (!schedule || schedule.length === 0) {
-          return `❌ Error: Could not fetch race schedule for ${year} or ${year - 1}. Please try again later.`;
-        }
-      }
-
-      const header = [
-        `🏁 ${year} FORMULA 1 WORLD CHAMPIONSHIP`,
-        '═'.repeat(60),
-        ''
-      ];
-
-      const races = schedule.map((race, index) => {
-        const raceDate = new Date(`${race.date}${race.time ? 'T' + race.time : ''}`);
-        const now = new Date();
-        const isPast = raceDate < now;
-        const isNext = !isPast && index === schedule.findIndex(r => new Date(r.date) > now);
-        
-        const status = isPast ? '✓' : isNext ? '➤' : ' ';
-        const round = race.round.padStart(2, '0');
-        const date = raceDate.toLocaleDateString('en-GB', {
-          weekday: 'short',
-          day: '2-digit',
-          month: 'short'
-        });
-        const time = race.time ? 
-          new Date(`2024-01-01T${race.time}`).toLocaleTimeString('en-GB', {
+      const round = race.round.toString().padStart(2, '0');
+      const flagUrl = getFlagUrl(race.circuit.country);
+      const flag = flagUrl ? 
+        `<img src="${flagUrl}" alt="${race.circuit.country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
+        '';
+      
+      const isActiveRace = sessionInfo?.race.round === race.round;
+      const isSprint = race.type === 'sprint_qualifying';
+      const raceHeader = isActiveRace ?
+        `<span style="color: hsl(var(--primary))">🏁 R${round} | ${flag} ${race.officialName}${isSprint ? ' <span style="color: hsl(var(--warning))">⚡ SPRINT</span>' : ''}</span>` :
+        `${' '} R${round} | ${flag} ${race.officialName}${isSprint ? ' <span style="color: hsl(var(--warning))">⚡ SPRINT</span>' : ''}`;
+      const locationLine = `    📍 ${race.circuit.name}, ${race.circuit.location}`;
+      
+      // Format each session
+      const sessions = Object.entries(race.sessions)
+        .filter(([_, session]) => session) // Filter out undefined sessions
+        .map(([key, session]) => {
+          const sessionDate = new Date(session.dateET);
+          const sessionEnd = new Date(sessionDate);
+          sessionEnd.setHours(sessionEnd.getHours() + 2);
+          
+          const isPast = now > sessionEnd;
+          const isActive = sessionInfo?.session?.name === session.name && 
+                          sessionInfo?.race.round === race.round;
+          const isNext = sessionInfo?.nextSession?.name === session.name && 
+                        sessionInfo?.race.round === race.round;
+          
+          // Format session name
+          let sessionName = session.name;
+          if (key === 'sprint_qualifying') sessionName = 'Sprint Qualifying';
+          
+          // Format date and time
+          const date = sessionDate.toLocaleDateString('en-GB', {
+            weekday: 'short',
+            day: '2-digit',
+            month: 'short'
+          });
+          const time = sessionDate.toLocaleTimeString('en-GB', {
             hour: '2-digit',
             minute: '2-digit',
-            hour12: false
-          }) : 
-          'TBA';
-        
-        const flagUrl = getFlagUrl(race.Circuit.Location.country);
-        const flag = flagUrl ? 
-          `<img src="${flagUrl}" alt="${race.Circuit.Location.country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
-          '';
-        
-        return [
-          `${status} R${round} | ${date} ${time} | ${flag} ${race.raceName}`,
-          `    📍 ${race.Circuit.circuitName}, ${race.Circuit.Location.locality}`
-        ].join('\n');
-      });
-
+            hour12: false,
+            timeZone: 'America/New_York'
+          });
+          
+          // Color code the session
+          let sessionLine = `      `;
+          
+          // Add status indicator with appropriate color
+          if (isPast) {
+            sessionLine += '<span style="color: hsl(var(--muted-foreground))">✓</span>';
+          } else if (isActive) {
+            sessionLine += '<span style="color: hsl(var(--success))">🟢</span>';
+          } else if (isNext) {
+            sessionLine += '<span style="color: hsl(var(--warning))">➤</span>';
+          } else {
+            sessionLine += ' ';
+          }
+          
+          sessionLine += ` ${sessionName} | ${date} ${time}`;
+          
+          if (isActive) {
+            const timeRemaining = sessionInfo?.session?.timeRemaining || 0;
+            const minutes = timeRemaining % 60;
+            const hours = Math.floor(timeRemaining / 60);
+            const timeStr = hours > 0 ? 
+              `${hours}h ${minutes}m` : 
+              `${minutes}m`;
+            sessionLine = `<span style="color: hsl(var(--success))">${sessionLine} (LIVE - ${timeStr} remaining)</span>`;
+          } else if (isPast) {
+            sessionLine = `<span style="color: hsl(var(--muted-foreground))">${sessionLine} (Completed)</span>`;
+          } else if (isNext) {
+            const countdown = sessionInfo?.nextSession?.countdown || 0;
+            const minutes = countdown % 60;
+            const hours = Math.floor(countdown / 60);
+            const timeStr = hours > 0 ? 
+              `${hours}h ${minutes}m` : 
+              `${minutes}m`;
+            sessionLine = `<span style="color: hsl(var(--warning))">${sessionLine} (Up Next - Starts in ${timeStr})</span>`;
+          }
+          
+          return sessionLine;
+        });
+      
       return [
-        ...header,
-        ...races,
-        '',
-        'Legend:',
-        '✓ Completed',
-        '➤ Next Race',
-        '  Upcoming'
+        raceHeader,
+        locationLine,
+        ...sessions,
+        '' // Add empty line between races
       ].join('\n');
-
-    } catch (error) {
-      console.error('Error fetching race schedule:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return `❌ Error: Could not fetch race schedule: ${errorMessage}. Please try again later.`;
-    }
-  },
-};
+    }).filter(Boolean);
+    
+    return [
+      '🏁 2025 FORMULA 1 WORLD CHAMPIONSHIP',
+      '═'.repeat(60),
+      '<span style="color: hsl(var(--muted-foreground))">All times shown in ET (24h)</span>',
+      '',
+      ...races,
+      '',
+      'Legend:',
+      '<span style="color: hsl(var(--muted-foreground))">✓ Completed Session</span>',
+      '<span style="color: hsl(var(--primary))">🏁 Current Race Weekend</span>',
+      '<span style="color: hsl(var(--success))">🟢 Active Session</span>',
+      '<span style="color: hsl(var(--warning))">➤ Next Session</span>',
+      '<span style="color: hsl(var(--warning))">⚡ Sprint Weekend</span>',
+      '  Future Session'
+    ].join('\n');
+  }
+}

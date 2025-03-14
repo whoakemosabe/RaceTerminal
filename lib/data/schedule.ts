@@ -12,9 +12,9 @@ export const schedule = {
         country: 'Bahrain'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-02-26T10:00:00Z', dateET: '2025-02-26T02:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-02-27T10:00:00Z', dateET: '2025-02-27T02:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-02-28T10:00:00Z', dateET: '2025-02-28T02:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-02-26T07:00:00Z', dateET: '2025-02-26T02:00:00' },
+        practice2: { name: 'Practice 2', date: '2025-02-27T07:00:00Z', dateET: '2025-02-27T02:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-02-28T07:00:00Z', dateET: '2025-02-28T02:00:00' }
       }
     },
     {
@@ -28,11 +28,11 @@ export const schedule = {
         country: 'Australia'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-03-14T12:30:00Z', dateET: '2025-03-14T00:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-03-14T16:00:00Z', dateET: '2025-03-14T04:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-03-15T12:30:00Z', dateET: '2025-03-15T00:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-03-15T16:00:00Z', dateET: '2025-03-15T04:00:00' },
-        race: { name: 'Race', date: '2025-03-16T15:00:00Z', dateET: '2025-03-16T00:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-03-14T02:30:00Z', dateET: '2025-03-13T21:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-03-14T06:00:00Z', dateET: '2025-03-14T01:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-03-15T02:30:00Z', dateET: '2025-03-14T21:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-03-15T06:00:00Z', dateET: '2025-03-15T01:00:00' },
+        race: { name: 'Race', date: '2025-03-16T05:00:00Z', dateET: '2025-03-16T00:00:00' }
       }
     },
     {
@@ -46,11 +46,11 @@ export const schedule = {
         country: 'China'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-03-21T11:30:00Z', dateET: '2025-03-21T03:00:00' },
-        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-03-21T15:30:00Z', dateET: '2025-03-21T07:00:00' },
-        sprint: { name: 'Sprint', date: '2025-03-22T11:00:00Z', dateET: '2025-03-22T03:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-03-22T15:00:00Z', dateET: '2025-03-22T07:00:00' },
-        race: { name: 'Race', date: '2025-03-23T15:00:00Z', dateET: '2025-03-23T03:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-03-21T03:30:00Z', dateET: '2025-03-20T23:30:00' },
+        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-03-21T07:30:00Z', dateET: '2025-03-21T03:30:00' },
+        sprint: { name: 'Sprint', date: '2025-03-22T03:00:00Z', dateET: '2025-03-21T23:00:00' },
+        qualifying: { name: 'Qualifying', date: '2025-03-22T07:00:00Z', dateET: '2025-03-22T03:00:00' },
+        race: { name: 'Race', date: '2025-03-23T07:00:00Z', dateET: '2025-03-23T03:00:00' }
       }
     },
     {
@@ -64,11 +64,11 @@ export const schedule = {
         country: 'Japan'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-04-04T11:30:00Z', dateET: '2025-04-04T01:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-04-04T15:00:00Z', dateET: '2025-04-04T04:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-04-05T11:30:00Z', dateET: '2025-04-05T01:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-04-05T15:00:00Z', dateET: '2025-04-05T04:00:00' },
-        race: { name: 'Race', date: '2025-04-06T14:00:00Z', dateET: '2025-04-06T01:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-04-04T02:30:00Z', dateET: '2025-04-03T22:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-04-04T06:00:00Z', dateET: '2025-04-04T02:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-04-05T02:30:00Z', dateET: '2025-04-04T22:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-04-05T06:00:00Z', dateET: '2025-04-05T02:00:00' },
+        race: { name: 'Race', date: '2025-04-06T05:00:00Z', dateET: '2025-04-06T01:00:00' }
       }
     },
     {
@@ -82,11 +82,11 @@ export const schedule = {
         country: 'Bahrain'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-04-11T14:30:00Z', dateET: '2025-04-11T11:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-04-11T18:00:00Z', dateET: '2025-04-11T14:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-04-12T15:30:00Z', dateET: '2025-04-12T11:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-04-12T19:00:00Z', dateET: '2025-04-12T15:00:00' },
-        race: { name: 'Race', date: '2025-04-13T18:00:00Z', dateET: '2025-04-13T11:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-04-11T11:30:00Z', dateET: '2025-04-11T07:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-04-11T15:00:00Z', dateET: '2025-04-11T11:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-04-12T12:30:00Z', dateET: '2025-04-12T08:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-04-12T16:00:00Z', dateET: '2025-04-12T12:00:00' },
+        race: { name: 'Race', date: '2025-04-13T15:00:00Z', dateET: '2025-04-13T11:00:00' }
       }
     },
     {
@@ -100,11 +100,11 @@ export const schedule = {
         country: 'Saudi Arabia'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-04-18T16:30:00Z', dateET: '2025-04-18T13:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-04-18T20:00:00Z', dateET: '2025-04-18T16:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-04-19T16:30:00Z', dateET: '2025-04-19T13:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-04-19T20:00:00Z', dateET: '2025-04-19T16:00:00' },
-        race: { name: 'Race', date: '2025-04-20T20:00:00Z', dateET: '2025-04-20T13:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-04-18T13:30:00Z', dateET: '2025-04-18T09:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-04-18T17:00:00Z', dateET: '2025-04-18T13:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-04-19T13:30:00Z', dateET: '2025-04-19T09:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-04-19T17:00:00Z', dateET: '2025-04-19T13:00:00' },
+        race: { name: 'Race', date: '2025-04-20T17:00:00Z', dateET: '2025-04-20T13:00:00' }
       }
     },
     {
@@ -118,11 +118,11 @@ export const schedule = {
         country: 'United States'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-05-02T12:30:00Z', dateET: '2025-05-02T16:00:00' },
-        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-05-02T16:30:00Z', dateET: '2025-05-02T20:00:00' },
-        sprint: { name: 'Sprint', date: '2025-05-03T12:00:00Z', dateET: '2025-05-03T16:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-05-03T16:00:00Z', dateET: '2025-05-03T20:00:00' },
-        race: { name: 'Race', date: '2025-05-04T16:00:00Z', dateET: '2025-05-04T16:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-05-02T16:30:00Z', dateET: '2025-05-02T12:30:00' },
+        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-05-02T19:30:00Z', dateET: '2025-05-02T15:30:00' },
+        sprint: { name: 'Sprint', date: '2025-05-03T15:00:00Z', dateET: '2025-05-03T11:00:00' },
+        qualifying: { name: 'Qualifying', date: '2025-05-03T20:00:00Z', dateET: '2025-05-03T16:00:00' },
+        race: { name: 'Race', date: '2025-05-04T20:00:00Z', dateET: '2025-05-04T16:00:00' }
       }
     },
     {
@@ -136,11 +136,11 @@ export const schedule = {
         country: 'Italy'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-05-16T13:30:00Z', dateET: '2025-05-16T09:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-05-16T17:00:00Z', dateET: '2025-05-16T13:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-05-17T12:30:00Z', dateET: '2025-05-17T08:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-05-17T16:00:00Z', dateET: '2025-05-17T12:00:00' },
-        race: { name: 'Race', date: '2025-05-18T15:00:00Z', dateET: '2025-05-18T09:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-05-16T11:30:00Z', dateET: '2025-05-16T07:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-05-16T15:00:00Z', dateET: '2025-05-16T11:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-05-17T10:30:00Z', dateET: '2025-05-17T06:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-05-17T14:00:00Z', dateET: '2025-05-17T10:00:00' },
+        race: { name: 'Race', date: '2025-05-18T13:00:00Z', dateET: '2025-05-18T09:00:00' }
       }
     },
     {
@@ -154,11 +154,11 @@ export const schedule = {
         country: 'Monaco'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-05-23T13:30:00Z', dateET: '2025-05-23T09:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-05-23T17:00:00Z', dateET: '2025-05-23T13:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-05-24T12:30:00Z', dateET: '2025-05-24T08:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-05-24T16:00:00Z', dateET: '2025-05-24T12:00:00' },
-        race: { name: 'Race', date: '2025-05-25T15:00:00Z', dateET: '2025-05-25T09:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-05-23T11:30:00Z', dateET: '2025-05-23T07:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-05-23T15:00:00Z', dateET: '2025-05-23T11:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-05-24T10:30:00Z', dateET: '2025-05-24T06:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-05-24T14:00:00Z', dateET: '2025-05-24T10:00:00' },
+        race: { name: 'Race', date: '2025-05-25T13:00:00Z', dateET: '2025-05-25T09:00:00' }
       }
     },
     {
@@ -172,11 +172,11 @@ export const schedule = {
         country: 'Spain'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-05-30T13:30:00Z', dateET: '2025-05-30T09:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-05-30T17:00:00Z', dateET: '2025-05-30T13:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-05-31T12:30:00Z', dateET: '2025-05-31T08:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-05-31T16:00:00Z', dateET: '2025-05-31T12:00:00' },
-        race: { name: 'Race', date: '2025-06-01T15:00:00Z', dateET: '2025-06-01T09:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-05-30T11:30:00Z', dateET: '2025-05-30T07:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-05-30T15:00:00Z', dateET: '2025-05-30T11:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-05-31T10:30:00Z', dateET: '2025-05-31T06:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-05-31T14:00:00Z', dateET: '2025-05-31T10:00:00' },
+        race: { name: 'Race', date: '2025-06-01T13:00:00Z', dateET: '2025-06-01T09:00:00' }
       }
     },
     {
@@ -190,11 +190,11 @@ export const schedule = {
         country: 'Canada'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-06-13T13:30:00Z', dateET: '2025-06-13T15:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-06-13T17:00:00Z', dateET: '2025-06-13T19:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-06-14T12:30:00Z', dateET: '2025-06-14T14:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-06-14T16:00:00Z', dateET: '2025-06-14T18:00:00' },
-        race: { name: 'Race', date: '2025-06-15T14:00:00Z', dateET: '2025-06-15T15:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-06-13T17:30:00Z', dateET: '2025-06-13T13:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-06-13T21:00:00Z', dateET: '2025-06-13T17:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-06-14T16:30:00Z', dateET: '2025-06-14T12:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-06-14T20:00:00Z', dateET: '2025-06-14T16:00:00' },
+        race: { name: 'Race', date: '2025-06-15T19:00:00Z', dateET: '2025-06-15T15:00:00' }
       }
     },
     {
@@ -208,11 +208,11 @@ export const schedule = {
         country: 'Austria'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-06-27T13:30:00Z', dateET: '2025-06-27T09:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-06-27T17:00:00Z', dateET: '2025-06-27T13:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-06-28T12:30:00Z', dateET: '2025-06-28T08:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-06-28T16:00:00Z', dateET: '2025-06-28T12:00:00' },
-        race: { name: 'Race', date: '2025-06-29T15:00:00Z', dateET: '2025-06-29T09:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-06-27T11:30:00Z', dateET: '2025-06-27T07:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-06-27T15:00:00Z', dateET: '2025-06-27T11:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-06-28T10:30:00Z', dateET: '2025-06-28T06:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-06-28T14:00:00Z', dateET: '2025-06-28T10:00:00' },
+        race: { name: 'Race', date: '2025-06-29T13:00:00Z', dateET: '2025-06-29T09:00:00' }
       }
     },
     {
@@ -226,11 +226,11 @@ export const schedule = {
         country: 'United Kingdom'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-07-04T12:30:00Z', dateET: '2025-07-04T10:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-07-04T16:00:00Z', dateET: '2025-07-04T14:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-07-05T11:30:00Z', dateET: '2025-07-05T09:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-07-05T15:00:00Z', dateET: '2025-07-05T13:00:00' },
-        race: { name: 'Race', date: '2025-07-06T15:00:00Z', dateET: '2025-07-06T10:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-07-04T11:30:00Z', dateET: '2025-07-04T07:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-07-04T15:00:00Z', dateET: '2025-07-04T11:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-07-05T10:30:00Z', dateET: '2025-07-05T06:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-07-05T14:00:00Z', dateET: '2025-07-05T10:00:00' },
+        race: { name: 'Race', date: '2025-07-06T14:00:00Z', dateET: '2025-07-06T10:00:00' }
       }
     },
     {
@@ -244,11 +244,11 @@ export const schedule = {
         country: 'Belgium'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-07-25T12:30:00Z', dateET: '2025-07-25T09:00:00' },
-        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-07-25T16:30:00Z', dateET: '2025-07-25T13:00:00' },
-        sprint: { name: 'Sprint', date: '2025-07-26T12:00:00Z', dateET: '2025-07-26T09:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-07-26T16:00:00Z', dateET: '2025-07-26T13:00:00' },
-        race: { name: 'Race', date: '2025-07-27T15:00:00Z', dateET: '2025-07-27T09:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-07-25T10:30:00Z', dateET: '2025-07-25T06:30:00' },
+        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-07-25T14:30:00Z', dateET: '2025-07-25T10:30:00' },
+        sprint: { name: 'Sprint', date: '2025-07-26T10:00:00Z', dateET: '2025-07-26T06:00:00' },
+        qualifying: { name: 'Qualifying', date: '2025-07-26T14:00:00Z', dateET: '2025-07-26T10:00:00' },
+        race: { name: 'Race', date: '2025-07-27T13:00:00Z', dateET: '2025-07-27T09:00:00' }
       }
     },
     {
@@ -262,11 +262,11 @@ export const schedule = {
         country: 'Hungary'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-08-01T13:30:00Z', dateET: '2025-08-01T09:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-08-01T17:00:00Z', dateET: '2025-08-01T13:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-08-02T12:30:00Z', dateET: '2025-08-02T08:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-08-02T16:00:00Z', dateET: '2025-08-02T12:00:00' },
-        race: { name: 'Race', date: '2025-08-03T15:00:00Z', dateET: '2025-08-03T09:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-08-01T11:30:00Z', dateET: '2025-08-01T07:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-08-01T15:00:00Z', dateET: '2025-08-01T11:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-08-02T10:30:00Z', dateET: '2025-08-02T06:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-08-02T14:00:00Z', dateET: '2025-08-02T10:00:00' },
+        race: { name: 'Race', date: '2025-08-03T13:00:00Z', dateET: '2025-08-03T09:00:00' }
       }
     },
     {
@@ -280,11 +280,11 @@ export const schedule = {
         country: 'Netherlands'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-08-29T12:30:00Z', dateET: '2025-08-29T09:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-08-29T16:00:00Z', dateET: '2025-08-29T13:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-08-30T11:30:00Z', dateET: '2025-08-30T08:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-08-30T15:00:00Z', dateET: '2025-08-30T12:00:00' },
-        race: { name: 'Race', date: '2025-08-31T15:00:00Z', dateET: '2025-08-31T09:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-08-29T10:30:00Z', dateET: '2025-08-29T06:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-08-29T14:00:00Z', dateET: '2025-08-29T10:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-08-30T09:30:00Z', dateET: '2025-08-30T05:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-08-30T13:00:00Z', dateET: '2025-08-30T09:00:00' },
+        race: { name: 'Race', date: '2025-08-31T13:00:00Z', dateET: '2025-08-31T09:00:00' }
       }
     },
     {
@@ -298,11 +298,11 @@ export const schedule = {
         country: 'Italy'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-09-05T13:30:00Z', dateET: '2025-09-05T09:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-09-05T17:00:00Z', dateET: '2025-09-05T13:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-09-06T12:30:00Z', dateET: '2025-09-06T08:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-09-06T16:00:00Z', dateET: '2025-09-06T12:00:00' },
-        race: { name: 'Race', date: '2025-09-07T15:00:00Z', dateET: '2025-09-07T09:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-09-05T11:30:00Z', dateET: '2025-09-05T07:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-09-05T15:00:00Z', dateET: '2025-09-05T11:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-09-06T10:30:00Z', dateET: '2025-09-06T06:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-09-06T14:00:00Z', dateET: '2025-09-06T10:00:00' },
+        race: { name: 'Race', date: '2025-09-07T13:00:00Z', dateET: '2025-09-07T09:00:00' }
       }
     },
     {
@@ -316,11 +316,11 @@ export const schedule = {
         country: 'Azerbaijan'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-09-19T12:30:00Z', dateET: '2025-09-19T07:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-09-19T16:00:00Z', dateET: '2025-09-19T11:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-09-20T12:30:00Z', dateET: '2025-09-20T07:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-09-20T16:00:00Z', dateET: '2025-09-20T11:00:00' },
-        race: { name: 'Race', date: '2025-09-21T15:00:00Z', dateET: '2025-09-21T07:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-09-19T08:30:00Z', dateET: '2025-09-19T04:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-09-19T12:00:00Z', dateET: '2025-09-19T08:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-09-20T08:30:00Z', dateET: '2025-09-20T04:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-09-20T12:00:00Z', dateET: '2025-09-20T08:00:00' },
+        race: { name: 'Race', date: '2025-09-21T11:00:00Z', dateET: '2025-09-21T07:00:00' }
       }
     },
     {
@@ -334,11 +334,11 @@ export const schedule = {
         country: 'Singapore'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-10-03T17:30:00Z', dateET: '2025-10-03T08:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-10-03T21:00:00Z', dateET: '2025-10-03T12:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-10-04T17:30:00Z', dateET: '2025-10-04T08:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-10-04T21:00:00Z', dateET: '2025-10-04T12:00:00' },
-        race: { name: 'Race', date: '2025-10-05T20:00:00Z', dateET: '2025-10-05T08:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-10-03T09:30:00Z', dateET: '2025-10-03T05:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-10-03T13:00:00Z', dateET: '2025-10-03T09:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-10-04T09:30:00Z', dateET: '2025-10-04T05:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-10-04T13:00:00Z', dateET: '2025-10-04T09:00:00' },
+        race: { name: 'Race', date: '2025-10-05T12:00:00Z', dateET: '2025-10-05T08:00:00' }
       }
     },
     {
@@ -352,11 +352,11 @@ export const schedule = {
         country: 'United States'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-10-17T12:30:00Z', dateET: '2025-10-17T15:00:00' },
-        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-10-17T16:30:00Z', dateET: '2025-10-17T19:00:00' },
-        sprint: { name: 'Sprint', date: '2025-10-18T12:00:00Z', dateET: '2025-10-18T15:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-10-18T16:00:00Z', dateET: '2025-10-18T19:00:00' },
-        race: { name: 'Race', date: '2025-10-19T14:00:00Z', dateET: '2025-10-19T15:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-10-17T17:30:00Z', dateET: '2025-10-17T13:30:00' },
+        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-10-17T21:30:00Z', dateET: '2025-10-17T17:30:00' },
+        sprint: { name: 'Sprint', date: '2025-10-18T17:00:00Z', dateET: '2025-10-18T13:00:00' },
+        qualifying: { name: 'Qualifying', date: '2025-10-18T21:00:00Z', dateET: '2025-10-18T17:00:00' },
+        race: { name: 'Race', date: '2025-10-19T19:00:00Z', dateET: '2025-10-19T15:00:00' }
       }
     },
     {
@@ -370,11 +370,11 @@ export const schedule = {
         country: 'Mexico'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-10-24T12:30:00Z', dateET: '2025-10-24T16:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-10-24T16:00:00Z', dateET: '2025-10-24T20:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-10-25T11:30:00Z', dateET: '2025-10-25T15:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-10-25T15:00:00Z', dateET: '2025-10-25T19:00:00' },
-        race: { name: 'Race', date: '2025-10-26T14:00:00Z', dateET: '2025-10-26T16:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-10-24T18:30:00Z', dateET: '2025-10-24T14:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-10-24T22:00:00Z', dateET: '2025-10-24T18:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-10-25T17:30:00Z', dateET: '2025-10-25T13:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-10-25T21:00:00Z', dateET: '2025-10-25T17:00:00' },
+        race: { name: 'Race', date: '2025-10-26T20:00:00Z', dateET: '2025-10-26T16:00:00' }
       }
     },
     {
@@ -388,11 +388,11 @@ export const schedule = {
         country: 'Brazil'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-11-07T11:30:00Z', dateET: '2025-11-07T12:00:00' },
-        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-11-07T15:30:00Z', dateET: '2025-11-07T16:00:00' },
-        sprint: { name: 'Sprint', date: '2025-11-08T11:00:00Z', dateET: '2025-11-08T12:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-11-08T15:00:00Z', dateET: '2025-11-08T16:00:00' },
-        race: { name: 'Race', date: '2025-11-09T14:00:00Z', dateET: '2025-11-09T12:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-11-07T13:30:00Z', dateET: '2025-11-07T09:30:00' },
+        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-11-07T17:30:00Z', dateET: '2025-11-07T13:30:00' },
+        sprint: { name: 'Sprint', date: '2025-11-08T13:00:00Z', dateET: '2025-11-08T09:00:00' },
+        qualifying: { name: 'Qualifying', date: '2025-11-08T17:00:00Z', dateET: '2025-11-08T13:00:00' },
+        race: { name: 'Race', date: '2025-11-09T16:00:00Z', dateET: '2025-11-09T12:00:00' }
       }
     },
     {
@@ -406,11 +406,11 @@ export const schedule = {
         country: 'United States'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-11-20T16:30:00Z', dateET: '2025-11-20T23:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-11-20T20:00:00Z', dateET: '2025-11-21T03:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-11-21T16:30:00Z', dateET: '2025-11-21T23:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-11-21T20:00:00Z', dateET: '2025-11-22T03:00:00' },
-        race: { name: 'Race', date: '2025-11-22T20:00:00Z', dateET: '2025-11-22T23:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-11-21T00:30:00Z', dateET: '2025-11-20T19:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-11-21T04:00:00Z', dateET: '2025-11-20T23:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-11-22T00:30:00Z', dateET: '2025-11-21T19:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-11-22T04:00:00Z', dateET: '2025-11-21T23:00:00' },
+        race: { name: 'Race', date: '2025-11-23T04:00:00Z', dateET: '2025-11-22T23:00:00' }
       }
     },
     {
@@ -424,11 +424,11 @@ export const schedule = {
         country: 'Qatar'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-11-28T16:30:00Z', dateET: '2025-11-28T11:00:00' },
-        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-11-28T20:30:00Z', dateET: '2025-11-28T15:00:00' },
-        sprint: { name: 'Sprint', date: '2025-11-29T17:00:00Z', dateET: '2025-11-29T11:00:00' },
-        qualifying: { name: 'Qualifying', date: '2025-11-29T21:00:00Z', dateET: '2025-11-29T15:00:00' },
-        race: { name: 'Race', date: '2025-11-30T19:00:00Z', dateET: '2025-11-30T11:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-11-28T12:30:00Z', dateET: '2025-11-28T08:30:00' },
+        sprint_qualifying: { name: 'Sprint Qualifying', date: '2025-11-28T16:30:00Z', dateET: '2025-11-28T12:30:00' },
+        sprint: { name: 'Sprint', date: '2025-11-29T13:00:00Z', dateET: '2025-11-29T09:00:00' },
+        qualifying: { name: 'Qualifying', date: '2025-11-29T17:00:00Z', dateET: '2025-11-29T13:00:00' },
+        race: { name: 'Race', date: '2025-11-30T15:00:00Z', dateET: '2025-11-30T11:00:00' }
       }
     },
     {
@@ -442,11 +442,11 @@ export const schedule = {
         country: 'United Arab Emirates'
       },
       sessions: {
-        practice1: { name: 'Practice 1', date: '2025-12-05T13:30:00Z', dateET: '2025-12-05T08:00:00' },
-        practice2: { name: 'Practice 2', date: '2025-12-05T17:00:00Z', dateET: '2025-12-05T12:00:00' },
-        practice3: { name: 'Practice 3', date: '2025-12-06T14:30:00Z', dateET: '2025-12-06T09:30:00' },
-        qualifying: { name: 'Qualifying', date: '2025-12-06T18:00:00Z', dateET: '2025-12-06T13:00:00' },
-        race: { name: 'Race', date: '2025-12-07T17:00:00Z', dateET: '2025-12-07T08:00:00' }
+        practice1: { name: 'Practice 1', date: '2025-12-05T08:30:00Z', dateET: '2025-12-05T04:30:00' },
+        practice2: { name: 'Practice 2', date: '2025-12-05T12:00:00Z', dateET: '2025-12-05T08:00:00' },
+        practice3: { name: 'Practice 3', date: '2025-12-06T09:30:00Z', dateET: '2025-12-06T05:30:00' },
+        qualifying: { name: 'Qualifying', date: '2025-12-06T13:00:00Z', dateET: '2025-12-06T09:00:00' },
+        race: { name: 'Race', date: '2025-12-07T12:00:00Z', dateET: '2025-12-07T08:00:00' }
       }
     }
   ],
@@ -474,6 +474,118 @@ export const schedule = {
       timeZone: timeZone === 'ET' ? 'America/New_York' : 'UTC',
       hour12: false
     });
+  },
+
+  getActiveSession() {
+    const now = new Date();
+    let activeRace = null;
+    let activeSession = null;
+    let nextSession = null;
+    
+    for (const race of this.races) {
+      if (race.type === 'testing') continue;
+      
+      // Get all sessions sorted by date
+      const sessions = Object.entries(race.sessions)
+        .filter(([_, session]) => session) // Filter out undefined sessions
+        .map(([key, session]) => ({
+          key,
+          ...session,
+          startTime: new Date(session.date), // Use UTC date
+          endTime: null as Date | null
+        }))
+        .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+      
+      // Calculate end times for all sessions
+      sessions.forEach(session => {
+        const duration = (() => {
+          switch (session.key) {
+            case 'practice1':
+            case 'practice2':
+            case 'practice3':
+            case 'qualifying':
+              return 60; // 1 hour
+            case 'sprint_qualifying':
+              return 45; // 45 minutes
+            case 'sprint':
+              return 30; // 30 minutes
+            case 'race':
+              return 120; // 2 hours
+            default:
+              return 60; // Default 1 hour
+          }
+        })();
+        session.endTime = new Date(session.startTime.getTime() + (duration * 60 * 1000));
+      });
+      
+      // Calculate weekend boundaries
+      const weekendStart = sessions[0].startTime;
+      const lastSession = sessions[sessions.length - 1].startTime;
+      const weekendEnd = new Date(lastSession.getTime() + (3 * 60 * 60 * 1000)); // 3 hours after last session
+      
+      if (now >= weekendStart && now < weekendEnd) {
+        activeRace = race;
+        
+        let foundActive = false;
+        for (let i = 0; i < sessions.length; i++) {
+          const session = sessions[i];
+          const now = new Date();
+          
+          // Check if session is active
+          if (now >= session.startTime && now < session.endTime) {
+            foundActive = true;
+            activeSession = {
+              type: session.key,
+              name: session.name,
+              startTime: session.startTime,
+              endTime: session.endTime,
+              status: session.name,
+              timeRemaining: Math.floor((session.endTime.getTime() - now.getTime()) / 60000) // minutes remaining
+            };
+            break; // Found active session, no need to check others
+          }
+          
+          // If session hasn't started yet and we haven't found active or next session
+          if (!foundActive && now < session.startTime && !nextSession) {
+            nextSession = {
+              type: session.key,
+              name: session.name,
+              startTime: session.startTime,
+              endTime: session.endTime,
+              status: session.name,
+              countdown: Math.floor((session.startTime.getTime() - now.getTime()) / 60000) // minutes until start
+            };
+            break; // Found next session, no need to check others
+          }
+        }
+        break; // Found active race weekend, no need to check others
+      }
+      
+      // If no active session found, check for next race weekend
+      if (!nextSession && now < weekendStart) {
+        const firstSession = sessions[0];
+        
+        nextSession = {
+          type: firstSession.key,
+          name: firstSession.name,
+          startTime: firstSession.startTime,
+          endTime: firstSession.endTime,
+          status: firstSession.name,
+          countdown: Math.floor((firstSession.startTime.getTime() - now.getTime()) / 60000)
+        };
+        activeRace = race;
+        break;
+      }
+    }
+    
+    if (!activeRace) return null;
+    
+    return {
+      race: activeRace,
+      session: activeSession,
+      nextSession,
+      isRaceWeekend: true
+    };
   }
 };
 
@@ -490,7 +602,7 @@ export interface Race {
   };
   sessions: {
     practice1: Session;
-    practice2: Session;
+    practice2?: Session;
     practice3?: Session;
     qualifying?: Session;
     sprint_qualifying?: Session;

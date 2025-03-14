@@ -4,56 +4,52 @@ import { schedule } from '@/lib/data/schedule';
 
 export const racesApi = {
   async getRaceSchedule(year: number = new Date().getFullYear()) {
-    // Only return schedule for 2025
+    // Only return 2025 schedule
     if (year === 2025) {
-      return schedule.races.map(race => ({
-        round: race.round.toString(),
-        raceName: race.officialName,
-        Circuit: {
-          circuitName: race.circuit.name,
-          Location: {
-            locality: race.circuit.location,
-            country: race.circuit.country
-          }
-        },
-        date: race.sessions.race?.date || race.sessions.practice1.date,
-        time: new Date(race.sessions.race?.date || race.sessions.practice1.date)
-          .toISOString().split('T')[1].slice(0, 8),
-        FirstPractice: {
-          date: race.sessions.practice1.date.split('T')[0],
-          time: race.sessions.practice1.date.split('T')[1].slice(0, 8)
-        },
-        SecondPractice: {
-          date: race.sessions.practice2.date.split('T')[0],
-          time: race.sessions.practice2.date.split('T')[1].slice(0, 8)
-        },
-        ThirdPractice: race.sessions.practice3 ? {
-          date: race.sessions.practice3.date.split('T')[0],
-          time: race.sessions.practice3.date.split('T')[1].slice(0, 8)
-        } : undefined,
-        Qualifying: race.sessions.qualifying ? {
-          date: race.sessions.qualifying.date.split('T')[0],
-          time: race.sessions.qualifying.date.split('T')[1].slice(0, 8)
-        } : undefined,
-        Sprint: race.sessions.sprint ? {
-          date: race.sessions.sprint.date.split('T')[0],
-          time: race.sessions.sprint.date.split('T')[1].slice(0, 8)
-        } : undefined
-      }));
+      return schedule.races
+        .filter(race => race.type !== 'testing') // Exclude testing sessions
+        .map(race => {
+          const raceDate = new Date(race.sessions.race?.date || race.sessions.practice1.date);
+          const raceTime = raceDate.toISOString().split('T')[1].slice(0, 8);
+
+          return {
+            round: race.round.toString(),
+            raceName: race.officialName,
+            Circuit: {
+              circuitName: race.circuit.name,
+              Location: {
+                locality: race.circuit.location,
+                country: race.circuit.country
+              }
+            },
+            date: raceDate.toISOString().split('T')[0],
+            time: raceTime,
+            FirstPractice: {
+              date: race.sessions.practice1.date.split('T')[0],
+              time: race.sessions.practice1.date.split('T')[1].slice(0, 8)
+            },
+            SecondPractice: {
+              date: race.sessions.practice2.date.split('T')[0],
+              time: race.sessions.practice2.date.split('T')[1].slice(0, 8)
+            },
+            ThirdPractice: race.sessions.practice3 ? {
+              date: race.sessions.practice3.date.split('T')[0],
+              time: race.sessions.practice3.date.split('T')[1].slice(0, 8)
+            } : undefined,
+            Qualifying: race.sessions.qualifying ? {
+              date: race.sessions.qualifying.date.split('T')[0],
+              time: race.sessions.qualifying.date.split('T')[1].slice(0, 8)
+            } : undefined,
+            Sprint: race.sessions.sprint ? {
+              date: race.sessions.sprint.date.split('T')[0],
+              time: race.sessions.sprint.date.split('T')[1].slice(0, 8)
+            } : undefined
+          };
+        });
     }
-    
-    // For other years, try the API
-    try {
-      const { data } = await ergastClient.get(`/${year}.json`);
-      if (!data?.MRData?.RaceTable?.Races) {
-        throw new Error(`No race schedule found for ${year}`);
-      }
-      
-      return data.MRData.RaceTable.Races;
-    } catch (error) {
-      console.error('Error fetching race schedule:', error);
-      throw new Error(`Could not fetch ${year} race schedule`);
-    }
+
+    // For other years, return empty array since we only have 2025 data
+    return [];
   },
 
   async getRaceResults(year?: number, round?: number) {

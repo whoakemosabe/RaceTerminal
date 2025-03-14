@@ -134,12 +134,6 @@ export const commands: Command[] = [
     source: 'F1 Racing Results API'
   },
   {
-    command: '/sprint <year> <round>',
-    description: 'View Formula 1 sprint race results and statistics',
-    source: 'F1 Racing Results API',
-    category: 'Historical Data'
-  },
-  {
     command: '/pace <year> <round>',
     description: 'Analyze detailed race pace and consistency',
     source: 'Ergast F1 API',
