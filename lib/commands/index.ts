@@ -60,7 +60,7 @@ export const commands: Command[] = [
   },
   { 
     command: '/schedule (/sc)', 
-    description: 'View 2024 Formula 1 race calendar and schedule',
+    description: 'View 2025 Formula 1 race calendar and schedule',
     source: 'Ergast F1 API'
   },
   {

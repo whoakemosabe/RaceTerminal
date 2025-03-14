@@ -297,10 +297,7 @@ export default function Home() {
     switch (e.key) {
       case 'ArrowUp':
         e.preventDefault();
-        if (isNavigatingSuggestions) {
-          // Handle suggestion navigation
-          onNavigationStateChange(true);
-        } else if (history.length > 0) {
+        if (history.length > 0) {
           // Handle command history navigation
           const nextIndex = Math.min(historyIndex + 1, history.length - 1);
           setHistoryIndex(nextIndex);
@@ -311,10 +308,7 @@ export default function Home() {
 
       case 'ArrowDown':
         e.preventDefault();
-        if (isNavigatingSuggestions) {
-          // Handle suggestion navigation
-          onNavigationStateChange(true);
-        } else if (historyIndex > -1) {
+        if (historyIndex > -1) {
           // Handle command history navigation
           const nextIndex = historyIndex - 1;
           setHistoryIndex(nextIndex);
@@ -511,6 +505,8 @@ export default function Home() {
               setCommand(value);
               if (historyIndex !== -1) {
                 setHistoryIndex(-1);
+                setShowSuggestions(value.startsWith('/'));
+                setShowSuggestions(value.startsWith('/'));
               }
             }}
             onKeyDown={handleKeyDown}

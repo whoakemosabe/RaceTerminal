@@ -9,7 +9,13 @@ export const commandCategories: CommandCategory[] = [
   {
     title: 'RACE INFORMATION',
     filter: ['standings', 'schedule', 'next', 'last', 'track', 'teams', 'car', 'race'],
-    description: 'Commands for accessing race data, standings, and schedules'
+    description: 'Commands for accessing race data, standings, and schedules',
+    examples: [
+      '/schedule - View 2025 F1 calendar',
+      '/next - Next race details',
+      '/last - Last race results',
+      '/track monza - Circuit info'
+    ]
   },
   {
     title: 'LIVE DATA',

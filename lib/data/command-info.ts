@@ -18,7 +18,7 @@ export const commandInfo: Record<string, CommandInfo> = {
     category: 'RACE INFORMATION'
   },
   '/schedule': {
-    description: 'Access the complete 2024 Formula 1 race calendar with dates, times, locations, and track information. Includes sprint races and testing sessions.',
+    description: 'Access the complete 2025 Formula 1 race calendar with dates, times, locations, and track information. Includes sprint races and testing sessions.',
     shortDescription: 'View race calendar',
     category: 'RACE INFORMATION'
   },

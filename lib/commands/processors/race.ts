@@ -419,4 +419,72 @@ export const raceCommands: RaceCommands = {
       return '❌ Error: Could not fetch constructor standings. Please try again later.';
     }
   },
+
+  '/schedule': async (args: string[], originalCommand: string) => {
+    try {
+      const year = new Date().getFullYear();
+      let schedule = await api.getRaceSchedule(year);
+      
+      if (!schedule || schedule.length === 0) {
+        // If current year has no races, try previous year
+        schedule = await api.getRaceSchedule(year - 1);
+        if (!schedule || schedule.length === 0) {
+          return `❌ Error: Could not fetch race schedule for ${year} or ${year - 1}. Please try again later.`;
+        }
+      }
+
+      const header = [
+        `🏁 ${year} FORMULA 1 WORLD CHAMPIONSHIP`,
+        '═'.repeat(60),
+        ''
+      ];
+
+      const races = schedule.map((race, index) => {
+        const raceDate = new Date(`${race.date}${race.time ? 'T' + race.time : ''}`);
+        const now = new Date();
+        const isPast = raceDate < now;
+        const isNext = !isPast && index === schedule.findIndex(r => new Date(r.date) > now);
+        
+        const status = isPast ? '✓' : isNext ? '➤' : ' ';
+        const round = race.round.padStart(2, '0');
+        const date = raceDate.toLocaleDateString('en-GB', {
+          weekday: 'short',
+          day: '2-digit',
+          month: 'short'
+        });
+        const time = race.time ? 
+          new Date(`2024-01-01T${race.time}`).toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          }) : 
+          'TBA';
+        
+        const flagUrl = getFlagUrl(race.Circuit.Location.country);
+        const flag = flagUrl ? 
+          `<img src="${flagUrl}" alt="${race.Circuit.Location.country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
+          '';
+        
+        return [
+          `${status} R${round} | ${date} ${time} | ${flag} ${race.raceName}`,
+          `    📍 ${race.Circuit.circuitName}, ${race.Circuit.Location.locality}`
+        ].join('\n');
+      });
+
+      return [
+        ...header,
+        ...races,
+        '',
+        'Legend:',
+        '✓ Completed',
+        '➤ Next Race',
+        '  Upcoming'
+      ].join('\n');
+
+    } catch (error) {
+      console.error('Error fetching race schedule:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return `❌ Error: Could not fetch race schedule: ${errorMessage}. Please try again later.`;
+    }
+  },
 };

@@ -1,6 +1,7 @@
 import { driverNicknames, teamNicknames, trackNicknames, getFlagUrl, getTeamColor, getTrackDetails, findDriverId, countryToCode, driverNumbers, icons, teamThemes, formatWithTeamColor } from '@/lib/utils';
 import { colorThemes } from '@/lib/themes/colors';
 import { calculatorThemes } from '@/lib/themes/calculator';
+import { api } from '@/lib/api/client';
 
 export const listCommands = {
   '/list': async (args: string[], originalCommand: string) => {
@@ -12,60 +13,45 @@ export const listCommands = {
 
     switch (type) {
       case 'drivers': {
-        // Get current drivers with their teams
-        const currentDrivers = Object.entries(driverNicknames)
-          .filter(([id, nicknames]) => [
-            'albon', 'alonso', 'bearman', 'bottas', 'gasly', 'hamilton', 
-            'hulkenberg', 'leclerc', 'magnussen', 'max_verstappen', 'norris', 
-            'ocon', 'perez', 'piastri', 'ricciardo', 'russell', 'sainz', 
-            'sargeant', 'stroll', 'tsunoda', 'zhou'
-          ].includes(id) && !nicknames.some(nick => nick.includes(',') && /\d{4}/.test(nick)))
-          .map(([id, nicknames]) => {
-            const name = nicknames[0];
-            const code = nicknames.find(n => n.length === 3 && n === n.toUpperCase()) || '';
-            const nationality = nicknames.find(n => countryToCode[n]) || '';
-            const number = driverNumbers[id] || '';
-            const team = (() => {
-              switch(id) {
-                case 'max_verstappen':
-                case 'perez':
-                  return 'Red Bull Racing';
-                case 'hamilton':
-                case 'russell':
-                  return 'Mercedes-AMG Petronas';
-                case 'leclerc':
-                case 'sainz':
-                case 'bearman':
-                  return 'Scuderia Ferrari';
-                case 'norris':
-                case 'piastri':
-                  return 'McLaren F1 Team';
-                case 'alonso':
-                case 'stroll':
-                  return 'Aston Martin F1 Team';
-                case 'ocon':
-                case 'gasly':
-                  return 'Alpine F1 Team';
-                case 'albon':
-                case 'sargeant':
-                  return 'Williams Racing';
-                case 'ricciardo':
-                case 'tsunoda':
-                  return 'AlphaTauri';
-                case 'bottas':
-                case 'zhou':
-                  return 'Alfa Romeo F1 Team';
-                case 'hulkenberg':
-                case 'magnussen':
-                  return 'Haas F1 Team';
-                default:
-                  return 'Unknown Team';
-              }
-            })();
-            return { id, name, code, nationality, number, team };
-          })
-          .sort((a, b) => a.name.localeCompare(b.name));
+        // Get real-time current drivers from OpenF1 API
+        const currentDrivers = await api.getCurrentDrivers();
+        
+        if (!currentDrivers || currentDrivers.length === 0) {
+          return '❌ Error: Could not fetch current driver data. Please try again later.';
+        }
 
+        const formattedDrivers = currentDrivers
+          .sort((a, b) => a.full_name.localeCompare(b.full_name))
+          .map(driver => ({
+            name: `${driver.first_name} ${driver.last_name}`,
+            code: driver.name_acronym,
+            nationality: mapCountryCode(driver.country_code),
+            number: driver.driver_number.toString(),
+            team: driver.team_name,
+            teamColor: `#${driver.team_colour}`
+          }));
+
+        // Helper function to map OpenF1 country codes to proper nationality
+        function mapCountryCode(code: string): string {
+          const countryMap: Record<string, string> = {
+            'NED': 'Dutch',
+            'ITA': 'Italian',
+            'ESP': 'Spanish',
+            'MEX': 'Mexican',
+            'MCO': 'Monegasque',
+            'AUS': 'Australian',
+            'GBR': 'British',
+            'THA': 'Thai',
+            'CHN': 'Chinese',
+            'JPN': 'Japanese',
+            'FRA': 'French',
+            'CAN': 'Canadian',
+            'GER': 'German',
+            'DEN': 'Danish',
+            'USA': 'American'
+          };
+          return countryMap[code] || code;
+        }
         // Get retired champions sorted by championships
         const retiredChampions = Object.entries(driverNicknames)
           .filter(([id, nicknames]) => {
@@ -111,15 +97,15 @@ export const listCommands = {
 
         // Format sections
         const currentSection = [
-          '🏎️ Current F1 Drivers (2024 Season)',
+          '🏎️ Current F1 Drivers (2025 Season)',
           '═'.repeat(60),
-          ...currentDrivers.map(d => {
+          ...formattedDrivers.map(d => {
             const flagUrl = getFlagUrl(d.nationality);
             const flag = flagUrl ? 
               `<img src="${flagUrl}" alt="${d.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
               '';
-            const numberDisplay = d.number ? `#${d.number.padStart(2, '0')}` : '   ';
-            return `${numberDisplay} | ${d.name} (${d.code}) ${flag} | ${formatWithTeamColor(d.team)}`;
+            const numberDisplay = `#${d.number.padStart(2, '0')}`;
+            return `${numberDisplay} | ${d.name} ${flag} (${d.code}) | <span style="color: ${d.teamColor}">${d.team}</span>`;
           })
         ];
 
