@@ -373,6 +373,8 @@ export const raceCommands: RaceCommands = {
       return '❌ Error: No results available for the last race';
     }
 
+    const raceInfo = `Round ${data.round} of ${data.season}`;
+
     const results = data.Results.slice(0, 5).map(result => [
       `🏆 Position: P${result.position}`,
       `👤 Driver: ${formatDriver(result.Driver.givenName + ' ' + result.Driver.familyName, result.Driver.nationality)}`,
@@ -380,7 +382,12 @@ export const raceCommands: RaceCommands = {
       `⏱️ Time: ${formatTime(result.Time?.time || result.status)}`
     ].join('\n'));
 
-    return `🏁 ${data.raceName} Results:\n\n${results.join('\n\n')}`;
+    return [
+      `🏁 ${data.raceName} (${raceInfo})`,
+      `📅 ${data.date}${data.time ? ' ' + data.time : ''}`,
+      '',
+      results.join('\n\n')
+    ].join('\n');
   },
 
   '/standings': async (args: string[]) => {
