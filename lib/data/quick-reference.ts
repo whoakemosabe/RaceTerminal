@@ -163,6 +163,68 @@ export const commandExamples: Record<string, CommandExample> = {
       '• /car - View car specifications',
       '• /theme - Apply team colors'
     ]
+  },
+  '/laps': {
+    command: '/laps <year> <round> [driver]',
+    description: 'View detailed lap time data',
+    examples: [
+      'View All Drivers:',
+      '/laps 2024 1 - View all drivers\' lap times from 2024 Bahrain GP',
+      '/laps 2023 22 - View all drivers\' lap times from 2023 Abu Dhabi GP',
+      '',
+      'Single Driver Analysis:',
+      '/laps 2024 1 verstappen - View Max Verstappen\'s lap times',
+      '/laps 2024 1 HAM - View Lewis Hamilton\'s lap times using code',
+      '/laps 2024 1 44 - View Lewis Hamilton\'s lap times using number',
+      '',
+      'Historical Data:',
+      '/laps 2023 5 - View Miami GP lap times',
+      '/laps 2023 20 leclerc - View Charles Leclerc\'s Las Vegas GP times',
+      '/laps 2023 22 NOR - View Lando Norris\'s Abu Dhabi GP times'
+    ],
+    notes: [
+      'Available Data:',
+      '• Individual lap times',
+      '• Sector times',
+      '• Position changes',
+      '• Gap to leader',
+      '• Interval tracking',
+      '• Consistency analysis',
+      '• Performance trends',
+      '• Tire degradation',
+      '• Battle tracking',
+      '',
+      'Features:',
+      '• Lap time evolution',
+      '• Track conditions',
+      '• Fuel correction',
+      '• Traffic impact',
+      '• Stint analysis',
+      '• Comparative timing',
+      '• Statistical analysis',
+      '',
+      'Search Options:',
+      '• Full name (e.g., verstappen)',
+      '• Driver code (e.g., VER)',
+      '• Race number (e.g., 1)',
+      '',
+      'Output Format:',
+      '• Lap-by-lap timing',
+      '• Best/worst laps',
+      '• Average pace',
+      '• Consistency rating',
+      '• Performance trends'
+    ],
+    related: [
+      '• /pace - Race analysis',
+      '• /gap - Interval tracking',
+      '• /plot - Time progression',
+      '• /pitstops - Strategy impact',
+      '• /overtake - Position changes',
+      '• /fastest - Best lap data',
+      '• /sector - Sector analysis',
+      '• /compare - Driver comparison'
+    ]
   }
 };
 

@@ -1,6 +1,8 @@
 import { api } from '@/lib/api/client';
 import { getFlagUrl, getTeamColor } from '@/lib/utils';
 import { CommandFunction } from '../index';
+import { raceResultsCommand } from './results';
+import { lapsCommand } from './laps';
 import { fastestLapCommand } from './fastest';
 
 interface RaceCommands {
@@ -8,9 +10,9 @@ interface RaceCommands {
 }
 
 export const raceCommands: RaceCommands = {
-  '/race': async (args: string[], originalCommand: string) => {
-    // ... existing race command implementation ...
-  },
+  '/race': raceResultsCommand,
+  '/laps': lapsCommand,
+  '/fastest': fastestLapCommand,
   '/qualifying': async (args: string[], originalCommand: string) => {
     // ... existing qualifying command implementation ...
   },
@@ -20,7 +22,6 @@ export const raceCommands: RaceCommands = {
   '/pitstops': async (args: string[], originalCommand: string) => {
     // ... existing pitstops command implementation ...
   },
-  '/fastest': fastestLapCommand,
   '/track': async (args: string[], originalCommand: string) => {
     // ... existing track command implementation ...
   },

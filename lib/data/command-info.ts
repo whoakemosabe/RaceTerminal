@@ -117,7 +117,7 @@ export const commandInfo: Record<string, CommandInfo> = {
     category: 'HISTORICAL DATA'
   },
   '/laps': {
-    description: 'Access comprehensive Formula 1 lap time data with detailed analysis of consistency, tire degradation, and performance trends throughout a race.',
+    description: 'Access detailed Formula 1 lap time data including individual times, sector performance, consistency metrics, and performance trends for any driver or the entire field.',
     shortDescription: 'Detailed lap times',
     category: 'HISTORICAL DATA'
   },

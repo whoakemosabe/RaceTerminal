@@ -137,7 +137,9 @@ export function HelpPanel() {
               <div className="hidden sm:block">Type <code className="bg-card/30 px-1 py-0.5 rounded text-primary">/help</code> for detailed documentation</div>
               <div className="flex items-center gap-2 sm:gap-4">
                 <span>Case-insensitive</span>
+                <span>•</span>
                 <span>Tab to auto-complete</span>
+                <span>•</span>
                 <span>Use <code className="bg-card/30 px-1 py-0.5 rounded text-primary">/list</code> for data</span>
               </div>
             </div>

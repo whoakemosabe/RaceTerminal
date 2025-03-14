@@ -1,7 +1,7 @@
 import { systemCommands } from './system/index';
 import { helpCommands } from './system/help';
 import { driverCommands } from './driver';
-import { raceCommands } from './race';
+import { raceCommands } from './race/index';
 import { liveCommands } from './live';
 import { effectsCommands } from './effects';
 import { listCommands } from './list';
@@ -28,13 +28,13 @@ Object.assign(processors, listCommands);
 Object.assign(processors, carCommands);
 Object.assign(processors, fontsizeCommands);
 Object.assign(processors, analysisCommands);
+Object.assign(processors, raceCommands);
 
 // Add individual analysis command mappings
 processors['/pace'] = analysisCommands['/pace'];
 processors['/gap'] = analysisCommands['/gap'];
 processors['/sector'] = analysisCommands['/sector'];
 processors['/overtake'] = analysisCommands['/overtake'];
-processors['/plot'] = analysisCommands['/plot'];
 
 export async function processCommand(cmd: string) {
   const parts = cmd.split(' ');
