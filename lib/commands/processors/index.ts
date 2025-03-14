@@ -7,6 +7,7 @@ import { effectsCommands } from './effects';
 import { listCommands } from './list';
 import { carCommands } from './cars';
 import { analysisCommands } from './analysis/index';
+import { fontsizeCommands } from './system/fontsize';
 import { commandAliases } from '@/components/terminal/command-processor';
 
 // Define the CommandFunction type
@@ -24,6 +25,7 @@ Object.assign(processors, liveCommands);
 Object.assign(processors, effectsCommands);
 Object.assign(processors, listCommands);
 Object.assign(processors, carCommands);
+Object.assign(processors, fontsizeCommands);
 Object.assign(processors, analysisCommands);
 
 // Add individual analysis command mappings

@@ -527,6 +527,7 @@ export const schedule = {
         activeRace = race;
         
         let foundActive = false;
+        let foundNext = false;
         for (let i = 0; i < sessions.length; i++) {
           const session = sessions[i];
           const now = new Date();
@@ -542,11 +543,12 @@ export const schedule = {
               status: session.name,
               timeRemaining: Math.floor((session.endTime.getTime() - now.getTime()) / 60000) // minutes remaining
             };
-            break; // Found active session, no need to check others
+            continue; // Continue to find next session
           }
           
           // If session hasn't started yet and we haven't found active or next session
-          if (!foundActive && now < session.startTime && !nextSession) {
+          if (now < session.startTime && !foundNext) {
+            foundNext = true;
             nextSession = {
               type: session.key,
               name: session.name,
@@ -562,7 +564,7 @@ export const schedule = {
       }
       
       // If no active session found, check for next race weekend
-      if (!nextSession && now < weekendStart) {
+      if (!foundNext && now < weekendStart) {
         const firstSession = sessions[0];
         
         nextSession = {

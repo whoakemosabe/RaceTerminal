@@ -410,6 +410,16 @@ export const raceCommands: RaceCommands = {
     const now = new Date();
     const sessionInfo = schedule.getActiveSession();
 
+    // Get next race and calculate countdown
+    const nextRace = schedule.races.find(race => {
+      if (race.type === 'testing') return false;
+      const raceDate = new Date(race.sessions.race?.date || race.sessions.practice1.date);
+      return raceDate > now;
+    });
+
+    // Calculate countdown to next race
+    const countdown = nextRace ? calculateCountdown(new Date(nextRace.sessions.race?.date || nextRace.sessions.practice1.date)) : null;
+
     // Format all races and sessions
     const races = schedule.races.map((race, index) => {
       if (race.type === 'testing') return null;
@@ -420,10 +430,11 @@ export const raceCommands: RaceCommands = {
         `<img src="${flagUrl}" alt="${race.circuit.country} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
         '';
       
-      const isActiveRace = sessionInfo?.race.round === race.round;
+      // Check if this is the next race and add countdown
+      const isNextRace = nextRace && nextRace.round === race.round;
       const isSprint = race.type === 'sprint_qualifying';
-      const raceHeader = isActiveRace ?
-        `<span style="color: hsl(var(--primary))">🏁 R${round} | ${flag} ${race.officialName}${isSprint ? ' <span style="color: hsl(var(--warning))">⚡ SPRINT</span>' : ''}</span>` :
+      const raceHeader = isNextRace ?
+        `<span style="color: hsl(var(--primary))">🏁 R${round} | ${flag} ${race.officialName}${isSprint ? ' <span style="color: hsl(var(--warning))">⚡ SPRINT</span>' : ''} | ⏳ ${countdown}</span>` :
         `${' '} R${round} | ${flag} ${race.officialName}${isSprint ? ' <span style="color: hsl(var(--warning))">⚡ SPRINT</span>' : ''}`;
       const locationLine = `    📍 ${race.circuit.name}, ${race.circuit.location}`;
       
@@ -434,12 +445,19 @@ export const raceCommands: RaceCommands = {
           const sessionDate = new Date(session.dateET);
           const sessionEnd = new Date(sessionDate);
           sessionEnd.setHours(sessionEnd.getHours() + 2);
+          const sessionStart = new Date(session.dateET);
           
           const isPast = now > sessionEnd;
-          const isActive = sessionInfo?.session?.name === session.name && 
-                          sessionInfo?.race.round === race.round;
-          const isNext = sessionInfo?.nextSession?.name === session.name && 
-                        sessionInfo?.race.round === race.round;
+          const isActive = sessionInfo?.session?.name === session.name && sessionInfo?.race.round === race.round;
+          
+          // Determine if this is the next session
+          const isNext = !isPast && !isActive && sessionStart > now && (
+            // Either this is the next chronological session overall
+            !sessionInfo?.nextSession ||
+            // Or this specific session is marked as next
+            (sessionInfo?.nextSession?.name === session.name && 
+             sessionInfo?.race.round === race.round)
+          );
           
           // Format session name
           let sessionName = session.name;

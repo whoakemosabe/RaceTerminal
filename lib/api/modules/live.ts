@@ -113,6 +113,7 @@ export const liveApi = {
           openF1Client.get('/weather', { params: { limit: 1 } })
         ]);
 
+
         const trackStatus = statusResponse.data?.[0];
         const weather = weatherResponse.data?.[0] || {};
 
