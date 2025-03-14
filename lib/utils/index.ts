@@ -6,6 +6,5 @@ export * from './teams';
 export * from './formatting';
 export * from './styles';
 export * from './countries';
-
-// Re-export formatWithTeamColor as the main team tag formatter
-export { formatWithTeamColor } from './formatting';
+export * from './dates';
+export * from './stats';

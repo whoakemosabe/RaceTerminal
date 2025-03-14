@@ -8,11 +8,11 @@ export interface CommandCategory {
 export const commandCategories: CommandCategory[] = [
   {
     title: 'RACE INFORMATION',
-    filter: ['standings', 'schedule', 'next', 'last', 'track', 'teams', 'car', 'race'],
+    filter: ['standings', 'schedule', 'next', 'last', 'track', 'car', 'race'],
     description: 'Commands for accessing race data, standings, and schedules',
     examples: [
       '/schedule - View 2025 F1 calendar',
-      '/next - Next race details',
+      '/next - Next race details & schedule',
       '/last - Last race results',
       '/track monza - Circuit info'
     ]
@@ -39,7 +39,7 @@ export const commandCategories: CommandCategory[] = [
   },
   {
     title: 'SYSTEM',
-    filter: ['user', 'clear', 'help', 'theme', 'sys', 'hack', 'fontsize', 'stats', 'decrypt', 'reset'],
+    filter: ['user', 'clear', 'help', 'theme', 'sys', 'fontsize', 'stats', 'reset'],
     description: 'System commands and terminal management'
   }
 ];

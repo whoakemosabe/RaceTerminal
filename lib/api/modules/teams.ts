@@ -58,33 +58,36 @@ export const teamsApi = {
         const [
           resultsResponse,
           championshipsResponse,
-          polesResponse,
-          fastestLapsResponse,
-          podiumsResponse
+          winsResponse,
+          polesResponse
         ] = await Promise.all([
           ergastClient.get(`/constructors/${teamId}/results.json?limit=2000`),
           ergastClient.get(`/constructors/${teamId}/constructorStandings/1.json`),
-          ergastClient.get(`/constructors/${teamId}/qualifying/1.json`),
-          ergastClient.get(`/constructors/${teamId}/fastest/1/results.json`),
-          ergastClient.get(`/constructors/${teamId}/results.json?limit=2000`)
+          ergastClient.get(`/constructors/${teamId}/results/1.json?limit=2000`),
+          ergastClient.get(`/constructors/${teamId}/qualifying/1.json`)
         ]);
 
         const totalRaces = parseInt(resultsResponse.data?.MRData?.total || '0');
         const championships = parseInt(championshipsResponse.data?.MRData?.total || '0');
+        const wins = parseInt(winsResponse.data?.MRData?.total || '0');
         const poles = parseInt(polesResponse.data?.MRData?.total || '0');
-        const fastestLaps = parseInt(fastestLapsResponse.data?.MRData?.total || '0');
-        const allResults = podiumsResponse.data?.MRData?.RaceTable?.Races || [];
+        const allResults = resultsResponse.data?.MRData?.RaceTable?.Races || [];
 
-        // Calculate wins and podiums from all results
-        const wins = allResults.filter(race => 
-          race.Results?.[0]?.position === "1"
-        ).length;
-
-        const podiums = allResults.filter(race =>
-          race.Results?.some(result => 
+        // Calculate podiums by checking all results for top 3 finishes
+        const podiums = allResults.reduce((total, race) => {
+          const podiumFinishes = race.Results?.filter(result => 
             ["1", "2", "3"].includes(result.position)
-          )
-        ).length;
+          ).length || 0;
+          return total + podiumFinishes;
+        }, 0);
+
+        // Calculate fastest laps
+        const fastestLaps = allResults.reduce((total, race) => {
+          const fastestLapsInRace = race.Results?.filter(result => 
+            result.FastestLap?.rank === "1"
+          ).length || 0;
+          return total + fastestLapsInRace;
+        }, 0);
 
         return {
           Races: allResults,

@@ -10,17 +10,17 @@ export interface Command {
 export const commands: Command[] = [
   // System Commands
   {
-    command: '/list (/ls)',
+    command: '/list',
     description: 'List current F1 drivers, teams, circuits, and historical data',
     source: 'System'
   },
   {
-    command: '/help (/h)',
+    command: '/help',
     description: 'Show detailed help and command reference by category',
     source: 'System'
   },
   {
-    command: '/user <name|reset> (/u)',
+    command: '/user <name|reset>',
     description: 'Set your terminal username or reset to default',
     source: 'System'
   },
@@ -32,7 +32,7 @@ export const commands: Command[] = [
   
   // Driver & Team Commands
   { 
-    command: '/driver <name> (/d)', 
+    command: '/driver <name>', 
     description: 'View F1 driver details, stats, and career info',
     source: 'Ergast F1 API'
   },
@@ -42,29 +42,29 @@ export const commands: Command[] = [
     source: 'Ergast F1 API'
   },
   {
-    command: '/compare <type> <name1> <name2> (/m)',
+    command: '/compare <type> <name1> <name2>',
     description: 'Compare career statistics between F1 drivers or teams',
     source: 'Ergast F1 API'
   },
   
   // Race Information
   { 
-    command: '/standings (/s)', 
+    command: '/standings', 
     description: 'View current Formula 1 Drivers Championship standings',
     source: 'Ergast F1 API'
   },
   {
-    command: '/teams (/cs)',
+    command: '/teams',
     description: 'View current Formula 1 Constructors Championship standings',
     source: 'Ergast F1 API'
   },
   { 
-    command: '/schedule (/sc)', 
+    command: '/schedule', 
     description: 'View 2025 Formula 1 race calendar and schedule',
     source: 'Ergast F1 API'
   },
   {
-    command: '/next (/n)',
+    command: '/next',
     description: 'View details and countdown for the next Formula 1 race',
     source: 'Ergast F1 API'
   },
@@ -74,19 +74,19 @@ export const commands: Command[] = [
     source: 'Ergast F1 API'
   },
   { 
-    command: '/track <name> (/t)', 
+    command: '/track <name>', 
     description: 'View Formula 1 circuit details, layout, and records',
     source: 'Ergast F1 API'
   },
   {
-    command: '/car <name|year> (/c)',
+    command: '/car <name|year>',
     description: 'View Formula 1 car specifications and performance data',
     source: 'System'
   },
   
   // Live Session Data
   { 
-    command: '/live (/l)', 
+    command: '/live', 
     description: 'View real-time Formula 1 timing and positions',
     source: 'OpenF1 API'
   },
@@ -96,7 +96,7 @@ export const commands: Command[] = [
     source: 'OpenF1 API'
   },
   {
-    command: '/weather (/w)',
+    command: '/weather',
     description: 'View current weather conditions at Formula 1 circuit',
     source: 'OpenF1 API',
     category: 'LIVE DATA'
@@ -109,12 +109,12 @@ export const commands: Command[] = [
   
   // Historical Data
   { 
-    command: '/race <year> [round] (/r)', 
+    command: '/race <year> [round]', 
     description: 'View historical Formula 1 race results by year and round',
     source: 'F1 Racing Results API'
   },
   { 
-    command: '/qualifying <year> <round> (/q)', 
+    command: '/qualifying <year> <round>', 
     description: 'View Formula 1 qualifying results by year and round',
     source: 'F1 Racing Results API'
   },
@@ -124,12 +124,12 @@ export const commands: Command[] = [
     source: 'F1 Racing Results API'
   },
   { 
-    command: '/pitstops <year> <round> (/p)', 
+    command: '/pitstops <year> <round>', 
     description: 'View Formula 1 pit stop timings and strategies',
     source: 'F1 Racing Results API'
   },
   {
-    command: '/fastest <year> <round> (/f)',
+    command: '/fastest <year> <round>',
     description: 'View fastest lap records from a Formula 1 race',
     source: 'F1 Racing Results API'
   },
@@ -146,13 +146,13 @@ export const commands: Command[] = [
     category: 'Analysis'
   },
   {
-    command: '/sector <year> <round> (/sa)',
+    command: '/sector <year> <round>',
     description: 'Analyze qualifying sector time comparisons',
     source: 'F1 Racing Results API',
     category: 'Analysis'
   },
   {
-    command: '/overtake <year> <round> (/oa, /ov)',
+    command: '/overtake <year> <round>',
     description: 'Analyze race overtaking statistics',
     source: 'F1 Racing Results API',
     category: 'Analysis'
@@ -198,18 +198,6 @@ export const commands: Command[] = [
     description: 'View system info and terminal diagnostics',
     source: 'System',
     category: 'System'
-  },
-  {
-    command: '/hack <target>',
-    description: 'Run simulated hacking sequence with effects',
-    source: 'System',
-    category: 'Fun'
-  },
-  {
-    command: '/decrypt',
-    description: 'Play interactive code-breaking minigame',
-    source: 'System',
-    category: 'Games'
   },
   {
     command: '/matrix rain',

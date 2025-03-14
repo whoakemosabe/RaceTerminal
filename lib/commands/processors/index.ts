@@ -9,6 +9,7 @@ import { carCommands } from './cars';
 import { analysisCommands } from './analysis/index';
 import { fontsizeCommands } from './system/fontsize';
 import { commandAliases } from '@/components/terminal/command-processor';
+import { driverNicknames } from '@/lib/data/drivers';
 
 // Define the CommandFunction type
 export type CommandFunction = (args: string[], originalCommand: string) => Promise<string>;

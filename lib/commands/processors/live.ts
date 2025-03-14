@@ -11,7 +11,6 @@ export const liveCommands: LiveCommands = {
   '/live': async () => {
     try {
       const response = await api.getLiveTimings();
-
       if (!response || !response.data) {
         return '❌ Error: Live timing data is only available during active sessions (Practice, Qualifying, Sprint, or Race)';
       }
@@ -61,7 +60,7 @@ export const liveCommands: LiveCommands = {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes('No active F1 session')) {
-          return '❌ No active F1 session found. Live timing is only available during:\n• Practice Sessions\n• Qualifying\n• Sprint\n• Race';
+          return '🏁 No active F1 session right now.\n\nLive timing data is only available during:\n• Practice Sessions\n• Qualifying\n• Sprint\n• Race\n\nTry again when cars are on track!';
         }
         return `❌ Error: ${error.message}`;
       }
@@ -94,6 +93,9 @@ export const liveCommands: LiveCommands = {
   '/weather': async () => {
     try {
       const data = await api.getTrackWeather();
+      if (!data) {
+        return '🌤️ No active F1 session right now.\n\nWeather data is only available during:\n• Practice Sessions\n• Qualifying\n• Sprint\n• Race\n\nTry again when cars are on track!';
+      }
       
       const statusMap: Record<string, string> = {
         '1': '🟢 Track Clear',
@@ -119,7 +121,7 @@ export const liveCommands: LiveCommands = {
       return conditions;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      if (errorMessage.includes('No active F1 session')) {
+      if (errorMessage.includes('No active F1 session') || errorMessage.includes('No weather data available')) {
         return '🌤️ No active F1 session right now.\n\nWeather data is only available during:\n• Practice Sessions\n• Qualifying\n• Sprint\n• Race\n\nTry again when cars are on track!';
       }
       console.error('Weather service error:', errorMessage);

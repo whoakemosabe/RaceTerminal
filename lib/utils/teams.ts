@@ -1,15 +1,17 @@
 import { teamColors } from '@/lib/data/team-colors';
+import { calculateTeamStats } from './stats';
+import { formatTeamComparison } from './formatting';
 
 // Team nickname mappings
 export const teamNicknames: Record<string, string[]> = {
-  'red_bull': ['Red Bull Racing', 'RBR', 'redbull', 'Milton Keynes, UK', '2005', '6', 'British'],
+  'red_bull': ['Red Bull Racing', 'RBR', 'redbull', 'Milton Keynes, UK', '2005', '7', 'British'],
   'mercedes': ['Mercedes-AMG Petronas', 'MER', 'mercs', 'Brackley, UK', '1954', '8', 'British'],
   'ferrari': ['Scuderia Ferrari', 'FER', 'SF', 'Maranello, Italy', '1950', '16', 'Italian'],
   'mclaren': ['McLaren F1 Team', 'MCL', 'papaya', 'Woking, UK', '1966', '8', 'British'],
   'aston_martin': ['Aston Martin F1 Team', 'AMR', 'aston', 'Silverstone, UK', '2021', '0', 'British'],
   'alpine': ['Alpine F1 Team', 'ALP', 'renault', 'Enstone, UK', '1986', '2', 'French'],
   'williams': ['Williams Racing', 'WIL', 'grove', 'Grove, UK', '1977', '9', 'British'],
-  'alphatauri': ['Scuderia AlphaTauri', 'ALT', 'tauri', 'Faenza, Italy', '1985', '0', 'Italian'],
+  'alphatauri': ['Visa Cash App RB', 'RB', 'tauri', 'Faenza, Italy', '1985', '0', 'Italian'],
   'alfa': ['Alfa Romeo F1 Team', 'ALF', 'sauber', 'Hinwil, Switzerland', '1993', '0', 'Swiss'],
   'haas': ['Haas F1 Team', 'HAS', 'haas', 'Kannapolis, USA', '2016', '0', 'American']
 };
@@ -112,42 +114,57 @@ export function getTeamColor(team: string): string {
 export function findTeamId(search: string): string | null {
   search = search.toLowerCase().trim();
   
+  // Handle empty search
+  if (!search) return null;
+
   // Direct match with team ID
   if (teamNicknames[search]) {
     return search;
   }
   
+  // Common variations and abbreviations
+  const commonVariations: Record<string, string> = {
+    'rb': 'red_bull',
+    'rbr': 'red_bull',
+    'redbull': 'red_bull',
+    'merc': 'mercedes',
+    'mercs': 'mercedes',
+    'amg': 'mercedes',
+    'sf': 'ferrari',
+    'mclaren': 'mclaren',
+    'mcl': 'mclaren',
+    'amr': 'aston_martin',
+    'aston': 'aston_martin',
+    'alpine': 'alpine',
+    'renault': 'alpine',
+    'williams': 'williams',
+    'alfa': 'alfa',
+    'sauber': 'alfa',
+    'haas': 'haas',
+    'at': 'alphatauri',
+    'tauri': 'alphatauri',
+    'alpha': 'alphatauri'
+  };
+
+  // Check common variations first
+  if (commonVariations[search]) {
+    return commonVariations[search];
+  }
+
   // Search through nicknames
   for (const [teamId, names] of Object.entries(teamNicknames)) {
-    // Add common variations for each team
-    const searchTerms = [...names];
-    
-    switch (teamId) {
-      case 'ferrari':
-        searchTerms.push('ferrari', 'scuderia', 'sf', 'maranello');
-        break;
-      case 'red_bull':
-        searchTerms.push('redbull', 'rb', 'rbr', 'red bull', 'milton keynes');
-        break;
-      case 'mercedes':
-        searchTerms.push('merc', 'mercs', 'amg', 'petronas', 'brackley');
-        break;
-      case 'alphatauri':
-        searchTerms.push('alpha', 'tauri', 'at', 'racing bulls', 'faenza');
-        break;
-      case 'mclaren':
-        searchTerms.push('mcl', 'papaya', 'woking');
-        break;
-      case 'aston_martin':
-        searchTerms.push('aston', 'amr', 'silverstone');
-        break;
-    }
-    
-    // Check if any search term matches
-    if (searchTerms.some(term => 
-      term.toLowerCase().includes(search) || 
-      search.includes(term.toLowerCase())
-    )) {
+    // Check each part of the team name
+    const [fullName, code, nickname, location] = names;
+    const nameParts = [
+      fullName.toLowerCase(),
+      code.toLowerCase(),
+      nickname.toLowerCase(),
+      location.toLowerCase(),
+      teamId.replace(/_/g, ' ').toLowerCase()
+    ];
+
+    // Return on first match
+    if (nameParts.some(part => part.includes(search) || search.includes(part))) {
       return teamId;
     }
   }
@@ -271,3 +288,6 @@ export function getTeamPowerUnit(teamId: string): string {
 export function getTeamRecords(teamId: string): string[] {
   return teamRecords[teamId] || ['No notable records available'];
 }
+
+// Re-export team comparison function
+export { formatTeamComparison };

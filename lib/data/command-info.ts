@@ -12,20 +12,40 @@ export const commandInfo: Record<string, CommandInfo> = {
     shortDescription: 'View driver championship standings',
     category: 'RACE INFORMATION'
   },
-  '/teams': {
-    description: 'Display detailed Formula 1 Constructors Championship standings including points, wins, podiums, and development progress throughout the season.',
-    shortDescription: 'View constructor standings',
-    category: 'RACE INFORMATION'
-  },
   '/schedule': {
     description: 'Access the complete 2025 Formula 1 race calendar with dates, times, locations, and track information. Includes sprint races and testing sessions.',
     shortDescription: 'View race calendar',
     category: 'RACE INFORMATION'
   },
   '/next': {
-    description: 'Get detailed information about the upcoming Formula 1 race including countdown, weather forecast, track details, and previous race history at the venue.',
+    description: 'View detailed information about the next Formula 1 race including circuit details, session schedule, and countdown',
     shortDescription: 'Next race info & countdown',
-    category: 'RACE INFORMATION'
+    category: 'RACE INFORMATION',
+    examples: [
+      'Usage:',
+      '/next - Show next race details',
+      '',
+      'Information Shown:',
+      '• Race name and circuit',
+      '• Track details and records',
+      '• Full session schedule (ET)',
+      '• Countdown to race start',
+      '• Sprint weekend indicator'
+    ],
+    notes: [
+      'Available Data:',
+      '• Next race details',
+      '• Circuit information',
+      '• Session schedule',
+      '• Track records',
+      '',
+      'Features:',
+      '• Real-time countdown',
+      '• ET timezone conversion',
+      '• Sprint format detection',
+      '• Circuit details',
+      '• Lap records'
+    ]
   },
   '/last': {
     description: 'Access comprehensive results from the most recent Formula 1 race including finishing positions, gaps, fastest laps, and key race moments.',
@@ -192,11 +212,6 @@ export const commandInfo: Record<string, CommandInfo> = {
     shortDescription: 'System diagnostics',
     category: 'SYSTEM'
   },
-  '/hack': {
-    description: 'Execute an entertaining simulated hacking sequence with visual effects, progress indicators, and dynamic status messages.',
-    shortDescription: 'Hacking simulation',
-    category: 'SYSTEM'
-  },
   '/fontsize': {
     description: 'Customize terminal text size with precise control. Supports direct size input, incremental adjustments, and size presets for optimal readability.',
     shortDescription: 'Adjust text size',
@@ -205,11 +220,6 @@ export const commandInfo: Record<string, CommandInfo> = {
   '/stats': {
     description: 'View detailed terminal usage statistics including command history, most used commands, session duration, and interaction patterns.',
     shortDescription: 'Usage statistics',
-    category: 'SYSTEM'
-  },
-  '/decrypt': {
-    description: 'Engage in an interactive code-breaking minigame with progressive difficulty, hints system, and score tracking.',
-    shortDescription: 'Code-breaking game',
     category: 'SYSTEM'
   }
 };

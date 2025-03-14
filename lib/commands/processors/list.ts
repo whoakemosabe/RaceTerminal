@@ -79,9 +79,16 @@ export const listCommands = {
         // Get notable non-champion drivers
         const notableDrivers = Object.entries(driverNicknames)
           .filter(([id, nicknames]) => {
-            // Exclude current drivers and champions
-            return !currentDrivers.some(d => d.id === id) &&
-                  !nicknames.some(nick => nick.includes(',') && /\d{4}/.test(nick));
+            // Exclude:
+            // 1. Current drivers (by checking against currentDrivers)
+            // 2. Champions (by checking for championship years)
+            // 3. Current driver names (by checking first name against currentDrivers)
+            const isCurrentDriver = currentDrivers.some(d => 
+              d.first_name.toLowerCase() + ' ' + d.last_name.toLowerCase() === nicknames[0].toLowerCase()
+            );
+            const isChampion = nicknames.some(nick => nick.includes(',') && /\d{4}/.test(nick));
+            
+            return !isCurrentDriver && !isChampion;
           })
           .map(([id, nicknames]) => {
             const number = driverNumbers[id] || '';
@@ -123,21 +130,7 @@ export const listCommands = {
           })
         ];
 
-        const notableSection = [
-          '',
-          '🌟 Notable Drivers',
-          '═'.repeat(60),
-          ...notableDrivers.map(d => {
-            const flagUrl = getFlagUrl(d.nationality);
-            const flag = flagUrl ? 
-              `<img src="${flagUrl}" alt="${d.nationality} flag" style="display:inline;vertical-align:middle;margin:0 2px;height:13px;">` : 
-              '';
-            const numberDisplay = d.number ? `#${d.number.padStart(2, '0')}` : '   ';
-            return `${numberDisplay} | ${d.name} (${d.code}) ${flag}`;
-          })
-        ];
-
-        return [...currentSection, ...championsSection, ...notableSection].join('\n');
+        return [...currentSection, ...championsSection].join('\n');
       }
 
       case 'teams': {
@@ -160,7 +153,8 @@ export const listCommands = {
             `<img src="${flagUrl}" alt="${team.nationality} flag" style="display:inline-block;vertical-align:middle;margin:0 2px;height:13px;width:25px;object-fit:cover;">` : 
             '';
           
-          return `${(index + 1).toString().padStart(2, ' ')}. ${flag} ${formatWithTeamColor(team.name)} | 🏆 ${team.championships} Championships | 📍 ${team.hq} | 📅 ${team.established}`;
+          const teamColor = getTeamColor(team.name);
+          return `${(index + 1).toString().padStart(2, ' ')}. ${flag} <span style="color: ${teamColor}">${team.name}</span> | 🏆 ${team.championships} Championships | 📍 ${team.hq} | 📅 ${team.established}`;
         });
 
         return [

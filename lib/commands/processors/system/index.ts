@@ -142,7 +142,16 @@ export const systemCommands: SystemCommands = {
       console.error('Error generating stats:', error);
       return '❌ Error: Could not generate usage statistics. Please try again later.';
     }
-  }
+  },
+
+  '/glitch': async () => {
+    document.documentElement.classList.add('glitch-active');
+    setTimeout(() => {
+      document.documentElement.classList.remove('glitch-active');
+    }, 2000);
+    return '👾 Initiating glitch sequence...';
+  },
+
 };
 
 function countCategoryCommands(history: any[], commands: string[]): string {
