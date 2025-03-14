@@ -41,6 +41,14 @@ export default function Home() {
   const isResizingRef = useRef(false);
   const initialHeightRef = useRef(700);
   const { username } = useUsername();
+
+  const MyComponent: React.FC = () => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    return (
+        <input ref={inputRef} type="text" />
+    );
+};
   
   // Set session start time on mount
   useEffect(() => {
@@ -450,10 +458,10 @@ export default function Home() {
       </div>
       <div className="flex-shrink-0 mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-1 w-full max-w-7xl">
         <header className="mb-2 px-4 py-2 border-b border-border/20 text-center glass-panel">
-          <h1 className="bg-clip-text bg-gradient-to-r from-secondary via-primary to-secondary font-bold text-2xl sm:text-3xl lg:text-4xl text-transparent tracking-tight animate-pulse">
+          <h1 className="title-top bg-clip-text bg-gradient-to-r from-secondary via-primary to-secondary font-bold text-transparent text-2xl sm:text-3xl lg:text-5xl tracking-tight animate-pulse">
             RaceTerminal Pro
           </h1>
-          <p className="mt-1 text-muted-foreground/80 text-[10px] sm:text-xs tracking-wide">
+          <p className="mt-1 text-[10px] text-muted-foreground/80 sm:text-xs tracking-wide">
             Your futuristic motorsports data companion
           </p>
         </header>
@@ -465,7 +473,7 @@ export default function Home() {
           onClose={() => {
             setIsFullscreen(false);
             setTimeout(() => setIsMainVisible(true), 100);
-          }}
+          } }
           command={command}
           isProcessing={isProcessing}
           history={history}
@@ -478,12 +486,11 @@ export default function Home() {
             if (historyIndex !== -1) {
               setHistoryIndex(-1);
             }
-          }}
+          } }
           onKeyDown={handleKeyDown}
-          onExecute={handleCommand} 
+          onExecute={handleCommand}
           showWelcome={showWelcome}
-          onCloseWelcome={() => setShowWelcome(false)}
-        />
+          onCloseWelcome={() => setShowWelcome(false)}        />
 
         <div 
           ref={terminalRef}
@@ -515,12 +522,16 @@ export default function Home() {
 
         <div
           ref={resizeRef}
-          className="my-2 bg-border/10 hover:bg-border/20 rounded-full h-1 transition-colors cursor-row-resize flex-shrink-0"
+          className="flex-shrink-0 my-2 bg-border/10 hover:bg-border/20 rounded-full h-1 transition-colors cursor-row-resize"
         />
-        <div className="overflow-y-auto flex-1">
+        <div className="flex-1 overflow-y-auto">
           <HelpPanel />
         </div>
       </div>
     </main>
   );
+}
+
+function onNavigationStateChange(arg0: boolean) {
+  throw new Error('Function not implemented.');
 }

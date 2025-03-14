@@ -6,89 +6,102 @@ import { commands } from '@/lib/commands';
 
 export class ThemeSuggestionProvider implements SuggestionProvider {
   getCompletions(input: string): Suggestion[] {
-    const searchTerm = input.toLowerCase();
-    const suggestions: Suggestion[] = [];
+  const searchTerm = input.toLowerCase(); // Keep input as is (preserve spaces)
+  const suggestions: Suggestion[] = [];
 
-    // Handle calculator theme suggestions
-    if (searchTerm.startsWith('calc')) {
-      // If just 'calc' or 'calc ', show all calculator themes
-      const calcSearch = searchTerm.replace('calc', '').trim();
-      if (!calcSearch) {
-        Object.entries(calculatorThemes).forEach(([name, theme]) => {
-          suggestions.push({
-            value: `calc ${name}`,
-            description: theme.description || 'Calculator theme',
-            suffix: `<div style="display:inline-block;padding:2px 8px;background:${theme.bg};color:${theme.text};border:1px solid ${theme.text};border-radius:3px;font-family:monospace">123</div>`
-          });
-        });
-        return suggestions;
-      }
-      
-      // If typing after 'calc ', filter calculator themes
-      Object.entries(calculatorThemes).forEach(([name, theme]) => {
-        if (name.toLowerCase().includes(calcSearch)) {
-          suggestions.push({
-            value: `calc ${name}`,
-            description: theme.description || 'Calculator theme',
-            suffix: `<div style="display:inline-block;padding:2px 8px;background:${theme.bg};color:${theme.text};border:1px solid ${theme.text};border-radius:3px;font-family:monospace">123</div>`
-          });
-        }
-      });
-      return suggestions;
+  // Handle 'calc' and any input starting with 'calc ' (including trailing spaces)
+  if (searchTerm.startsWith('calc ')) {
+    const calcSearch = searchTerm.slice(5); // Get the part after 'calc '
+
+    // If there's no search term after 'calc ', still show all themes
+    if (calcSearch === '' || calcSearch.trim() === '') {
+      this.addAllCalculatorThemes(suggestions);
+    } else {
+      this.addFilteredCalculatorThemes(suggestions, calcSearch);
     }
-    
-    // Get theme commands from main commands array
-    const themeCommands = commands.filter(cmd => 
-      cmd.command.startsWith('/theme') || 
-      cmd.command.startsWith('/colors')
-    );
+  } else if (searchTerm === 'calc') {
+    // Show all calculator themes for 'calc'
+    this.addAllCalculatorThemes(suggestions);
+  } else if (searchTerm.startsWith('c')) {
+    // Handle general input starting with 'c'
+    this.addAllCalculatorThemes(suggestions);
+  }
 
-    // Add team themes
+  // Handle team themes
+  this.addTeamThemes(suggestions, searchTerm);
+
+  // Handle VSCode themes
+  this.addVscodeThemes(suggestions, searchTerm);
+
+  // Add default theme
+  this.addDefaultTheme(suggestions, searchTerm);
+
+  return this.sortSuggestions(suggestions);
+}
+
+
+
+  private addAllCalculatorThemes(suggestions: Suggestion[]) {
+    Object.entries(calculatorThemes).forEach(([name, theme]) => {
+      suggestions.push({
+        value: `calc ${name}`,
+        description: theme.description || 'Calculator theme',
+        suffix: `TERMINAL THEME`
+      });
+    });
+  }
+
+  private addFilteredCalculatorThemes(suggestions: Suggestion[], calcSearch: string) {
+    Object.entries(calculatorThemes).forEach(([name, theme]) => {
+      if (name.toLowerCase().includes(calcSearch)) {
+        suggestions.push({
+          value: `calc ${name}`,
+          description: theme.description || 'Calculator theme',
+          suffix: `TERMINAL THEME`
+        });
+      }
+    });
+  }
+
+  private addTeamThemes(suggestions: Suggestion[], searchTerm: string) {
     Object.entries(teamNicknames).forEach(([id, names]) => {
       const teamName = names[0];
       const shortName = names[2].toLowerCase();
 
-      // Check if search matches any part of the team name or code
-      const matches = !searchTerm || 
-        names.some(name => 
-          name.toLowerCase().includes(searchTerm) || 
-          name.toLowerCase().replace(/\s+/g, '').includes(searchTerm)
-        );
+      const matches = names.some(name => 
+        name.toLowerCase().includes(searchTerm) || 
+        name.toLowerCase().replace(/\s+/g, '').includes(searchTerm)
+      );
 
       if (matches) {
         suggestions.push({
           value: teamName,
           description: `Team Theme (Est. ${names[4]})`,
-          suffix: shortName.toUpperCase()
+          suffix: 'TEAM THEME'
         });
       }
     });
+  }
 
-    // Add VSCode themes
+  private addVscodeThemes(suggestions: Suggestion[], searchTerm: string) {
     Object.entries(colorThemes).forEach(([id, theme]) => {
-      if (!searchTerm || id.toLowerCase().includes(searchTerm)) {
+      if (id.toLowerCase().includes(searchTerm)) {
         suggestions.push({
           value: id,
           description: theme.description || 'Editor color theme',
-          suffix: id
+          suffix: 'VSCODE'
         });
       }
     });
+  }
 
-    const addThemes = () => {
-      // Add default theme
-      if (!searchTerm || 'default'.includes(searchTerm)) {
-        suggestions.push({
-          value: 'default',
-          description: 'Reset to default terminal colors'
-        });
-      }
-    };
-
-    // Add all themes and filter based on search term
-    addThemes();
-
-    return this.sortSuggestions(suggestions);
+  private addDefaultTheme(suggestions: Suggestion[], searchTerm: string) {
+    if (!searchTerm || 'default'.includes(searchTerm)) {
+      suggestions.push({
+        value: 'default',
+        description: 'Reset to default terminal colors'
+      });
+    }
   }
 
   private sortSuggestions(suggestions: Suggestion[]): Suggestion[] {
@@ -102,10 +115,7 @@ export class ThemeSuggestionProvider implements SuggestionProvider {
     return deduplicate(suggestions.sort((a, b) => {
       const orderA = getOrder(a.value);
       const orderB = getOrder(b.value);
-      if (orderA === orderB) {
-        return a.value.localeCompare(b.value);
-      }
-      return orderA - orderB;
+      return orderA === orderB ? a.value.localeCompare(b.value) : orderA - orderB;
     }));
   }
 }

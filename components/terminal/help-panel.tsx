@@ -67,11 +67,13 @@ export function HelpPanel() {
           )}
         >
           <div className="flex items-center gap-4">
-            <span>Tab to auto-complete</span>
-            <span>•</span>
             <span>Case-insensitive</span>
             <span>•</span>
+            <span>Tab to auto-complete</span>
+            <span>•</span>
             <span>Use /list for data</span>
+            <span>•</span>
+            <span>Alt + Enter for Fullscreen</span>
           </div>
         </div>
 
@@ -134,9 +136,9 @@ export function HelpPanel() {
             <div className="bottom-0 sticky flex justify-between items-center bg-card/30 backdrop-blur-sm p-2 border-t border-border/10 text-[10px] text-muted-foreground/70">
               <div className="hidden sm:block">Type <code className="bg-card/30 px-1 py-0.5 rounded text-primary">/help</code> for detailed documentation</div>
               <div className="flex items-center gap-2 sm:gap-4">
-                <span>Tab to auto-complete</span>
                 <span>Case-insensitive</span>
-                <span className="hidden sm:inline">Use /list for data</span>
+                <span>Tab to auto-complete</span>
+                <span>Use <code className="bg-card/30 px-1 py-0.5 rounded text-primary">/list</code> for data</span>
               </div>
             </div>
           </div>

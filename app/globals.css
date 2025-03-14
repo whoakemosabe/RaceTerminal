@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
  
 @layer base {
   :root {
@@ -48,6 +50,15 @@
     @apply bg-background text-[hsl(var(--foreground))] antialiased;
   }
 }
+
+
+.title-top {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4), 
+                 0 0 20px rgba(255, 255, 255, 0.4), 
+                 0 0 30px rgba(255, 255, 255, 0.4);
+  }
+
+
 
 .tooltip-content {
   @apply bg-card/30 font-mono;
