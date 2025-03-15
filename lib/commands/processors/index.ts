@@ -1,6 +1,7 @@
 import { systemCommands } from './system/index';
 import { helpCommands } from './system/help';
 import { driverCommands } from './driver';
+import { teamCommands } from './team';
 import { raceCommands } from './race/index';
 import { liveCommands } from './live';
 import { effectsCommands } from './effects';
@@ -21,6 +22,7 @@ const processors: Record<string, CommandFunction> = {};
 Object.assign(processors, systemCommands);
 Object.assign(processors, helpCommands);
 Object.assign(processors, driverCommands);
+Object.assign(processors, teamCommands);
 Object.assign(processors, raceCommands);
 Object.assign(processors, liveCommands);
 Object.assign(processors, effectsCommands);

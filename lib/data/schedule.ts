@@ -491,7 +491,7 @@ export const schedule = {
         .map(([key, session]) => ({
           key,
           ...session,
-          startTime: new Date(session.date), // Use UTC date
+          startTime: new Date(session.dateET), // Use ET date
           endTime: null as Date | null
         }))
         .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
@@ -521,19 +521,20 @@ export const schedule = {
       // Calculate weekend boundaries
       const weekendStart = sessions[0].startTime;
       const lastSession = sessions[sessions.length - 1].startTime;
-      const weekendEnd = new Date(lastSession.getTime() + (3 * 60 * 60 * 1000)); // 3 hours after last session
+      const weekendEnd = new Date(lastSession.getTime() + (4 * 60 * 60 * 1000)); // 4 hours after last session for ET timezone
+      const now = new Date();
       
-      if (now >= weekendStart && now < weekendEnd) {
+      // Check if we're in a race weekend
+      if (now >= weekendStart && now <= weekendEnd) {
         activeRace = race;
         
         let foundActive = false;
         let foundNext = false;
         for (let i = 0; i < sessions.length; i++) {
           const session = sessions[i];
-          const now = new Date();
           
           // Check if session is active
-          if (now >= session.startTime && now < session.endTime) {
+          if (now >= session.startTime && now <= session.endTime) {
             foundActive = true;
             activeSession = {
               type: session.key,
@@ -541,7 +542,7 @@ export const schedule = {
               startTime: session.startTime,
               endTime: session.endTime,
               status: session.name,
-              timeRemaining: Math.floor((session.endTime.getTime() - now.getTime()) / 60000) // minutes remaining
+              timeRemaining: Math.ceil((session.endTime.getTime() - now.getTime()) / 60000) // minutes remaining, rounded up
             };
             continue; // Continue to find next session
           }
@@ -555,7 +556,7 @@ export const schedule = {
               startTime: session.startTime,
               endTime: session.endTime,
               status: session.name,
-              countdown: Math.floor((session.startTime.getTime() - now.getTime()) / 60000) // minutes until start
+              countdown: Math.ceil((session.startTime.getTime() - now.getTime()) / 60000) // minutes until start, rounded up
             };
             break; // Found next session, no need to check others
           }
@@ -564,7 +565,7 @@ export const schedule = {
       }
       
       // If no active session found, check for next race weekend
-      if (!foundNext && now < weekendStart) {
+      if (!activeSession && !nextSession && now < weekendStart) {
         const firstSession = sessions[0];
         
         nextSession = {
@@ -573,7 +574,7 @@ export const schedule = {
           startTime: firstSession.startTime,
           endTime: firstSession.endTime,
           status: firstSession.name,
-          countdown: Math.floor((firstSession.startTime.getTime() - now.getTime()) / 60000)
+          countdown: Math.ceil((firstSession.startTime.getTime() - now.getTime()) / 60000)
         };
         activeRace = race;
         break;
